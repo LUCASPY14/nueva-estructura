@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nuevo Movimiento{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Registrar Movimiento de Stock</h1>
+<form method="post">{% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="mb-4">{{ form.producto.label_tag }} {{ form.producto }}</div>
+  <div class="mb-4">{{ form.tipo.label_tag }} {{ form.tipo }}</div>
+  <div class="mb-4">{{ form.cantidad.label_tag }} {{ form.cantidad }}</div>
+  <div class="mb-4">{{ form.motivo.label_tag }} {{ form.motivo }}</div>
+  <div class="mb-4">{{ form.referencia.label_tag }} {{ form.referencia }}</div>
+  <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Guardar Movimiento</button>
+</form>
+{% endblock %}

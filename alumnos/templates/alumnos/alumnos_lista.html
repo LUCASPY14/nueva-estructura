@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Lista de Alumnos</h2>
+<a href="{% url 'alumnos:crear_alumno' %}" class="btn btn-primary">Nuevo Alumno</a>
+<table>
+    <tr>
+        <th>Nombre</th>
+        <th>Padre</th>
+        <th>Grado</th>
+        <th>Nivel</th>
+        <th>Saldo</th>
+        <th>Acciones</th>
+    </tr>
+    {% for alumno in alumnos %}
+    <tr>
+        <td>{{ alumno.nombre }}</td>
+        <td>{{ alumno.padre }}</td>
+        <td>{{ alumno.grado }}</td>
+        <td>{{ alumno.nivel }}</td>
+        <td>{{ alumno.saldo_tarjeta }}</td>
+        <td>
+            <a href="{% url 'alumnos:editar_alumno' alumno.pk %}">Editar</a> |
+            <a href="{% url 'alumnos:eliminar_alumno' alumno.pk %}">Eliminar</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% load static %}
+{% block content %}
+<div class="flex items-center justify-center h-96">
+  <div class="text-center">
+    <img src="{% static 'images/lgservice_logo.png' %}" alt="LGservice" class="mx-auto mb-4 w-32">
+    <h1 class="text-4xl font-bold mb-2">LGservice</h1>
+    <p>Diseñado por [Tu Nombre]. Todos los derechos reservados &#169; {{ year }}</p>
+    <a href="{% url 'usuarios:login' %}" class="mt-4 inline-block bg-green-600 text-white px-4 py-2 rounded">Ingresar</a>
+  </div>
+</div>
+{% endblock %}

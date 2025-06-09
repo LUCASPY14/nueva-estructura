@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Mis Hijos</h2>
+<ul>
+    {% for hijo in hijos %}
+    <li>
+        <a href="{% url 'alumnos:detalle_alumno' hijo.pk %}">{{ hijo.nombre }}</a>
+        - Saldo: {{ hijo.saldo_tarjeta }}
+    </li>
+    {% endfor %}
+</ul>
+<a href="{% url 'alumnos:cargar_saldo' %}" class="btn btn-primary">Cargar Saldo</a>
+<a href="{% url 'alumnos:editar_perfil_padre' %}" class="btn btn-secondary">Editar Perfil</a>
+{% endblock %}

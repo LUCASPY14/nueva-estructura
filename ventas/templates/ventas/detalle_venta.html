@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Detalle de Venta{% endblock %}
+{% block content %}
+<div class="container mx-auto py-8">
+  <h1 class="text-2xl font-bold mb-4">Detalle Venta #{{ venta.id }}</h1>
+  <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
+    <p><strong>Alumno:</strong> {{ venta.alumno.nombre }}</p>
+    <p><strong>Cajero:</strong> {{ venta.cajero.get_full_name }}</p>
+    <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+    <p><strong>Total:</strong> {{ venta.total }} Gs.</p>
+    <p><strong>Condición:</strong> {{ venta.get_condicion_display }}</p>
+    <p><strong>Sobregiro autorizado:</strong> 
+      {% if venta.sobregiro_autorizado %}Sí{% else %}No{% endif %}
+    </p>
+    {% if venta.codigo_autorizacion %}
+      <p><strong>Código:</strong> {{ venta.codigo_autorizacion.code }}</p>
+    {% endif %}
+  </div>
+
+  <h2 class="text-xl font-semibold mb-2">Productos</h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="px-4 py-2 border">Producto</th>
+          <th class="px-4 py-2 border">Cantidad</th>
+          <th class="px-4 py-2 border">Precio Unitario</th>
+          <th class="px-4 py-2 border">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in venta.detalles.all %}
+        <tr class="border-t">
+          <td class="px-4 py-2">{{ d.producto.nombre }}</td>
+          <td class="px-4 py-2">{{ d.cantidad }}</td>
+          <td class="px-4 py-2">{{ d.precio_unitario }}</td>
+          <td class="px-4 py-2">{{ d.subtotal }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="text-xl font-semibold mt-6 mb-2">Pagos</h2>
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="px-4 py-2 border">Método</th>
+          <th class="px-4 py-2 border">Monto</th>
+          <th class="px-4 py-2 border">Transacción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in venta.pagos.all %}
+        <tr class="border-t">
+          <td class="px-4 py-2">{{ p.get_metodo_display }}</td>
+          <td class="px-4 py-2">{{ p.monto }}</td>
+          <td class="px-4 py-2">{{ p.transaccion }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <a href="{% url 'ventas:ventas_lista' %}" class="mt-4 inline-block text-blue-600 hover:underline">
+    ← Volver a Ventas
+  </a>
+</div>
+{% endblock %}

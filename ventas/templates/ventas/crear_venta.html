@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto py-6">
+  <h1 class="text-2xl font-bold mb-4">Registrar Venta</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div>
+        <label class="block font-medium">Alumno</label>
+        {{ form.alumno }}{{ form.alumno.errors }}
+      </div>
+      <div>
+        <label class="block font-medium">Condición</label>
+        {{ form.condicion }}{{ form.condicion.errors }}
+      </div>
+      <div>
+        <label class="block font-medium">Código Autorización (si sobregiro)</label>
+        {{ form.codigo_autorizacion }}{{ form.codigo_autorizacion.errors }}
+      </div>
+    </div>
+
+    <hr class="my-4">
+    <h2 class="font-semibold mb-2">Productos</h2>
+    {{ detalles.management_form }}
+    <div id="detalles-container">
+      {# Detalles existentes #}
+      {% for f in detalles.forms %}
+        <div class="detalle-row flex space-x-2 mb-2">
+          <div class="flex-1">{{ f.producto }}</div>
+          <div class="w-24">{{ f.cantidad }}</div>
+          <div class="w-32">{{ f.precio_unitario }}</div>
+          <div class="w-12 text-center">
+            {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+
+      {# Plantilla oculta para nuevos detalles #}
+      <div class="detalle-row detalles-empty hidden flex space-x-2 mb-2">
+        {{ detalles.empty_form.producto }}
+        {{ detalles.empty_form.cantidad }}
+        {{ detalles.empty_form.precio_unitario }}
+        {{ detalles.empty_form.DELETE }}
+      </div>
+    </div>
+    <button type="button" id="add-detalle" class="text-blue-600 mb-4">+ Agregar Ítem</button>
+
+    <hr class="my-4">
+    <h2 class="font-semibold mb-2">Pagos</h2>
+    {{ pagos.management_form }}
+    <div id="pagos-container">
+      {# Pagos existentes #}
+      {% for p in pagos.forms %}
+        <div class="pago-row flex space-x-2 mb-2">
+          <div class="w-40">{{ p.metodo }}</div>
+          <div class="w-32">{{ p.monto }}</div>
+          <div class="flex-1">{{ p.transaccion }}</div>
+          <div class="w-12 text-center">
+            {% if p.instance.pk %}{{ p.DELETE }}{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+
+      {# Plantilla oculta para nuevos pagos #}
+      <div class="pago-row pagos-empty hidden flex space-x-2 mb-2">
+        {{ pagos.empty_form.metodo }}
+        {{ pagos.empty_form.monto }}
+        {{ pagos.empty_form.transaccion }}
+        {{ pagos.empty_form.DELETE }}
+      </div>
+    </div>
+    <button type="button" id="add-pago" class="text-blue-600 mb-4">+ Agregar Pago</button>
+
+    <button type="submit" class="mt-4 bg-green-600 text-white py-2 px-4 rounded">
+      Finalizar Venta
+    </button>
+  </form>
+</div>
+
+<script>
+// Clona una fila vacía de formset
+function cloneRow(containerId, emptyClass, totalInputName, addButtonId) {
+  const container = document.getElementById(containerId);
+  const empty = container.querySelector(`.${emptyClass}`);
+  const totalForms = document.querySelector(`input[name="${totalInputName}"]`);
+  document.getElementById(addButtonId).addEventListener('click', () => {
+    const index = parseInt(totalForms.value);
+    const clone = empty.cloneNode(true);
+    clone.classList.remove(emptyClass, 'hidden');
+    // Reemplaza __prefix__ en name e id
+    clone.innerHTML = clone.innerHTML.replace(/__prefix__/g, index);
+    container.appendChild(clone);
+    totalForms.value = index + 1;
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  cloneRow('detalles-container', 'detalles-empty', 'detalles-TOTAL_FORMS', 'add-detalle');
+  cloneRow('pagos-container',    'pagos-empty',    'pagos-TOTAL_FORMS',    'add-pago');
+});
+</script>
+{% endblock %}

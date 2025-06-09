@@ -1,0 +1,28 @@
+{% extends "reportes/base_report.html" %}
+{% block title %}Reporte Ventas{% endblock %}
+{% load static %}
+
+{% block content %}
+{{ block.super }}
+<h2 class="text-xl font-semibold mb-2">Ventas de {{ start_date }} a {{ end_date }}</h2>
+<div class="overflow-x-auto">
+  <table class="min-w-full bg-white">
+    <thead>
+      <tr class="bg-gray-200">
+        <th class="px-4 py-2 border">ID</th>
+        <th class="px-4 py-2 border">Fecha</th>
+        <th class="px-4 py-2 border">Total (Gs.)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in data %}
+      <tr class="border-t">
+        <td class="px-4 py-2">{{ v.id }}</td>
+        <td class="px-4 py-2">{{ v.fecha|date:"d/m/Y" }}</td>
+        <td class="px-4 py-2">{{ v.total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

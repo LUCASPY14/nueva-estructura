@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Alertas de Bajo Stock{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4 text-red-600">Productos con Stock Bajo</h1>
+<table class="min-w-full bg-white">
+  <thead><tr><th>Producto</th><th>Cantidad</th><th>Umbral</th></tr></thead>
+  <tbody>
+    {% for p in productos %}
+    <tr class="border-t"><td>{{ p.nombre }}</td><td>{{ p.cantidad }}</td><td>{{ p.umbral_bajo }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

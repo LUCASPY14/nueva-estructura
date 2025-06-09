@@ -1,0 +1,31 @@
+{# productos/templates/productos/crear_editar_proveedor.html #}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<div class="container mx-auto py-8 max-w-md">
+  <h1 class="text-2xl font-bold mb-4">{{ titulo }}</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="mb-4">
+      <label class="block font-medium">Nombre del Proveedor</label>
+      {{ form.nombre }}
+      {{ form.nombre.errors }}
+    </div>
+    <div class="mb-4">
+      <label class="block font-medium">Contacto (opcional)</label>
+      {{ form.contacto }}
+      {{ form.contacto.errors }}
+    </div>
+
+    <button type="submit"
+      class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+      Guardar
+    </button>
+    <a href="{% url 'productos:listar_proveedores' %}" class="ml-4 text-gray-600 hover:underline">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Error de Autorización{% endblock %}
+{% block content %}
+<div class="container mx-auto py-8 max-w-md">
+  <h1 class="text-2xl font-bold mb-4 text-red-600">Error de Autorización</h1>
+  <p class="mb-6">{{ mensaje }}</p>
+  <a href="{% url 'ventas:crear_venta' %}" class="text-blue-600 hover:underline">
+    ← Volver a Registrar Venta
+  </a>
+</div>
+{% endblock %}

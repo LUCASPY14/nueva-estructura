@@ -1,0 +1,63 @@
+{# productos/templates/productos/crear_editar_producto.html #}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+<div class="container mx-auto py-8 max-w-lg">
+  <h1 class="text-2xl font-bold mb-4">{{ titulo }}</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="mb-4">
+      <label class="block font-medium">Código</label>
+      {{ form.codigo }}
+      {{ form.codigo.errors }}
+    </div>
+    <div class="mb-4">
+      <label class="block font-medium">Nombre</label>
+      {{ form.nombre }}
+      {{ form.nombre.errors }}
+    </div>
+    <div class="mb-4">
+      <label class="block font-medium">Descripción (opcional)</label>
+      {{ form.descripcion }}
+      {{ form.descripcion.errors }}
+    </div>
+    <div class="mb-4">
+      <label class="block font-medium">Categoría</label>
+      {{ form.categoria }}
+      {{ form.categoria.errors }}
+    </div>
+    <div class="mb-4">
+      <label class="block font-medium">Proveedor</label>
+      {{ form.proveedor }}
+      {{ form.proveedor.errors }}
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block font-medium">Precio Costo (Gs.)</label>
+        {{ form.precio_costo }}
+        {{ form.precio_costo.errors }}
+      </div>
+      <div>
+        <label class="block font-medium">Precio Venta (Gs.)</label>
+        {{ form.precio_venta }}
+        {{ form.precio_venta.errors }}
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="block font-medium">Cantidad en Stock</label>
+      {{ form.cantidad }}
+      {{ form.cantidad.errors }}
+    </div>
+
+    <button type="submit"
+      class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
+      Guardar
+    </button>
+    <a href="{% url 'productos:listar_productos' %}" class="ml-4 text-gray-600 hover:underline">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

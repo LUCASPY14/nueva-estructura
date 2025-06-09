@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Detalle de {{ alumno.nombre }}</h2>
+<ul>
+    <li>Grado: {{ alumno.grado }}</li>
+    <li>Nivel: {{ alumno.nivel }}</li>
+    <li>Límite de consumo diario: {{ alumno.limite_consumo }}</li>
+    <li>Saldo tarjeta: {{ alumno.saldo_tarjeta }}</li>
+    <li>Número de tarjeta: {{ alumno.numero_tarjeta }}</li>
+</ul>
+<a href="{% url 'alumnos:mis_hijos' %}" class="btn btn-secondary">Volver</a>
+{% endblock %}

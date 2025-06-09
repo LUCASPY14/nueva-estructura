@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lista de Compras{% endblock %}
+{% block content %}
+<div class="container mx-auto py-8">
+  <h1 class="text-2xl font-bold mb-4">Lista de Compras</h1>
+  <a href="{% url 'compras:crear_compra' %}"
+     class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded mb-4 inline-block">
+    + Nueva Compra
+  </a>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="px-4 py-2 border">ID</th>
+          <th class="px-4 py-2 border">Proveedor</th>
+          <th class="px-4 py-2 border">Fecha</th>
+          <th class="px-4 py-2 border">Total (Gs.)</th>
+          <th class="px-4 py-2 border">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for compra in compras %}
+        <tr class="border-t">
+          <td class="px-4 py-2">{{ compra.id }}</td>
+          <td class="px-4 py-2">{{ compra.proveedor.nombre }}</td>
+          <td class="px-4 py-2">{{ compra.fecha|date:"d/m/Y H:i" }}</td>
+          <td class="px-4 py-2">{{ compra.total }}</td>
+          <td class="px-4 py-2 space-x-2">
+            <a href="{% url 'compras:detalle_compra' compra.id %}"
+               class="text-blue-600 hover:underline">Detalle</a>
+            <a href="{% url 'compras:editar_compra' compra.id %}"
+               class="text-green-600 hover:underline">Editar</a>
+            <a href="{% url 'compras:eliminar_compra' compra.id %}"
+               class="text-red-600 hover:underline">Eliminar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="px-4 py-2 text-center">No hay compras registradas.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

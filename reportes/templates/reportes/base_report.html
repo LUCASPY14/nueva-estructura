@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reportes{% endblock %}
+{% block extra_css %}
+  <link href="{% static 'css/reportes.css' %}" rel="stylesheet">
+{% endblock %}
+{% block content %}
+<div class="report-container">
+  <h1 class="report-title">Generar Reporte</h1>
+  <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+    {{ form.start_date.label_tag }} {{ form.start_date }}
+    {{ form.end_date.label_tag }} {{ form.end_date }}
+    {{ form.tipo_reporte.label_tag }} {{ form.tipo_reporte }}
+    <div><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Ver</button></div>
+  </form>
+</div>
+{% endblock %}

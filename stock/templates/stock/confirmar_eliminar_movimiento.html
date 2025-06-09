@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Eliminar Movimiento{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4 text-red-600">Eliminar Movimiento</h1>
+<p>¿Seguro que deseas eliminar el movimiento de <strong>{{ mov.producto.nombre }}</strong> del {{ mov.fecha|date:"d/m/Y H:i" }}?</p>
+<form method="post">{% csrf_token %}
+  <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Sí, eliminar</button>
+  <a href="{% url 'stock:movimientos_list' %}" class="ml-4 text-gray-600">Cancelar</a>
+</form>
+{% endblock %}

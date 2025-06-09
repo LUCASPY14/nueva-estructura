@@ -1,0 +1,44 @@
+{# productos/templates/productos/proveedores_lista.html #}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lista de Proveedores{% endblock %}
+{% block content %}
+<div class="container mx-auto py-8">
+  <h1 class="text-2xl font-bold mb-4">Lista de Proveedores</h1>
+  <a href="{% url 'productos:crear_proveedor' %}"
+     class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded mb-4 inline-block">
+    + Nuevo Proveedor
+  </a>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="px-4 py-2 border">Nombre</th>
+          <th class="px-4 py-2 border">Contacto</th>
+          <th class="px-4 py-2 border">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for proveedor in proveedores %}
+        <tr class="border-t">
+          <td class="px-4 py-2">{{ proveedor.nombre }}</td>
+          <td class="px-4 py-2">{{ proveedor.contacto }}</td>
+          <td class="px-4 py-2 space-x-2">
+            <a href="{% url 'productos:editar_proveedor' proveedor.id %}"
+               class="text-blue-600 hover:underline">Editar</a>
+            <a href="{% url 'productos:eliminar_proveedor' proveedor.id %}"
+               class="text-red-600 hover:underline">Eliminar</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="px-4 py-2 text-center">No hay proveedores registrados.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

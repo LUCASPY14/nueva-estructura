@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Eliminar Compra{% endblock %}
+{% block content %}
+<div class="container mx-auto py-8 max-w-md">
+  <h1 class="text-2xl font-bold mb-4 text-red-600">Eliminar Compra #{{ compra.id }}</h1>
+  <p class="mb-6">
+    ¿Estás seguro de que deseas eliminar esta compra realizada a 
+    <strong>{{ compra.proveedor.nombre }}</strong> el 
+    <strong>{{ compra.fecha|date:"d/m/Y H:i" }}</strong>?
+    <br>
+    Esto ajustará el stock restando las unidades compradas.
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit"
+      class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded mr-2">
+      Sí, eliminar
+    </button>
+    <a href="{% url 'compras:compras_lista' %}"
+       class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded">
+      Cancelar
+    </a>
+  </form>
+</div>
+{% endblock %}

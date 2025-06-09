@@ -1,0 +1,28 @@
+{% extends "reportes/base_report.html" %}
+{% load static %}
+
+{% block title %}Reporte Stock{% endblock %}
+{% block content %}
+{{ block.super }}
+<h2 class="text-xl font-semibold mb-2">Stock Actual de Productos</h2>
+<div class="overflow-x-auto">
+  <table class="min-w-full bg-white">
+    <thead>
+      <tr class="bg-gray-200">
+        <th class="px-4 py-2 border">Código</th>
+        <th class="px-4 py-2 border">Nombre</th>
+        <th class="px-4 py-2 border">Cantidad</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in data %}
+      <tr class="border-t">
+        <td class="px-4 py-2">{{ item.codigo }}</td>
+        <td class="px-4 py-2">{{ item.nombre }}</td>
+        <td class="px-4 py-2">{{ item.cantidad }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

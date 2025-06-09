@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Stock Productos{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">Stock Actual</h1>
+<table class="min-w-full bg-white mb-8">
+  <thead><tr><th>Producto</th><th>Código</th><th>Cantidad</th></tr></thead>
+  <tbody>
+    {% for p in productos %}
+    <tr class="border-t"><td>{{ p.nombre }}</td><td>{{ p.codigo }}</td><td>{{ p.cantidad }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2 class="text-xl font-semibold mb-4">Movimientos Recientes</h2>
+<a href="{% url 'stock:crear_movimiento' %}" class="bg-green-600 text-white px-4 py-2 rounded">+ Nuevo Movimiento</a>
+<table class="min-w-full bg-white mt-4">
+  <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th>Cantidad</th><th>Acción</th></tr></thead>
+  <tbody>
+    {% for m in movimientos %}
+    <tr class="border-t">
+      <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
+      <td>{{ m.producto.nombre }}</td>
+      <td>{{ m.get_tipo_display }}</td>
+      <td>{{ m.cantidad }}</td>
+      <td><a href="{% url 'stock:eliminar_movimiento' m.id %}" class="text-red-600">Eliminar</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
