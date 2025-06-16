@@ -1,12 +1,17 @@
 {% extends "base.html" %}
+{% block title %}Detalle de Alumno{% endblock %}
 {% block content %}
-<h2>Detalle de {{ alumno.nombre }}</h2>
-<ul>
-    <li>Grado: {{ alumno.grado }}</li>
-    <li>Nivel: {{ alumno.nivel }}</li>
-    <li>Límite de consumo diario: {{ alumno.limite_consumo }}</li>
-    <li>Saldo tarjeta: {{ alumno.saldo_tarjeta }}</li>
-    <li>Número de tarjeta: {{ alumno.numero_tarjeta }}</li>
-</ul>
-<a href="{% url 'alumnos:mis_hijos' %}" class="btn btn-secondary">Volver</a>
+<a href="{% url 'alumnos:mis_hijos' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver a Mis Hijos</a>
+<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-4 text-blue-900">Detalle de {{ alumno.nombre }}</h2>
+  <ul class="mb-6 space-y-2 text-gray-800">
+    <li><span class="font-semibold">Padre:</span> {{ alumno.padre }}</li>
+    <li><span class="font-semibold">Grado:</span> {{ alumno.grado }}</li>
+    <li><span class="font-semibold">Nivel:</span> {{ alumno.nivel }}</li>
+    <li><span class="font-semibold">Saldo Tarjeta:</span> {{ alumno.saldo_tarjeta }} Gs.</li>
+    <li><span class="font-semibold">Límite Consumo Diario:</span> {{ alumno.limite_consumo }} Gs.</li>
+    <li><span class="font-semibold">Nro. Tarjeta:</span> {{ alumno.numero_tarjeta }}</li>
+  </ul>
+  <a href="{% url 'alumnos:cargar_saldo' %}" class="block mt-6 bg-green-700 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded transition text-center">Cargar Saldo</a>
+</div>
 {% endblock %}

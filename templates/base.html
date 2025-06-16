@@ -1,69 +1,56 @@
 {% load static %}
+{% load roles_extras %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Admin - LGservice</title>
-  <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>{% block title %}LGservice{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen">
 
-  <!-- Encabezado -->
-  <header class="bg-blue-700 text-white p-4 shadow">
-    <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-2xl font-bold">Panel de Administración</h1>
-      <a href="/usuarios/logout/" class="text-white hover:underline">Cerrar sesión</a>
-    </div>
-  </header>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
 
-  <!-- Contenido principal -->
-  <main class="container mx-auto py-6 px-4">
-    <h2 class="text-xl font-semibold mb-4">Resumen General</h2>
+    <!-- HEADER -->
+    <header class="bg-white shadow-md py-3 px-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <img src="{% static 'img/lgservice_logo.png' %}" alt="Logo LGservice" class="h-10">
+            <span class="text-xl font-bold text-green-600">LGservice</span>
+        </div>
+        {% if user.is_authenticated %}
+        <div class="text-sm text-gray-600">
+            Bienvenido, <strong>{{ user.username }}</strong>
+        </div>
+        {% endif %}
+    </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <!-- Tarjeta 1 -->
-      <div class="bg-white rounded-2xl shadow p-4">
-        <h3 class="text-sm text-gray-500">Ventas Hoy</h3>
-        <p class="text-2xl font-bold text-green-600">Gs. 250.000</p>
-      </div>
+    <!-- NAVBAR OPCIONAL POR ROL -->
+    {% if user.is_authenticated %}
+    <nav class="bg-green-600 text-white py-2 px-6 text-sm">
+        <ul class="flex gap-4">
+            {% if user.is_superuser %}
+            <li><a href="{% url 'usuarios:dashboard_admin' %}" class="hover:underline">Dashboard Admin</a></li>
+            <li><a href="{% url 'usuarios:usuarios_lista' %}" class="hover:underline">Usuarios</a></li>
+            {% elif user|en_grupo:"Cajeros" %}
+            <li><a href="{% url 'usuarios:dashboard_cajero' %}" class="hover:underline">Dashboard Cajero</a></li>
+            <li><a href="{% url 'ventas:crear_venta' %}" class="hover:underline">Registrar Venta</a></li>
+            {% elif user.padre_profile %}
+            <li><a href="{% url 'usuarios:dashboard_padre' %}" class="hover:underline">Dashboard Padre</a></li>
+            {% endif %}
+            <li><a href="{% url 'usuarios:logout_view' %}" class="text-red-100 hover:underline">Cerrar sesión</a></li>
+        </ul>
+    </nav>
+    {% endif %}
 
-      <!-- Tarjeta 2 -->
-      <div class="bg-white rounded-2xl shadow p-4">
-        <h3 class="text-sm text-gray-500">Compras Registradas</h3>
-        <p class="text-2xl font-bold text-blue-600">12</p>
-      </div>
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow p-6">
+        {% block content %}
+        {% endblock %}
+    </main>
 
-      <!-- Tarjeta 3 -->
-      <div class="bg-white rounded-2xl shadow p-4">
-        <h3 class="text-sm text-gray-500">Productos en Stock</h3>
-        <p class="text-2xl font-bold text-yellow-600">86</p>
-      </div>
-
-      <!-- Tarjeta 4 -->
-      <div class="bg-white rounded-2xl shadow p-4">
-        <h3 class="text-sm text-gray-500">Padres Activos</h3>
-        <p class="text-2xl font-bold text-indigo-600">34</p>
-      </div>
-    </div>
-
-    <div class="mt-10">
-      <h3 class="text-lg font-semibold mb-2">Accesos Rápidos</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <a href="/gestion/ventas/" class="bg-blue-600 text-white p-4 rounded-xl shadow hover:bg-blue-700 transition">Ventas</a>
-        <a href="/gestion/compras/" class="bg-green-600 text-white p-4 rounded-xl shadow hover:bg-green-700 transition">Compras</a>
-        <a href="/gestion/stock/" class="bg-yellow-500 text-white p-4 rounded-xl shadow hover:bg-yellow-600 transition">Stock</a>
-        <a href="/gestion/padres/" class="bg-indigo-600 text-white p-4 rounded-xl shadow hover:bg-indigo-700 transition">Padres</a>
-        <a href="/gestion/alumnos/" class="bg-purple-600 text-white p-4 rounded-xl shadow hover:bg-purple-700 transition">Alumnos</a>
-        <a href="/gestion/usuarios/" class="bg-red-600 text-white p-4 rounded-xl shadow hover:bg-red-700 transition">Usuarios</a>
-      </div>
-    </div>
-  </main>
-
-  <!-- Pie de página -->
-  <footer class="bg-blue-700 text-white text-center py-2 mt-10">
-    &copy; 2025 LGservice. Todos los derechos reservados.
-  </footer>
-
+    <!-- FOOTER -->
+    <footer class="bg-gray-100 text-center text-sm text-gray-500 py-3">
+        &copy; {{ year|default:2025 }} LGservice - Todos los derechos reservados | WhatsApp: +595985350656
+    </footer>
 </body>
 </html>

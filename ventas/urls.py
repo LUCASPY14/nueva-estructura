@@ -1,6 +1,5 @@
 from django.urls import path
 from . import views
-from .views import reporte_ventas_view, reporte_ventas_pdf
 
 app_name = 'ventas'
 
@@ -9,7 +8,8 @@ urlpatterns = [
     path('crear/', views.crear_venta, name='crear_venta'),
     path('detalle/<int:pk>/', views.detalle_venta, name='detalle_venta'),
     path('eliminar/<int:pk>/', views.eliminar_venta, name='eliminar_venta'),
-    path('reporte/', reporte_ventas_view, name='reporte_ventas'),
-      path('reporte/pdf/', reporte_ventas_pdf, name='reporte_ventas_pdf'),
-]
 
+    # Reportes visual y PDF
+    path('reporte/', views.reporte_ventas_view, name='reporte_ventas'),
+    path('reporte/pdf/', views.reporte_ventas_pdf, name='reporte_ventas_pdf'),
+]

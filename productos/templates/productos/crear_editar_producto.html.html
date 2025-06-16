@@ -1,63 +1,29 @@
-{# productos/templates/productos/crear_editar_producto.html #}
 {% extends "base.html" %}
-{% load static %}
-
-{% block title %}{{ titulo }}{% endblock %}
+{% block title %}{{ form.instance.pk|yesno:"Editar Producto,Agregar Producto" }}{% endblock %}
 {% block content %}
-<div class="container mx-auto py-8 max-w-lg">
-  <h1 class="text-2xl font-bold mb-4">{{ titulo }}</h1>
+<a href="{% url 'productos:listar_productos' %}" 
+   class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al Listado
+</a>
+<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-4 text-blue-900">
+    {{ form.instance.pk|yesno:"Editar Producto,Agregar Producto" }}
+  </h2>
   <form method="post">
     {% csrf_token %}
-    {{ form.non_field_errors }}
-
-    <div class="mb-4">
-      <label class="block font-medium">Código</label>
-      {{ form.codigo }}
-      {{ form.codigo.errors }}
-    </div>
-    <div class="mb-4">
-      <label class="block font-medium">Nombre</label>
-      {{ form.nombre }}
-      {{ form.nombre.errors }}
-    </div>
-    <div class="mb-4">
-      <label class="block font-medium">Descripción (opcional)</label>
-      {{ form.descripcion }}
-      {{ form.descripcion.errors }}
-    </div>
-    <div class="mb-4">
-      <label class="block font-medium">Categoría</label>
-      {{ form.categoria }}
-      {{ form.categoria.errors }}
-    </div>
-    <div class="mb-4">
-      <label class="block font-medium">Proveedor</label>
-      {{ form.proveedor }}
-      {{ form.proveedor.errors }}
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-      <div>
-        <label class="block font-medium">Precio Costo (Gs.)</label>
-        {{ form.precio_costo }}
-        {{ form.precio_costo.errors }}
+    {% for field in form %}
+      <div class="mb-4">
+        {{ field.label_tag }}<br>
+        {{ field }}
+        {% if field.help_text %}
+          <p class="text-xs text-gray-500">{{ field.help_text }}</p>
+        {% endif %}
+        {% for error in field.errors %}
+          <p class="text-sm text-red-700">{{ error }}</p>
+        {% endfor %}
       </div>
-      <div>
-        <label class="block font-medium">Precio Venta (Gs.)</label>
-        {{ form.precio_venta }}
-        {{ form.precio_venta.errors }}
-      </div>
-    </div>
-    <div class="mb-4">
-      <label class="block font-medium">Cantidad en Stock</label>
-      {{ form.cantidad }}
-      {{ form.cantidad.errors }}
-    </div>
-
-    <button type="submit"
-      class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">
-      Guardar
-    </button>
-    <a href="{% url 'productos:listar_productos' %}" class="ml-4 text-gray-600 hover:underline">Cancelar</a>
+    {% endfor %}
+    <button type="submit" class="w-full mt-4 bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">Guardar</button>
   </form>
 </div>
 {% endblock %}

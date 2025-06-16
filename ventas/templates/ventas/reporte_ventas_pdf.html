@@ -1,68 +1,60 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <style>
-    body {
-      font-family: sans-serif;
-      font-size: 12px;
-      color: #333;
-      margin: 40px;
-    }
-    h1 {
-      text-align: center;
-      font-size: 20px;
-      color: #1f3f81;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #aaa;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #f0f0f0;
-    }
-    .total {
-      text-align: right;
-      margin-top: 30px;
-      font-weight: bold;
-      font-size: 14px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Reporte de Ventas</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; margin: 32px; }
+        h2 { color: #184488; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+        th, td { border: 1px solid #aaa; padding: 8px 4px; }
+        th { background: #e7f0fa; }
+        tr:nth-child(even) { background: #f6f8fa; }
+        .total { font-weight: bold; }
+    </style>
 </head>
 <body>
-  <h1>Reporte de Ventas</h1>
-
-  {% if fecha_inicio and fecha_fin %}
-    <p><strong>Periodo:</strong> {{ fecha_inicio }} al {{ fecha_fin }}</p>
-  {% endif %}
-
-  <table>
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Alumno</th>
-        <th>Cajero</th>
-        <th>Total (Gs)</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for venta in ventas %}
-      <tr>
-        <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
-        <td>{{ venta.alumno.nombre }}</td>
-        <td>{{ venta.cajero.username }}</td>
-        <td style="text-align: right;">{{ venta.total|floatformat:0 }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <p class="total">Total General: Gs. {{ total|floatformat:0 }}</p>
+    <h2>Reporte de Ventas</h2>
+    <p>
+        {% if fecha_inicio and fecha_fin %}
+            <strong>Desde:</strong> {{ fecha_inicio }} &nbsp;
+            <strong>Hasta:</strong> {{ fecha_fin }}
+        {% else %}
+            <em>Sin filtro de fecha</em>
+        {% endif %}
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Alumno</th>
+                <th>Total (Gs.)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta in ventas %}
+            <tr>
+                <td>{{ venta.id }}</td>
+                <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                <td>{{ venta.alumno }}</td>
+                <td>{{ venta.total }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center;">No hay ventas en este rango.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="total" style="text-align: right;">Total:</td>
+                <td class="total">{{ total }}</td>
+            </tr>
+        </tfoot>
+    </table>
+    <p style="margin-top: 30px; font-size: 11px; color: #888;">
+        Reporte generado automáticamente por LGservice - {{ now|date:"d/m/Y H:i" }}
+    </p>
 </body>
 </html>

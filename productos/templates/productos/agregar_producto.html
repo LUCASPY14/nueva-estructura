@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Agregar Producto{% endblock %}
+{% block content %}
+  <div class="max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
+    <h2 class="text-xl font-bold mb-4">Agregar Producto</h2>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-4">
+        <label class="block font-bold">Nombre</label>
+        {{ form.nombre|add_class:"w-full p-2 border rounded" }}
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold">Descripción</label>
+        {{ form.descripcion|add_class:"w-full p-2 border rounded" }}
+      </div>
+      <div class="mb-4">
+        <label class="block font-bold">Precio</label>
+        {{ form.precio|add_class:"w-full p-2 border rounded" }}
+      </div>
+      <button type="submit" class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-900">Guardar</button>
+      <a href="{% url 'productos:listar_productos' %}" class="ml-2 text-gray-500 underline">Volver</a>
+    </form>
+  </div>
+{% endblock %}

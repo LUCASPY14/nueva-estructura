@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Usuario{% endblock %}
+{% block content %}
+<a href="{% url 'usuarios:dashboard_admin' %}" 
+   class="inline-block mb-4 bg-blue-200 hover:bg-blue-300 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al Panel
+</a>
+<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-4 text-blue-900">Crear Nuevo Usuario</h2>
+  <form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-4">
+        {{ field.label_tag }}<br>
+        {{ field }}
+        {% if field.help_text %}
+          <p class="text-xs text-gray-500">{{ field.help_text }}</p>
+        {% endif %}
+        {% for error in field.errors %}
+          <p class="text-sm text-red-700">{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="w-full mt-4 bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">Guardar</button>
+  </form>
+</div>
+{% endblock %}

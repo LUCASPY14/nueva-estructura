@@ -9,8 +9,12 @@ class FacturaForm(forms.ModelForm):
     )
     class Meta:
         model = Factura
-        fields = ['venta', 'numero', 'formato']
+        fields = ['venta', 'numero', 'fecha_emision', 'ruc', 'razon_social', 'direccion', 'total']
         widgets = {
             'numero': forms.TextInput(attrs={'class':'border rounded p-2 w-full'}),
-            'formato': forms.Select(attrs={'class':'border rounded p-2'}),
+            'fecha_emision': forms.DateTimeInput(attrs={'class':'border rounded p-2 w-full', 'type': 'datetime-local'}),
+            'ruc': forms.TextInput(attrs={'class':'border rounded p-2 w-full'}),
+            'razon_social': forms.TextInput(attrs={'class':'border rounded p-2 w-full'}),
+            'direccion': forms.TextInput(attrs={'class':'border rounded p-2 w-full'}),
+            'total': forms.NumberInput(attrs={'class':'border rounded p-2 w-full'}),
         }

@@ -1,55 +1,45 @@
+# app/ventas/admin.py
 from django.contrib import admin
-from .models import AuthorizationCode, Venta, DetalleVenta, Pago
+from .models import Venta, DetalleVenta
+from stock.models import MovimientoStock
 
-@admin.register(AuthorizationCode)
-class AuthCodeAdmin(admin.ModelAdmin):
-    list_display = ('code', 'is_active', 'created')
-    actions = ['activar', 'desactivar']
-
-    def activar(self, request, queryset):
-        queryset.update(is_active=True)
-    activar.short_description = "Marcar como activos"
-
-    def desactivar(self, request, queryset):
-        queryset.update(is_active=False)
-    desactivar.short_description = "Marcar como inactivos"
-
-
-class DetalleInline(admin.TabularInline):
+class DetalleVentaInline(admin.TabularInline):
     model = DetalleVenta
     extra = 1
     readonly_fields = ('subtotal_display',)
     fields = ('producto', 'cantidad', 'precio_unitario', 'subtotal_display')
+    can_delete = True
 
     def subtotal_display(self, obj):
         return obj.subtotal()
     subtotal_display.short_description = "Subtotal"
 
-
-class PagoInline(admin.TabularInline):
-    model = Pago
-    extra = 1
-
 @admin.register(Venta)
 class VentaAdmin(admin.ModelAdmin):
-    list_display = ('id', 'alumno', 'cajero', 'fecha', 'total', 'condicion', 'sobregiro_autorizado')
-    list_filter = ('condicion', 'sobregiro_autorizado')
-    inlines = [DetalleInline, PagoInline]
+    list_display = ('id', 'alumno', 'fecha', 'total')
+    search_fields = ('alumno__nombre',)
+    list_filter = ('fecha',)
+    inlines = [DetalleVentaInline]
 
     def save_model(self, request, obj, form, change):
-        # Recalcula total antes de guardar
         super().save_model(request, obj, form, change)
-        obj.total = sum(d.subtotal() for d in obj.detalles.all())
+        obj.calcular_total()
         obj.save()
 
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
-        total = 0
-        for instance in instances:
-            if isinstance(instance, DetalleVenta):
-                total += instance.subtotal()
-            instance.save()
-
-        form.instance.total = total
-        form.instance.save()
+        for detalle in instances:
+            detalle.save()
+            # Solo crear movimiento si es una nueva línea
+            if detalle.pk is None:
+                MovimientoStock.objects.create(
+                    producto=detalle.producto,
+                    cantidad=-detalle.cantidad,  # Negativo porque es egreso
+                    motivo='Venta',
+                    venta=form.instance,
+                    usuario=request.user
+                )
         formset.save_m2m()
+        venta = form.instance
+        venta.calcular_total()
+        venta.save()

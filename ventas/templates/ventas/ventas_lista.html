@@ -1,53 +1,50 @@
 {% extends "base.html" %}
-{% load static %}
-
-{% block title %}Lista de Ventas{% endblock %}
+{% block title %}Ventas Registradas{% endblock %}
 {% block content %}
-<div class="container mx-auto py-8">
-  <h1 class="text-2xl font-bold mb-4">Lista de Ventas</h1>
-  <a href="{% url 'ventas:crear_venta' %}"
-     class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded mb-4 inline-block">
-    + Nueva Venta
-  </a>
 
-  <div class="overflow-x-auto">
-    <table class="min-w-full bg-white">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="px-4 py-2 border">ID</th>
-          <th class="px-4 py-2 border">Alumno</th>
-          <th class="px-4 py-2 border">Fecha</th>
-          <th class="px-4 py-2 border">Total (Gs.)</th>
-          <th class="px-4 py-2 border">Condición</th>
-          <th class="px-4 py-2 border">Sobregiro</th>
-          <th class="px-4 py-2 border">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for venta in ventas %}
-        <tr class="border-t">
-          <td class="px-4 py-2">{{ venta.id }}</td>
-          <td class="px-4 py-2">{{ venta.alumno.nombre }}</td>
-          <td class="px-4 py-2">{{ venta.fecha|date:"d/m/Y H:i" }}</td>
-          <td class="px-4 py-2">{{ venta.total }}</td>
-          <td class="px-4 py-2">{{ venta.get_condicion_display }}</td>
-          <td class="px-4 py-2">
-            {% if venta.sobregiro_autorizado %}Sí{% else %}No{% endif %}
-          </td>
-          <td class="px-4 py-2 space-x-2">
-            <a href="{% url 'ventas:detalle_venta' venta.id %}"
-               class="text-blue-600 hover:underline">Detalle</a>
-            <a href="{% url 'ventas:eliminar_venta' venta.id %}"
-               class="text-red-600 hover:underline">Anular</a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="7" class="px-4 py-2 text-center">No hay ventas registradas.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+{% if user.is_superuser %}
+  <a href="{% url 'usuarios:dashboard_admin' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+      ← Volver al Panel
+  </a>
+{% else %}
+  <a href="{% url 'usuarios:dashboard_cajero' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+      ← Volver al Panel
+  </a>
+{% endif %}
+
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-6 text-blue-900">Ventas Registradas</h2>
+  <a href="{% url 'ventas:crear_venta' %}" class="mb-6 block w-full text-center bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">Nueva Venta</a>
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead>
+      <tr class="bg-blue-100">
+        <th class="py-2 px-4 text-left">ID</th>
+        <th class="py-2 px-4 text-left">Fecha</th>
+        <th class="py-2 px-4 text-left">Alumno</th>
+        <th class="py-2 px-4 text-left">Total</th>
+        <th class="py-2 px-4">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for venta in ventas %}
+      <tr class="hover:bg-blue-50">
+        <td class="py-2 px-4">{{ venta.id }}</td>
+        <td class="py-2 px-4">{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+        <td class="py-2 px-4">{{ venta.alumno }}</td>
+        <td class="py-2 px-4">{{ venta.total }} Gs.</td>
+        <td class="py-2 px-4">
+          <div class="flex gap-2">
+            <a href="{% url 'ventas:detalle_venta' venta.pk %}" class="bg-green-100 hover:bg-green-200 text-green-900 py-1 px-2 rounded">Ver</a>
+            <a href="{% url 'ventas:eliminar_venta' venta.pk %}" class="bg-red-100 hover:bg-red-200 text-red-900 py-1 px-2 rounded">Eliminar</a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" class="text-center py-4 text-gray-500">No hay ventas registradas.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}

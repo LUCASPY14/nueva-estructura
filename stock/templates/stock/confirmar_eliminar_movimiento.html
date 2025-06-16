@@ -1,12 +1,13 @@
 {% extends "base.html" %}
-{% load static %}
-
 {% block title %}Eliminar Movimiento{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-bold mb-4 text-red-600">Eliminar Movimiento</h1>
-<p>¿Seguro que deseas eliminar el movimiento de <strong>{{ mov.producto.nombre }}</strong> del {{ mov.fecha|date:"d/m/Y H:i" }}?</p>
-<form method="post">{% csrf_token %}
-  <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Sí, eliminar</button>
-  <a href="{% url 'stock:movimientos_list' %}" class="ml-4 text-gray-600">Cancelar</a>
-</form>
+<a href="{% url 'stock:movimientos_stock' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver a Stock</a>
+<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-bold mb-4 text-red-900">¿Eliminar Movimiento?</h2>
+    <p class="mb-6">¿Estás seguro que deseas eliminar el movimiento de <strong>{{ mov.producto }}</strong> ({{ mov.tipo }}, {{ mov.cantidad }}) realizado el {{ mov.fecha|date:"d/m/Y H:i" }}?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="w-full mt-4 bg-red-700 hover:bg-red-900 text-white font-semibold py-2 px-4 rounded transition">Sí, eliminar</button>
+    </form>
+</div>
 {% endblock %}

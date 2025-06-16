@@ -1,13 +1,45 @@
 {% extends "base.html" %}
-{% load static %}
-
+{% block title %}Restricciones de Compra{% endblock %}
 {% block content %}
-  <h1>Restricciones de Alumnos</h1>
-  <ul>
-    {% for r in restricciones %}
-      <li>{{ r.alumno }} – {{ r.tipo }}: {{ r.descripcion }}</li>
-    {% empty %}
-      <li>No hay restricciones registradas.</li>
-    {% endfor %}
-  </ul>
+<a href="{% url 'alumnos:alumnos_lista' %}" 
+   class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver a Alumnos
+</a>
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-6 text-blue-900">Restricciones de Compra</h2>
+  <div class="mb-6 text-right">
+    <a href="{% url 'alumnos:crear_restriccion' %}" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition">+ Nueva Restricción</a>
+  </div>
+  <table class="w-full table-auto border-collapse">
+    <thead>
+      <tr class="bg-blue-100">
+        <th class="p-2 text-left">Alumno</th>
+        <th class="p-2 text-left">Producto</th>
+        <th class="p-2 text-left">Estado</th>
+        <th class="p-2">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for restriccion in restricciones %}
+        <tr class="border-b hover:bg-blue-50">
+          <td class="p-2">{{ restriccion.alumno.nombre }}</td>
+          <td class="p-2">{{ restriccion.producto.nombre }}</td>
+          <td class="p-2">
+            {% if restriccion.permitido %}
+              <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">Permitido</span>
+            {% else %}
+              <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">Prohibido</span>
+            {% endif %}
+          </td>
+          <td class="p-2 text-center">
+            <a href="{% url 'alumnos:eliminar_restriccion' restriccion.pk %}"
+               class="text-red-700 hover:underline font-semibold">Eliminar</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="p-4 text-center text-gray-500">No hay restricciones registradas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

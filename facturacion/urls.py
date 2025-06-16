@@ -12,4 +12,6 @@ urlpatterns = [
     path('eliminar/<int:pk>/', views.eliminar_factura, name='eliminar_factura'),
     path('<int:factura_id>/', factura_detalle_view, name='factura_detalle'),
     path('<int:factura_id>/pdf/', factura_pdf_view, name='factura_pdf'),
+    
+
 ]

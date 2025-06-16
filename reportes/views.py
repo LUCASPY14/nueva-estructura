@@ -1,38 +1,47 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import ReporteForm
-from .reports import (
-    get_ventas_por_periodo, get_compras_por_periodo,
-    get_stock_actual, get_consumo_por_alumno, get_finanzas
-)
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
+from ventas.models import Venta, DetalleVenta
+from productos.models import Producto
+from alumnos.models import Alumno
+from datetime import datetime
 
-def es_admin(user):
-    return user.groups.filter(name='Administradores').exists()
+def reporte_ventas_pdf(request):
+    # Obtener filtros de la request (GET)
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    alumno_id = request.GET.get('alumno_id')
+    producto_id = request.GET.get('producto_id')
 
-@login_required
-@user_passes_test(es_admin, login_url='usuarios:login')
-def reporte_selector(request):
-    form = ReporteForm(request.GET or None)
-    context = {'form': form}
-    if form.is_valid():
-        s = form.cleaned_data['start_date']
-        e = form.cleaned_data['end_date']
-        t = form.cleaned_data['tipo_reporte']
-        if t == 'ventas':
-            data = get_ventas_por_periodo(s, e)
-            template = 'reportes/ventas_report.html'
-        elif t == 'compras':
-            data = get_compras_por_periodo(s, e)
-            template = 'reportes/compras_report.html'
-        elif t == 'stock':
-            data = get_stock_actual()
-            template = 'reportes/stock_report.html'
-        elif t == 'consumo':
-            data = get_consumo_por_alumno(s, e)
-            template = 'reportes/consumo_alumno_report.html'
-        else:
-            data = get_finanzas(s, e)
-            template = 'reportes/financiero_report.html'
-        context.update({'data': data, 'start_date': s, 'end_date': e})
-        return render(request, template, context)
-    return render(request, 'reportes/base_report.html', context)
+    ventas = Venta.objects.all().order_by('-fecha')
+    if fecha_inicio:
+        ventas = ventas.filter(fecha__date__gte=fecha_inicio)
+    if fecha_fin:
+        ventas = ventas.filter(fecha__date__lte=fecha_fin)
+    if alumno_id:
+        ventas = ventas.filter(alumno_id=alumno_id)
+    if producto_id:
+        ventas = ventas.filter(detalles__producto_id=producto_id).distinct()
+
+    # Para mostrar el filtro en el template
+    alumnos = Alumno.objects.all()
+    productos = Producto.objects.all()
+
+    # Renderizamos el HTML con el contexto
+    html_string = render_to_string('reportes/reporte_ventas_pdf.html', {
+        'ventas': ventas,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+        'alumno_id': alumno_id,
+        'producto_id': producto_id,
+        'alumnos': alumnos,
+        'productos': productos,
+    })
+
+    # Generamos el PDF con WeasyPrint
+    pdf = HTML(string=html_string).write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="reporte_ventas.pdf"'
+    return response

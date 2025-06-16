@@ -1,25 +1,18 @@
 {% extends "base.html" %}
-{% load static %}
-
-{% block title %}Anular Venta{% endblock %}
+{% block title %}Eliminar Venta{% endblock %}
 {% block content %}
-<div class="container mx-auto py-8 max-w-md">
-  <h1 class="text-2xl font-bold mb-4 text-red-600">Anular Venta #{{ venta.id }}</h1>
-  <p class="mb-6">
-    ¿Estás seguro de anular la venta de <strong>{{ venta.alumno.nombre }}</strong> 
-    el <strong>{{ venta.fecha|date:"d/m/Y H:i" }}</strong>? 
-    Esto devolverá el saldo prepago.
-  </p>
-  <form method="post">
-    {% csrf_token %}
-    <button type="submit"
-            class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded mr-2">
-      Sí, anular
-    </button>
-    <a href="{% url 'ventas:ventas_lista' %}"
-       class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded">
-      Cancelar
-    </a>
-  </form>
+<a href="{% url 'ventas:ventas_lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Cancelar
+</a>
+<div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-bold mb-6 text-red-800">¿Eliminar Venta #{{ venta.id }}?</h2>
+    <p>Esta acción <span class="font-bold text-red-600">NO</span> se puede deshacer.<br>
+       Se restituirá el saldo prepago si corresponde.</p>
+    <form method="post" class="mt-8">
+        {% csrf_token %}
+        <button type="submit" class="bg-red-700 hover:bg-red-900 text-white font-semibold py-2 px-6 rounded transition">
+            Sí, eliminar venta
+        </button>
+    </form>
 </div>
 {% endblock %}

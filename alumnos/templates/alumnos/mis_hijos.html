@@ -1,14 +1,32 @@
 {% extends "base.html" %}
+{% block title %}Mis Hijos{% endblock %}
 {% block content %}
-<h2>Mis Hijos</h2>
-<ul>
-    {% for hijo in hijos %}
-    <li>
-        <a href="{% url 'alumnos:detalle_alumno' hijo.pk %}">{{ hijo.nombre }}</a>
-        - Saldo: {{ hijo.saldo_tarjeta }}
-    </li>
-    {% endfor %}
-</ul>
-<a href="{% url 'alumnos:cargar_saldo' %}" class="btn btn-primary">Cargar Saldo</a>
-<a href="{% url 'alumnos:editar_perfil_padre' %}" class="btn btn-secondary">Editar Perfil</a>
+<a href="{% url 'usuarios:dashboard_padre' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver al Panel</a>
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-6 text-blue-900">Mis Hijos</h2>
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead>
+      <tr class="bg-blue-100">
+        <th class="py-2 px-4 text-left">Nombre</th>
+        <th class="py-2 px-4 text-left">Grado</th>
+        <th class="py-2 px-4 text-left">Saldo</th>
+        <th class="py-2 px-4">Ver</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for hijo in hijos %}
+      <tr class="hover:bg-blue-50">
+        <td class="py-2 px-4">{{ hijo.nombre }}</td>
+        <td class="py-2 px-4">{{ hijo.grado }}</td>
+        <td class="py-2 px-4">{{ hijo.saldo_tarjeta }}</td>
+        <td class="py-2 px-4"><a href="{% url 'alumnos:detalle_alumno' hijo.pk %}" class="bg-blue-100 hover:bg-blue-200 text-blue-900 py-1 px-2 rounded">Detalle</a></td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="text-center py-4 text-gray-500">No hay alumnos cargados.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

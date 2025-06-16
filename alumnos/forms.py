@@ -1,5 +1,5 @@
 from django import forms
-from .models import Alumno, Padre
+from .models import Alumno, Padre, Restriccion
 from decimal import Decimal
 
 class AlumnoForm(forms.ModelForm):
@@ -10,20 +10,23 @@ class AlumnoForm(forms.ModelForm):
 class PadreForm(forms.ModelForm):
     class Meta:
         model = Padre
-        fields = ['nombre', 'apellido', 'razon_social', 'ruc', 'email', 'telefono', 'direccion', 'barrio', 'ciudad']
+        fields = [
+            'nombre', 'apellido', 'razon_social', 'ruc',
+            'email', 'telefono', 'direccion', 'barrio', 'ciudad'
+        ]
 
 class CargarSaldoForm(forms.Form):
     alumno = forms.ModelChoiceField(
         queryset=Alumno.objects.none(),
         label="Alumno",
-        widget=forms.Select(attrs={'class':'border rounded p-2 w-full'})
+        widget=forms.Select(attrs={'class': 'border rounded p-2 w-full'})
     )
     monto = forms.DecimalField(
         min_value=Decimal('0.01'),
         decimal_places=2,
         max_digits=12,
         label="Monto a cargar (Gs.)",
-        widget=forms.NumberInput(attrs={'class':'border rounded p-2 w-full'})
+        widget=forms.NumberInput(attrs={'class': 'border rounded p-2 w-full'})
     )
 
     def __init__(self, *args, user=None, **kwargs):
@@ -32,3 +35,8 @@ class CargarSaldoForm(forms.Form):
             self.fields['alumno'].queryset = user.padre_profile.alumnos.all()
         else:
             self.fields['alumno'].queryset = Alumno.objects.all()
+
+class RestriccionForm(forms.ModelForm):
+    class Meta:
+        model = Restriccion
+        fields = ['alumno', 'producto', 'permitido']

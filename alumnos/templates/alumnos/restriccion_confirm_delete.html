@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Eliminar Restricción{% endblock %}
+{% block content %}
+<a href="{% url 'alumnos:listar_restricciones' %}" 
+   class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver a Restricciones
+</a>
+<div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg text-center">
+  <h2 class="text-2xl font-bold mb-4 text-red-700">¿Eliminar esta restricción?</h2>
+  <p class="mb-6">
+    <strong>Alumno:</strong> {{ restriccion.alumno.nombre }}<br>
+    <strong>Producto:</strong> {{ restriccion.producto.nombre }}<br>
+    <strong>Estado:</strong>
+    {% if restriccion.permitido %}
+      <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">Permitido</span>
+    {% else %}
+      <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">Prohibido</span>
+    {% endif %}
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit"
+            class="bg-red-600 hover:bg-red-800 text-white font-semibold py-2 px-4 rounded transition mr-2">
+      Sí, Eliminar
+    </button>
+    <a href="{% url 'alumnos:listar_restricciones' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded transition">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

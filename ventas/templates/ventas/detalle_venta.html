@@ -1,72 +1,44 @@
 {% extends "base.html" %}
-{% load static %}
-
 {% block title %}Detalle de Venta{% endblock %}
 {% block content %}
-<div class="container mx-auto py-8">
-  <h1 class="text-2xl font-bold mb-4">Detalle Venta #{{ venta.id }}</h1>
-  <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
-    <p><strong>Alumno:</strong> {{ venta.alumno.nombre }}</p>
-    <p><strong>Cajero:</strong> {{ venta.cajero.get_full_name }}</p>
+<a href="{% url 'ventas:ventas_lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al listado
+</a>
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-bold mb-6 text-blue-900">Detalle de Venta #{{ venta.id }}</h2>
+    <p><strong>Alumno:</strong> {{ venta.alumno }}</p>
     <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
     <p><strong>Total:</strong> {{ venta.total }} Gs.</p>
-    <p><strong>Condición:</strong> {{ venta.get_condicion_display }}</p>
-    <p><strong>Sobregiro autorizado:</strong> 
-      {% if venta.sobregiro_autorizado %}Sí{% else %}No{% endif %}
-    </p>
-    {% if venta.codigo_autorizacion %}
-      <p><strong>Código:</strong> {{ venta.codigo_autorizacion.code }}</p>
-    {% endif %}
-  </div>
-
-  <h2 class="text-xl font-semibold mb-2">Productos</h2>
-  <div class="overflow-x-auto">
-    <table class="min-w-full bg-white">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="px-4 py-2 border">Producto</th>
-          <th class="px-4 py-2 border">Cantidad</th>
-          <th class="px-4 py-2 border">Precio Unitario</th>
-          <th class="px-4 py-2 border">Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for d in venta.detalles.all %}
-        <tr class="border-t">
-          <td class="px-4 py-2">{{ d.producto.nombre }}</td>
-          <td class="px-4 py-2">{{ d.cantidad }}</td>
-          <td class="px-4 py-2">{{ d.precio_unitario }}</td>
-          <td class="px-4 py-2">{{ d.subtotal }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
+    <h3 class="mt-4 mb-2 font-bold text-lg text-blue-900">Productos vendidos:</h3>
+    <table class="min-w-full divide-y divide-gray-200 mb-4">
+        <thead>
+            <tr class="bg-gray-100">
+                <th class="py-2 px-2 text-left">Producto</th>
+                <th class="py-2 px-2 text-left">Cantidad</th>
+                <th class="py-2 px-2 text-left">Precio Unitario</th>
+                <th class="py-2 px-2 text-left">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in venta.detalles.all %}
+            <tr>
+                <td class="py-2 px-2">{{ detalle.producto }}</td>
+                <td class="py-2 px-2">{{ detalle.cantidad }}</td>
+                <td class="py-2 px-2">{{ detalle.precio_unitario }} Gs.</td>
+                <td class="py-2 px-2">{{ detalle.subtotal }} Gs.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
-  </div>
-
-  <h2 class="text-xl font-semibold mt-6 mb-2">Pagos</h2>
-  <div class="overflow-x-auto">
-    <table class="min-w-full bg-white">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="px-4 py-2 border">Método</th>
-          <th class="px-4 py-2 border">Monto</th>
-          <th class="px-4 py-2 border">Transacción</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in venta.pagos.all %}
-        <tr class="border-t">
-          <td class="px-4 py-2">{{ p.get_metodo_display }}</td>
-          <td class="px-4 py-2">{{ p.monto }}</td>
-          <td class="px-4 py-2">{{ p.transaccion }}</td>
-        </tr>
+    <h3 class="mt-4 mb-2 font-bold text-lg text-blue-900">Pagos realizados:</h3>
+    <ul class="list-disc list-inside">
+        {% for pago in venta.pagos.all %}
+        <li>
+            <strong>{{ pago.metodo }}</strong>: {{ pago.monto }} Gs. {% if pago.observacion %}({{ pago.observacion }}){% endif %}
+        </li>
+        {% empty %}
+        <li>No hay pagos registrados.</li>
         {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <a href="{% url 'ventas:ventas_lista' %}" class="mt-4 inline-block text-blue-600 hover:underline">
-    ← Volver a Ventas
-  </a>
+    </ul>
 </div>
 {% endblock %}

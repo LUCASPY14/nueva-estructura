@@ -1,41 +1,39 @@
 {% extends "base.html" %}
-{% load static %}
-
 {% block title %}Bajas de Stock{% endblock %}
 {% block content %}
-<div class="container mx-auto py-8">
-  <h1 class="text-2xl font-bold mb-4">Bajas de Stock</h1>
-  <a href="{% url 'stock:crear_movimiento' %}"
-     class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded mb-4 inline-block">
-    + Registrar Egreso
-  </a>
-  <div class="overflow-x-auto">
-    <table class="min-w-full bg-white">
-      <thead class="bg-gray-200">
-        <tr>
-          <th class="px-4 py-2 border">Fecha</th>
-          <th class="px-4 py-2 border">Producto</th>
-          <th class="px-4 py-2 border">Cantidad</th>
-          <th class="px-4 py-2 border">Motivo</th>
-          <th class="px-4 py-2 border">Referencia</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for m in movimientos %}
-        <tr class="border-t">
-          <td class="px-4 py-2">{{ m.fecha|date:"d/m/Y H:i" }}</td>
-          <td class="px-4 py-2">{{ m.producto.nombre }}</td>
-          <td class="px-4 py-2">{{ m.cantidad }}</td>
-          <td class="px-4 py-2">{{ m.motivo }}</td>
-          <td class="px-4 py-2">{{ m.referencia }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="5" class="px-4 py-2 text-center">No hay egresos de stock.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<a href="{% url 'stock:movimientos_stock' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver a Movimientos</a>
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-6 text-red-900">Bajas de Stock (Egresos)</h2>
+  <div class="flex flex-wrap gap-2 mb-4">
+      <a href="{% url 'stock:stock_altas' %}" class="bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded">Ver Altas</a>
+      <a href="{% url 'stock:movimientos_stock' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-2 px-4 rounded">Todos los Movimientos</a>
+      <a href="{% url 'stock:crear_movimiento' %}" class="bg-red-700 hover:bg-red-900 text-white font-semibold py-2 px-4 rounded">Registrar Baja</a>
   </div>
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead>
+      <tr class="bg-red-100">
+        <th class="py-2 px-4 text-left">Producto</th>
+        <th class="py-2 px-4 text-left">Cantidad</th>
+        <th class="py-2 px-4 text-left">Fecha</th>
+        <th class="py-2 px-4 text-left">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for mov in movimientos %}
+      <tr class="hover:bg-red-50">
+        <td class="py-2 px-4">{{ mov.producto }}</td>
+        <td class="py-2 px-4">{{ mov.cantidad }}</td>
+        <td class="py-2 px-4">{{ mov.fecha|date:"d/m/Y H:i" }}</td>
+        <td class="py-2 px-4">
+          <a href="{% url 'stock:eliminar_movimiento' mov.pk %}" class="bg-red-100 hover:bg-red-200 text-red-900 py-1 px-2 rounded">Eliminar</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="text-center py-4 text-gray-500">No hay movimientos de egreso registrados.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}

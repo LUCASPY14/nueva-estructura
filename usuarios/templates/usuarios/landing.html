@@ -1,14 +1,21 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% load static %}
+{% block title %}Inicio - LGservice{% endblock %}
+
 {% block content %}
-<div class="flex items-center justify-center h-96">
-  <div class="text-center">
-    <img src="{% static 'images/lgservice_logo.png' %}" alt="LGservice" class="mx-auto mb-4 w-32">
-    <h1 class="text-4xl font-bold mb-2">LGservice</h1>
-    <p>Diseñado por [Tu Nombre]. Todos los derechos reservados &#169; {{ year }}</p>
-    <a href="{% url 'usuarios:login' %}" class="mt-4 inline-block bg-green-600 text-white px-4 py-2 rounded">Ingresar</a>
-  </div>
-</div>
+    <div class="center-logo">
+        <img src="{% static 'img/lgservice_logo.png' %}" alt="Logo" style="max-width:170px;">
+    </div>
+    <h1 style="text-align:center;margin-top:2rem;color:#145ea8;font-size:2.1rem;">
+        ¡Bienvenido a LGservice - La Cantina de Tita!
+    </h1>
+    <p style="text-align:center;font-size:1.2rem;margin:1.5rem auto 2rem;max-width:600px;">
+        Gestión eficiente, simple y segura para tu cantina escolar.<br>
+        Descubrí una nueva forma de administrar y controlar todo desde un solo lugar.
+    </p>
+    <div style="display:flex;justify-content:center;gap:20px;">
+        <a href="{% url 'usuarios:login_simple' %}" class="main-btn">Ingresar</a>
+        <a href="{% url 'usuarios:registro_padre' %}" class="main-btn" style="background:#fff;color:#145ea8;border:2px solid #145ea8;">Registrarse</a>
+    </div>
 {% endblock %}

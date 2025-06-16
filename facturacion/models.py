@@ -3,7 +3,14 @@ from django.utils import timezone
 from ventas.models import Venta
 
 class Factura(models.Model):
-    venta = models.OneToOneField(Venta, on_delete=models.CASCADE, related_name='factura')
+    """
+    Representa una factura emitida por una venta.
+    """
+    venta = models.OneToOneField(
+        Venta, 
+        on_delete=models.CASCADE, 
+        related_name='factura'
+    )
     numero = models.CharField(max_length=20, unique=True)
     fecha_emision = models.DateTimeField(default=timezone.now)
     ruc = models.CharField(max_length=20, blank=True, null=True)
@@ -16,3 +23,5 @@ class Factura(models.Model):
 
     class Meta:
         ordering = ['-fecha_emision']
+        verbose_name = "Factura"
+        verbose_name_plural = "Facturas"

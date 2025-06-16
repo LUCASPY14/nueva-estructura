@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cerrar Sesión - LGservice{% endblock %}
+
+{% block content %}
+<div style="max-width:370px;margin:3rem auto;padding:2rem 2rem;background:#fff;border-radius:16px;box-shadow:0 0 18px #0001;text-align:center;">
+    <img src="{% static 'img/logo.png' %}" alt="Logo" style="max-width:70px;">
+    <h2 style="color:#145ea8;margin-top:1.5rem;">¡Sesión cerrada!</h2>
+    <p style="margin-top:1rem;">Gracias por usar LGservice - La Cantina de Tita.</p>
+    <a href="
+{% url 'usuarios:login_simple' %}" class="main-btn" style="margin-top:1.3rem;">Volver a ingresar</a>
+    <a href="{% url 'usuarios:landing' %}" style="display:block;margin-top:0.8rem;color:#145ea8;">Ir al inicio</a>
+</div>
+{% endblock %}

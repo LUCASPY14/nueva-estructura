@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 from decimal import Decimal
 from productos.models import Producto
-from datetime import date
 
 Usuario = settings.AUTH_USER_MODEL
 
@@ -36,6 +35,9 @@ class Padre(models.Model):
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
 
+    def get_full_name(self):
+        return f"{self.nombre} {self.apellido}"
+
 class Alumno(models.Model):
     padre = models.ForeignKey(
         Padre,
@@ -48,7 +50,7 @@ class Alumno(models.Model):
     limite_consumo = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=0,
+        default=Decimal('0.00'),
         help_text="Monto máximo que el alumno puede gastar por día"
     )
     saldo_tarjeta = models.DecimalField(
@@ -67,20 +69,14 @@ class Alumno(models.Model):
         return f"{self.nombre} (Tarjeta: {self.numero_tarjeta})"
 
     def total_consumido(self, fecha=None):
-        """
-        Retorna el total consumido por el alumno.
-        Si se pasa una fecha, filtra las ventas de ese día.
-        """
-        ventas = self.ventas.all()  # asumiendo related_name='ventas' en Venta.alumno
+        from django.db.models import Sum
+        ventas = self.ventas.all()
         if fecha:
             ventas = ventas.filter(fecha=fecha)
-        return sum(v.total for v in ventas)
+        total = ventas.aggregate(suma=Sum('total'))['suma'] or Decimal('0.00')
+        return total
 
     def saldo_restante(self, fecha=None):
-        """
-        Retorna el saldo restante considerando el límite de consumo diario.
-        Si se pasa una fecha, descuenta lo consumido ese día.
-        """
         if fecha:
             consumido = self.total_consumido(fecha=fecha)
             restante = min(self.saldo_tarjeta, self.limite_consumo - consumido)
@@ -117,10 +113,11 @@ class Restriccion(models.Model):
     def __str__(self):
         estado = "Permitido" if self.permitido else "Prohibido"
         return f"{self.alumno.nombre} → {self.producto.nombre}: {estado}"
-    
-    def total_consumido(self, fecha=None): """ Retorna el total consumido por el alumno.
-                Si se pasa una fecha, filtra las ventas de ese mes. """
-    Ventas = self.ventas.all()
-    if fecha:
-                ventas = ventas.filter(fecha__year=fecha.year, fecha__month=fecha.month)
-            return sum(v.total for v in ventas)
+
+    def total_consumido(self, fecha=None):
+        from django.db.models import Sum
+        ventas = self.alumno.ventas.filter(detalles__producto=self.producto)
+        if fecha:
+            ventas = ventas.filter(fecha__year=fecha.year, fecha__month=fecha.month)
+        total = ventas.aggregate(suma=Sum('total'))['suma'] or Decimal('0.00')
+        return total

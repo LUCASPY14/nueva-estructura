@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{% if form.instance.pk %}Editar Alumno{% else %}Agregar Alumno{% endif %}{% endblock %}
+
+{% block content %}
+<a href="{% url 'alumnos:alumnos_lista' %}" 
+   class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver a la Lista de Alumnos
+</a>
+<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-4 text-blue-900">
+    {% if form.instance.pk %}Editar Alumno{% else %}Agregar Alumno{% endif %}
+  </h2>
+  <form method="post" autocomplete="off">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-4">
+        {{ field.label_tag }}
+        {{ field }}
+        {% if field.help_text %}
+          <p class="text-xs text-gray-500">{{ field.help_text }}</p>
+        {% endif %}
+        {% for error in field.errors %}
+          <p class="text-sm text-red-700">{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="w-full mt-4 bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">
+      {% if form.instance.pk %}Guardar Cambios{% else %}Agregar Alumno{% endif %}
+    </button>
+  </form>
+</div>
+{% endblock %}

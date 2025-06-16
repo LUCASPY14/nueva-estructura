@@ -5,5 +5,9 @@ from alumnos.models import Padre
 
 @receiver(post_save, sender=UsuarioLG)
 def crear_padre_profile(sender, instance, created, **kwargs):
-    if created and instance.tipo=='PADRE':
+    """
+    Crea automáticamente un perfil de Padre cuando se crea un usuario de tipo 'PADRE'.
+    """
+    if created and instance.tipo == 'PADRE':
         Padre.objects.create(usuario=instance)
+        # print(f"Perfil de Padre creado para el usuario {instance.username}")

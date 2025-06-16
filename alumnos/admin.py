@@ -1,4 +1,3 @@
-# alumnos/admin.py
 from django.contrib import admin
 from .models import Padre, Alumno, Restriccion
 
@@ -7,6 +6,7 @@ class PadreAdmin(admin.ModelAdmin):
     list_display = ('nombre', 'apellido', 'ruc', 'email', 'telefono', 'ciudad')
     search_fields = ('nombre', 'apellido', 'razon_social', 'ruc', 'email')
     list_filter = ('ciudad',)
+    ordering = ('apellido', 'nombre')
 
 @admin.register(Alumno)
 class AlumnoAdmin(admin.ModelAdmin):
@@ -14,12 +14,19 @@ class AlumnoAdmin(admin.ModelAdmin):
         'nombre', 'numero_tarjeta', 'padre', 
         'grado', 'nivel', 'limite_consumo', 'saldo_tarjeta'
     )
-    
     list_filter = ('grado', 'nivel')
-    search_fields = ('nombre', 'padre__nombre', 'padre__apellido', 'numero_tarjeta')
+    search_fields = (
+        'nombre',
+        'padre__nombre',
+        'padre__apellido',
+        'numero_tarjeta'
+    )
+    ordering = ('nombre',)
+    autocomplete_fields = ['padre']
 
 @admin.register(Restriccion)
 class RestriccionAdmin(admin.ModelAdmin):
     list_display = ('alumno', 'producto', 'permitido')
     list_filter = ('permitido', 'producto')
     search_fields = ('alumno__nombre', 'producto__nombre')
+    autocomplete_fields = ['alumno', 'producto']

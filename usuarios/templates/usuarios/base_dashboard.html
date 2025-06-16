@@ -1,7 +1,0 @@
-{% if user.is_superuser %}
-    <a href="{% url 'dashboard_admin' %}">Panel Admin</a>
-{% elif user.groups.filter(name='Cajeros').exists %}
-    <a href="{% url 'dashboard_cajero' %}">Panel Cajero</a>
-{% elif user.padre %}
-    <a href="{% url 'dashboard_padre' %}">Panel Padre</a>
-{% endif %}

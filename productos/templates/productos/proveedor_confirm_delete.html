@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Eliminar Proveedor{% endblock %}
+{% block content %}
+<a href="{% url 'productos:listar_proveedores' %}" 
+   class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al Listado
+</a>
+<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-4 text-red-900">¿Eliminar proveedor?</h2>
+  <p class="mb-4">¿Estás seguro de que querés eliminar <span class="font-semibold">{{ proveedor.nombre }}</span>?</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="bg-red-700 hover:bg-red-900 text-white font-semibold py-2 px-4 rounded transition">Sí, eliminar</button>
+    <a href="{% url 'productos:listar_proveedores' %}" class="ml-4 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded transition">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

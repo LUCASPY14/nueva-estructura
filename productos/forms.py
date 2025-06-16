@@ -1,16 +1,17 @@
-# productos/forms.py
 from django import forms
-from .models import Producto, Proveedor
+from compras.models import Proveedor
+from .models import Producto
 
 class ProveedorForm(forms.ModelForm):
     class Meta:
         model = Proveedor
-        fields = ['nombre', 'contacto']
+        fields = ['nombre', 'contacto']  # Solo si 'contacto' existe en tu modelo
         widgets = {
             'nombre': forms.TextInput(attrs={
                 'class': 'border rounded p-2 w-full',
                 'placeholder': 'Nombre del proveedor'
             }),
+            # Solo si tu modelo tiene el campo contacto
             'contacto': forms.TextInput(attrs={
                 'class': 'border rounded p-2 w-full',
                 'placeholder': 'Teléfono o email (opcional)'
@@ -24,7 +25,7 @@ class ProductoForm(forms.ModelForm):
             'codigo',
             'nombre',
             'descripcion',
-            'cantidad',
+            'cantidad',         # Cambia a 'stock' si tu modelo lo usa así
             'precio_costo',
             'precio_venta',
             'categoria',
@@ -56,9 +57,9 @@ class ProductoForm(forms.ModelForm):
                 'class': 'border rounded p-2 w-32',
                 'placeholder': 'Venta Gs.'
             }),
-            'categoria': forms.TextInput(attrs={
-                'class': 'border rounded p-2 w-full',
-                'placeholder': 'Categoría (p.ej. Bebidas)'
+             # AQUI la corrección: Select para FK
+            'categoria': forms.Select(attrs={
+                'class': 'border rounded p-2 w-full'
             }),
             'proveedor': forms.Select(attrs={
                 'class': 'border rounded p-2 w-full'

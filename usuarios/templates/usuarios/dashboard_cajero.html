@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dashboard Cajero{% endblock %}
+
+{% block content %}
+<div style="max-width:980px;margin:2.5rem auto;padding:2.5rem;background:#fff;border-radius:20px;box-shadow:0 4px 28px #0001;">
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:2rem;">
+        <img src="{% static 'img/Tita-logo.jpg' %}" alt="Cantina de Tita" style="max-width:110px;border-radius:12px;">
+        <h2 style="color:#145ea8;font-size:2rem;font-weight:bold;margin-top:1.2rem;">
+            Panel del Cajero
+        </h2>
+        <p style="color:#325d85;margin-top:0.7rem;font-size:1.1rem;">
+            ¡Hola, {{ user.get_full_name|default:user.username }}! Accedé rápidamente a las funciones clave para el manejo de caja y ventas.
+        </p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px;">
+        <a href="{% url 'ventas:ventas_lista' %}" class="main-btn" style="background:#2563eb;font-size:1.11rem;">Registrar Venta</a>
+        <a href="{% url 'alumnos:alumnos_lista' %}" class="main-btn" style="background:#10b981;font-size:1.11rem;">Buscar Alumno</a>
+        <a href="{% url 'stock:movimientos_stock' %}" class="main-btn" style="background:#f59e42;font-size:1.11rem;color:#222;">Ver Stock</a>
+        <a href="{% url 'productos:listar_productos' %}" class="main-btn" style="background:#a21caf;font-size:1.11rem;">Consultar Productos</a>
+        <a href="{% url 'reportes:reporte_ventas' %}" class="main-btn" style="background:#334155;font-size:1.11rem;color:#fff;">Reporte Diario</a>
+    </div>
+</div>
+{% endblock %}

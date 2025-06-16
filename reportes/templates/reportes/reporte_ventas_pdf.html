@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Ventas</title>
+    <style>
+      body { font-family: sans-serif; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #888; padding: 5px; }
+    </style>
+</head>
+<body>
+  <h2>Reporte de Ventas</h2>
+  <p>Desde: {{ fecha_inicio }} | Hasta: {{ fecha_fin }}</p>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Fecha</th>
+        <th>Alumno</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for venta in ventas %}
+      <tr>
+        <td>{{ venta.id }}</td>
+        <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+        <td>{{ venta.alumno }}</td>
+        <td>{{ venta.total }}</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4">No hay ventas en este período.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

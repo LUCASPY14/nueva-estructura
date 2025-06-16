@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block content %}
+
+<a href="{% url 'compras:compras_lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al listado
+</a>
+
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-6 text-blue-900">{{ titulo }}</h2>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-4">
+      {{ form.proveedor.label_tag }}<br>
+      {{ form.proveedor }}
+      {% for error in form.proveedor.errors %}
+        <div class="text-red-600">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <h3 class="text-xl font-semibold mb-2 text-blue-900">Detalles de la Compra</h3>
+    {{ formset.management_form }}
+    <div>
+      {% for form_detalle in formset %}
+        <div class="border rounded-xl p-4 mb-4 bg-gray-50">
+          {{ form_detalle.producto.label_tag }} {{ form_detalle.producto }}
+          {{ form_detalle.cantidad.label_tag }} {{ form_detalle.cantidad }}
+          {{ form_detalle.precio_unitario.label_tag }} {{ form_detalle.precio_unitario }}
+          {% if form_detalle.DELETE %}
+            <label class="ml-2">{{ form_detalle.DELETE }} Eliminar</label>
+          {% endif %}
+          {% for hidden in form_detalle.hidden_fields %}
+            {{ hidden }}
+          {% endfor %}
+          {% for error in form_detalle.non_field_errors %}
+            <div class="text-red-600">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="bg-green-700 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded transition w-full">{{ titulo }}</button>
+  </form>
+</div>
+{% endblock %}

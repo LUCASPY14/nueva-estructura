@@ -1,22 +1,7 @@
-# productos/admin.py
 from django.contrib import admin
-from .models import Proveedor, Producto
-
-@admin.register(Proveedor)
-class ProveedorAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'contacto')
-    search_fields = ('nombre', 'contacto')
+from .models import Producto
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = (
-        'codigo',
-        'nombre',
-        'categoria',
-        'proveedor',
-        'precio_costo',
-        'precio_venta',
-        'cantidad'
-    )
-    search_fields = ('codigo', 'nombre', 'categoria', 'proveedor__nombre')
-    list_filter = ('categoria', 'proveedor')
+    list_display = ('nombre', 'codigo', 'precio_venta', 'precio_costo', 'cantidad', 'categoria', 'proveedor', 'stock_actual')
+    search_fields = ('nombre', 'codigo')

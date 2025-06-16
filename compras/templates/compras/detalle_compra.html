@@ -1,43 +1,38 @@
 {% extends "base.html" %}
-{% load static %}
-
 {% block title %}Detalle de Compra{% endblock %}
 {% block content %}
-<div class="container mx-auto py-8">
-  <h1 class="text-2xl font-bold mb-4">Detalle de Compra #{{ compra.id }}</h1>
 
-  <div class="mb-6 p-4 bg-gray-50 rounded-lg border">
-    <p><strong>Proveedor:</strong> {{ compra.proveedor.nombre }}</p>
-    <p><strong>Fecha y Hora:</strong> {{ compra.fecha|date:"d/m/Y H:i" }}</p>
-    <p><strong>Total:</strong> {{ compra.total }} Gs.</p>
+<a href="{% url 'compras:compras_lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al listado
+</a>
+
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-4 text-blue-900">Detalle de Compra #{{ compra.id }}</h2>
+  <div class="mb-4">
+    <strong>Proveedor:</strong> {{ compra.proveedor }}<br>
+    <strong>Fecha:</strong> {{ compra.fecha|date:"d/m/Y H:i" }}<br>
+    <strong>Total:</strong> {{ compra.total }} Gs.
   </div>
-
-  <h2 class="text-xl font-semibold mb-2">Ítems Comprados</h2>
-  <div class="overflow-x-auto">
-    <table class="min-w-full bg-white">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="px-4 py-2 border">Producto</th>
-          <th class="px-4 py-2 border">Cantidad</th>
-          <th class="px-4 py-2 border">Precio Unitario (Gs.)</th>
-          <th class="px-4 py-2 border">Subtotal (Gs.)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for det in detalles %}
-        <tr class="border-t">
-          <td class="px-4 py-2">{{ det.producto.nombre }}</td>
-          <td class="px-4 py-2">{{ det.cantidad }}</td>
-          <td class="px-4 py-2">{{ det.precio_unitario }}</td>
-          <td class="px-4 py-2">{{ det.subtotal|floatformat:2 }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <a href="{% url 'compras:compras_lista' %}" class="mt-4 inline-block text-blue-600 hover:underline">
-    ← Volver a la lista de compras
-  </a>
+  <h3 class="text-lg font-semibold mb-2 text-blue-900">Productos:</h3>
+  <table class="min-w-full divide-y divide-gray-200 mb-4">
+    <thead>
+      <tr class="bg-gray-100">
+        <th class="py-2 px-4 text-left">Producto</th>
+        <th class="py-2 px-4 text-left">Cantidad</th>
+        <th class="py-2 px-4 text-left">Precio Unitario</th>
+        <th class="py-2 px-4 text-left">Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for detalle in detalles %}
+      <tr>
+        <td class="py-2 px-4">{{ detalle.producto }}</td>
+        <td class="py-2 px-4">{{ detalle.cantidad }}</td>
+        <td class="py-2 px-4">{{ detalle.precio_unitario }} Gs.</td>
+        <td class="py-2 px-4">{{ detalle.subtotal }} Gs.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}
