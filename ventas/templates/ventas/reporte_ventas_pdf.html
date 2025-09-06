@@ -4,25 +4,64 @@
     <meta charset="UTF-8">
     <title>Reporte de Ventas</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; margin: 32px; }
-        h2 { color: #184488; margin-bottom: 16px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 18px; }
-        th, td { border: 1px solid #aaa; padding: 8px 4px; }
-        th { background: #e7f0fa; }
-        tr:nth-child(even) { background: #f6f8fa; }
-        .total { font-weight: bold; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+            margin: 40px;
+        }
+        h1 {
+            color: #0a3a67;
+            font-size: 20px;
+            border-bottom: 2px solid #0a3a67;
+            padding-bottom: 6px;
+            margin-bottom: 20px;
+        }
+        .fecha-filtro {
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #dceefc;
+            color: #0a3a67;
+        }
+        tr:nth-child(even) {
+            background-color: #f7fafd;
+        }
+        .total {
+            font-weight: bold;
+            background-color: #eef6f9;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 11px;
+            color: #777;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
-    <h2>Reporte de Ventas</h2>
-    <p>
+    <h1>Reporte de Ventas</h1>
+
+    <div class="fecha-filtro">
         {% if fecha_inicio and fecha_fin %}
-            <strong>Desde:</strong> {{ fecha_inicio }} &nbsp;
+            <strong>Desde:</strong> {{ fecha_inicio }} &nbsp;&nbsp;
             <strong>Hasta:</strong> {{ fecha_fin }}
         {% else %}
-            <em>Sin filtro de fecha</em>
+            <em>Rango de fechas: Todos</em>
         {% endif %}
-    </p>
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -42,19 +81,20 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="4" style="text-align: center;">No hay ventas en este rango.</td>
+                <td colspan="4" style="text-align: center;"><em>No hay ventas registradas en este rango.</em></td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
-            <tr>
-                <td colspan="3" class="total" style="text-align: right;">Total:</td>
-                <td class="total">{{ total }}</td>
+            <tr class="total">
+                <td colspan="3" style="text-align: right;">Total General:</td>
+                <td>{{ total }} Gs.</td>
             </tr>
         </tfoot>
     </table>
-    <p style="margin-top: 30px; font-size: 11px; color: #888;">
-        Reporte generado automáticamente por LGservice - {{ now|date:"d/m/Y H:i" }}
-    </p>
+
+    <div class="footer">
+        Generado automáticamente por LGservice - {{ now|date:"d/m/Y H:i" }}
+    </div>
 </body>
 </html>

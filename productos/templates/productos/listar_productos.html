@@ -1,41 +1,49 @@
-{% extends "base.html" %}
-{% block title %}Lista de Productos{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listado de Productos{% endblock %}
 
 {% block content %}
-<a href="{% url 'usuarios:dashboard_admin' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver al Panel</a>
-<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-  <h2 class="text-2xl font-bold mb-6 text-blue-900">Productos Registrados</h2>
-  <a href="{% url 'productos:crear_producto' %}" class="mb-6 block w-full text-center bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">Agregar Producto</a>
-  <table class="min-w-full divide-y divide-gray-200">
-    <thead>
-      <tr class="bg-blue-100">
-        <th class="py-2 px-4 text-left">Código</th>
-        <th class="py-2 px-4 text-left">Nombre</th>
-        <th class="py-2 px-4 text-left">Categoría</th>
-        <th class="py-2 px-4 text-left">Proveedor</th>
-        <th class="py-2 px-4 text-left">Precio Venta</th>
-        <th class="py-2 px-4">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for producto in productos %}
-      <tr class="hover:bg-blue-50">
-        <td class="py-2 px-4">{{ producto.codigo }}</td>
-        <td class="py-2 px-4">{{ producto.nombre }}</td>
-        <td class="py-2 px-4">{{ producto.categoria }}</td>
-        <td class="py-2 px-4">{{ producto.proveedor }}</td>
-        <td class="py-2 px-4">{{ producto.precio_venta|floatformat:0 }} Gs.</td>
-        <td class="py-2 px-4 flex gap-2">
-          <a href="{% url 'productos:editar_producto' producto.pk %}" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-900 py-1 px-2 rounded">Editar</a>
-          <a href="{% url 'productos:eliminar_producto' producto.pk %}" class="bg-red-100 hover:bg-red-200 text-red-900 py-1 px-2 rounded">Eliminar</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" class="text-center py-4 text-gray-500">No hay productos registrados.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="max-w-5xl mx-auto">
+    <h1 class="text-2xl font-bold text-green-700 mb-4">Listado de Productos</h1>
+
+    <div class="mb-4 flex justify-between">
+        <a href="{% url 'productos:agregar_producto' %}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">+ Agregar Producto</a>
+    </div>
+
+    <div class="overflow-x-auto bg-white shadow-md rounded">
+        <table class="w-full text-sm text-left text-gray-600">
+            <thead class="bg-green-600 text-white">
+                <tr>
+                    <th class="px-4 py-2">Código</th>
+                    <th class="px-4 py-2">Nombre</th>
+                    <th class="px-4 py-2">Categoría</th>
+                    <th class="px-4 py-2">Stock</th>
+                    <th class="px-4 py-2">Precio Venta</th>
+                    <th class="px-4 py-2 text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr class="border-b">
+                    <td class="px-4 py-2">{{ producto.codigo }}</td>
+                    <td class="px-4 py-2">{{ producto.nombre }}</td>
+                    <td class="px-4 py-2">{{ producto.categoria }}</td>
+                    <td class="px-4 py-2">{{ producto.cantidad }}</td>
+                    <td class="px-4 py-2">Gs. {{ producto.precio_venta }}</td>
+                    <td class="px-4 py-2 text-center">
+                        <a href="{% url 'productos:editar_producto' producto.pk %}" class="text-blue-600 hover:underline">Editar</a>
+                        |
+                        <a href="{% url 'productos:eliminar_producto' producto.pk %}" class="text-red-600 hover:underline">Eliminar</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4">No hay productos registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

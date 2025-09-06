@@ -1,17 +1,52 @@
-{% extends "base.html" %}
-{% block title %}Detalle de Alumno{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle del Alumno{% endblock %}
+
 {% block content %}
-<a href="{% url 'alumnos:mis_hijos' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver a Mis Hijos</a>
-<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
-  <h2 class="text-2xl font-bold mb-4 text-blue-900">Detalle de {{ alumno.nombre }}</h2>
-  <ul class="mb-6 space-y-2 text-gray-800">
-    <li><span class="font-semibold">Padre:</span> {{ alumno.padre }}</li>
-    <li><span class="font-semibold">Grado:</span> {{ alumno.grado }}</li>
-    <li><span class="font-semibold">Nivel:</span> {{ alumno.nivel }}</li>
-    <li><span class="font-semibold">Saldo Tarjeta:</span> {{ alumno.saldo_tarjeta }} Gs.</li>
-    <li><span class="font-semibold">Límite Consumo Diario:</span> {{ alumno.limite_consumo }} Gs.</li>
-    <li><span class="font-semibold">Nro. Tarjeta:</span> {{ alumno.numero_tarjeta }}</li>
-  </ul>
-  <a href="{% url 'alumnos:cargar_saldo' %}" class="block mt-6 bg-green-700 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded transition text-center">Cargar Saldo</a>
+<div class="max-w-4xl mx-auto bg-white p-6 shadow-md rounded">
+  <h1 class="text-2xl font-bold mb-4">📋 Detalle del Alumno</h1>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <div>
+      <span class="font-semibold text-gray-700">Nombre:</span>
+      <p class="text-lg text-gray-800">{{ alumno.nombre }}</p>
+    </div>
+    <div>
+      <span class="font-semibold text-gray-700">Padre:</span>
+      <p class="text-lg text-gray-800">{{ alumno.padre.get_full_name }}</p>
+    </div>
+    <div>
+      <span class="font-semibold text-gray-700">Grado:</span>
+      <p class="text-gray-800">{{ alumno.grado }}</p>
+    </div>
+    <div>
+      <span class="font-semibold text-gray-700">Nivel:</span>
+      <p class="text-gray-800">{{ alumno.nivel }}</p>
+    </div>
+    <div>
+      <span class="font-semibold text-gray-700">Número de Tarjeta:</span>
+      <p class="text-gray-800">{{ alumno.numero_tarjeta }}</p>
+    </div>
+    <div>
+      <span class="font-semibold text-gray-700">Saldo Tarjeta:</span>
+      <p class="text-green-600 font-bold">{{ alumno.saldo_tarjeta }} Gs.</p>
+    </div>
+    <div>
+      <span class="font-semibold text-gray-700">Límite de Consumo Diario:</span>
+      <p class="text-orange-600 font-semibold">{{ alumno.limite_consumo }} Gs.</p>
+    </div>
+    <div>
+      <span class="font-semibold text-gray-700">Saldo Disponible Hoy:</span>
+      <p class="text-blue-700 font-semibold">{{ alumno.saldo_restante|floatformat:0 }} Gs.</p>
+    </div>
+  </div>
+
+  <div class="flex justify-between items-center pt-4">
+    <a href="{% url 'alumnos:alumnos_lista' %}" class="text-gray-600 hover:underline">← Volver al listado</a>
+    {% if request.user.is_superuser %}
+      <a href="{% url 'alumnos:editar_alumno' alumno.pk %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">✏️ Editar</a>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

@@ -1,22 +1,8 @@
 from django import forms
-from compras.models import Proveedor
-from .models import Producto
+from .models import Producto, Categoria
+from proveedores.models import Proveedor
 
-class ProveedorForm(forms.ModelForm):
-    class Meta:
-        model = Proveedor
-        fields = ['nombre', 'contacto']  # Solo si 'contacto' existe en tu modelo
-        widgets = {
-            'nombre': forms.TextInput(attrs={
-                'class': 'border rounded p-2 w-full',
-                'placeholder': 'Nombre del proveedor'
-            }),
-            # Solo si tu modelo tiene el campo contacto
-            'contacto': forms.TextInput(attrs={
-                'class': 'border rounded p-2 w-full',
-                'placeholder': 'Teléfono o email (opcional)'
-            }),
-        }
+BASE_INPUT_CLASSES = 'border border-gray-300 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500'
 
 class ProductoForm(forms.ModelForm):
     class Meta:
@@ -25,43 +11,42 @@ class ProductoForm(forms.ModelForm):
             'codigo',
             'nombre',
             'descripcion',
-            'cantidad',         # Cambia a 'stock' si tu modelo lo usa así
+            'cantidad',
             'precio_costo',
             'precio_venta',
             'categoria',
-            'proveedor'
+            'proveedor',
         ]
         widgets = {
             'codigo': forms.TextInput(attrs={
-                'class': 'border rounded p-2 w-full',
+                'class': BASE_INPUT_CLASSES,
                 'placeholder': 'Código del producto (p.ej. ABC123)'
             }),
             'nombre': forms.TextInput(attrs={
-                'class': 'border rounded p-2 w-full',
+                'class': BASE_INPUT_CLASSES,
                 'placeholder': 'Nombre del producto'
             }),
             'descripcion': forms.Textarea(attrs={
-                'class': 'border rounded p-2 w-full',
+                'class': BASE_INPUT_CLASSES,
                 'rows': 3,
                 'placeholder': 'Descripción breve (opcional)'
             }),
             'cantidad': forms.NumberInput(attrs={
-                'class': 'border rounded p-2 w-32',
+                'class': BASE_INPUT_CLASSES,
                 'placeholder': 'Unidades'
             }),
             'precio_costo': forms.NumberInput(attrs={
-                'class': 'border rounded p-2 w-32',
+                'class': BASE_INPUT_CLASSES,
                 'placeholder': 'Costo Gs.'
             }),
             'precio_venta': forms.NumberInput(attrs={
-                'class': 'border rounded p-2 w-32',
+                'class': BASE_INPUT_CLASSES,
                 'placeholder': 'Venta Gs.'
             }),
-             # AQUI la corrección: Select para FK
             'categoria': forms.Select(attrs={
-                'class': 'border rounded p-2 w-full'
+                'class': BASE_INPUT_CLASSES
             }),
             'proveedor': forms.Select(attrs={
-                'class': 'border rounded p-2 w-full'
+                'class': BASE_INPUT_CLASSES
             }),
         }

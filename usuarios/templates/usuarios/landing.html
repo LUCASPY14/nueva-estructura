@@ -1,21 +1,32 @@
-{% extends "base.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bienvenido - LGservice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col justify-center items-center px-4">
 
-{% block title %}Inicio - LGservice{% endblock %}
+    <div class="max-w-xl w-full bg-white shadow-lg rounded-2xl p-8 text-center">
+        <img src="{% static 'img/lgservice_logo.png' %}" alt="LGservice" class="mx-auto h-20 mb-4">
 
-{% block content %}
-    <div class="center-logo">
-        <img src="{% static 'img/lgservice_logo.png' %}" alt="Logo" style="max-width:170px;">
+        <h1 class="text-3xl font-bold text-green-600 mb-2">Bienvenido a LGservice</h1>
+        <p class="text-gray-600 mb-6">Sistema de gestión para la Cantina Escolar</p>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'usuarios:login_simple' %}" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition">
+                Iniciar Sesión
+            </a>
+            <a href="{% url 'usuarios:registro_padre' %}" class="w-full sm:w-auto border border-green-600 text-green-600 hover:bg-green-50 font-semibold py-2 px-6 rounded-lg transition">
+                Registrarse como Padre
+            </a>
+        </div>
     </div>
-    <h1 style="text-align:center;margin-top:2rem;color:#145ea8;font-size:2.1rem;">
-        ¡Bienvenido a LGservice - La Cantina de Tita!
-    </h1>
-    <p style="text-align:center;font-size:1.2rem;margin:1.5rem auto 2rem;max-width:600px;">
-        Gestión eficiente, simple y segura para tu cantina escolar.<br>
-        Descubrí una nueva forma de administrar y controlar todo desde un solo lugar.
-    </p>
-    <div style="display:flex;justify-content:center;gap:20px;">
-        <a href="{% url 'usuarios:login_simple' %}" class="main-btn">Ingresar</a>
-        <a href="{% url 'usuarios:registro_padre' %}" class="main-btn" style="background:#fff;color:#145ea8;border:2px solid #145ea8;">Registrarse</a>
-    </div>
-{% endblock %}
+
+    <footer class="text-sm text-gray-500 mt-8">
+        &copy; {{ year|default:2025 }} LGservice - Todos los derechos reservados
+    </footer>
+</body>
+</html>

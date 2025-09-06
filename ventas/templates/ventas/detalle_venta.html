@@ -1,44 +1,75 @@
 {% extends "base.html" %}
 {% block title %}Detalle de Venta{% endblock %}
+
 {% block content %}
-<a href="{% url 'ventas:ventas_lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
-    ← Volver al listado
+<a href="{% url 'ventas:ventas_lista' %}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al listado de ventas
 </a>
-<div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-    <h2 class="text-2xl font-bold mb-6 text-blue-900">Detalle de Venta #{{ venta.id }}</h2>
-    <p><strong>Alumno:</strong> {{ venta.alumno }}</p>
-    <p><strong>Fecha:</strong> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
-    <p><strong>Total:</strong> {{ venta.total }} Gs.</p>
-    <h3 class="mt-4 mb-2 font-bold text-lg text-blue-900">Productos vendidos:</h3>
-    <table class="min-w-full divide-y divide-gray-200 mb-4">
-        <thead>
-            <tr class="bg-gray-100">
-                <th class="py-2 px-2 text-left">Producto</th>
-                <th class="py-2 px-2 text-left">Cantidad</th>
-                <th class="py-2 px-2 text-left">Precio Unitario</th>
-                <th class="py-2 px-2 text-left">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for detalle in venta.detalles.all %}
-            <tr>
-                <td class="py-2 px-2">{{ detalle.producto }}</td>
-                <td class="py-2 px-2">{{ detalle.cantidad }}</td>
-                <td class="py-2 px-2">{{ detalle.precio_unitario }} Gs.</td>
-                <td class="py-2 px-2">{{ detalle.subtotal }} Gs.</td>
-            </tr>
+
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-bold mb-6 text-green-600">Detalle de Venta #{{ venta.id }}</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 text-sm text-gray-700">
+        <p><span class="font-semibold">Alumno:</span> {{ venta.alumno }}</p>
+        <p><span class="font-semibold">Fecha:</span> {{ venta.fecha|date:"d/m/Y H:i" }}</p>
+        <p><span class="font-semibold">Total:</span> <span class="text-green-700 font-bold">{{ venta.total }} Gs.</span></p>
+        {% if venta.codigo_autorizacion %}
+            <p><span class="font-semibold">Código de Autorización:</span> {{ venta.codigo_autorizacion }}</p>
+        {% endif %}
+    </div>
+
+    <h3 class="text-lg font-semibold text-green-700 mb-2">🛒 Productos Vendidos</h3>
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm divide-y divide-gray-200 mb-6 border rounded">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="py-2 px-4 text-left">Producto</th>
+                    <th class="py-2 px-4 text-left">Cantidad</th>
+                    <th class="py-2 px-4 text-left">Precio Unitario</th>
+                    <th class="py-2 px-4 text-left">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in venta.detalles.all %}
+                <tr class="hover:bg-green-50">
+                    <td class="py-2 px-4">{{ detalle.producto }}</td>
+                    <td class="py-2 px-4">{{ detalle.cantidad }}</td>
+                    <td class="py-2 px-4">{{ detalle.precio_unitario }} Gs.</td>
+                    <td class="py-2 px-4">{{ detalle.subtotal }} Gs.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h3 class="text-lg font-semibold text-green-700 mb-2">💳 Pagos Realizados</h3>
+    {% if venta.pagos.exists %}
+        <ul class="list-disc list-inside text-sm text-gray-700">
+            {% for pago in venta.pagos.all %}
+            <li>
+                <strong>{{ pago.metodo }}</strong>: {{ pago.monto }} Gs. 
+                {% if pago.observacion %}<span class="text-gray-500">({{ pago.observacion }})</span>{% endif %}
+            </li>
             {% endfor %}
-        </tbody>
-    </table>
-    <h3 class="mt-4 mb-2 font-bold text-lg text-blue-900">Pagos realizados:</h3>
-    <ul class="list-disc list-inside">
-        {% for pago in venta.pagos.all %}
-        <li>
-            <strong>{{ pago.metodo }}</strong>: {{ pago.monto }} Gs. {% if pago.observacion %}({{ pago.observacion }}){% endif %}
-        </li>
-        {% empty %}
-        <li>No hay pagos registrados.</li>
-        {% endfor %}
-    </ul>
+        </ul>
+    {% else %}
+        <p class="text-gray-500 text-sm italic">No hay pagos registrados.</p>
+    {% endif %}
 </div>
 {% endblock %}
+
+def save(self, *args, **kwargs):
+    if self.cantidad <= 0:
+        raise ValueError("La cantidad debe ser mayor a cero.")
+    if self.precio_unitario <= 0:
+        raise ValueError("El precio unitario debe ser mayor a cero.")
+    super().save(*args, **kwargs)
+
+def clean(self):
+    if self.detalles.count() == 0:
+        raise ValidationError("La venta debe tener al menos un producto.")
+    if self.pagos.count() == 0:
+        raise ValidationError("La venta debe tener al menos un pago.")
+    total_pagos = sum(p.monto for p in self.pagos.all())
+    if total_pagos != self.total:
+        raise ValidationError("La suma de los pagos debe ser igual al total de la venta.")

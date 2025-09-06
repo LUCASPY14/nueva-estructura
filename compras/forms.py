@@ -2,12 +2,15 @@ from django import forms
 from django.forms.models import inlineformset_factory
 from .models import Compra, DetalleCompra
 
+# Clase base de estilos
+BASE_INPUT_CLASSES = 'border border-gray-300 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500'
+
 class CompraForm(forms.ModelForm):
     class Meta:
         model = Compra
         fields = ['proveedor']
         widgets = {
-            'proveedor': forms.Select(attrs={'class': 'border rounded p-2 w-full'}),
+            'proveedor': forms.Select(attrs={'class': BASE_INPUT_CLASSES}),
         }
 
 # Formset para los detalles de la compra
@@ -18,8 +21,8 @@ DetalleCompraFormSet = inlineformset_factory(
     extra=1,
     can_delete=True,
     widgets={
-        'producto': forms.Select(attrs={'class': 'border rounded p-2 w-full'}),
-        'cantidad': forms.NumberInput(attrs={'class': 'border rounded p-2 w-24'}),
-        'precio_unitario': forms.NumberInput(attrs={'class': 'border rounded p-2 w-32'}),
+        'producto': forms.Select(attrs={'class': BASE_INPUT_CLASSES}),
+        'cantidad': forms.NumberInput(attrs={'class': 'border border-gray-300 rounded-lg px-3 py-2 w-24 focus:outline-none focus:ring-2 focus:ring-green-500'}),
+        'precio_unitario': forms.NumberInput(attrs={'class': 'border border-gray-300 rounded-lg px-3 py-2 w-32 focus:outline-none focus:ring-2 focus:ring-green-500'}),
     }
 )

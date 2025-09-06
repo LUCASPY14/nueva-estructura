@@ -6,6 +6,9 @@ from productos.models import Producto
 Usuario = settings.AUTH_USER_MODEL
 
 class Padre(models.Model):
+    """
+    Representa al padre o encargado responsable de uno o varios alumnos.
+    """
     usuario = models.OneToOneField(
         Usuario,
         on_delete=models.CASCADE,
@@ -38,7 +41,14 @@ class Padre(models.Model):
     def get_full_name(self):
         return f"{self.nombre} {self.apellido}"
 
+    class Meta:
+        ordering = ['apellido', 'nombre']
+        verbose_name_plural = "Padres"
+
 class Alumno(models.Model):
+    """
+    Representa a un alumno vinculado a un padre o tutor.
+    """
     padre = models.ForeignKey(
         Padre,
         on_delete=models.CASCADE,
@@ -84,10 +94,14 @@ class Alumno(models.Model):
         return self.saldo_tarjeta
 
     class Meta:
+        ordering = ['nombre']
         verbose_name = "Alumno"
         verbose_name_plural = "Alumnos"
 
 class Restriccion(models.Model):
+    """
+    Restricción de compra de productos por alumno (permitido o no).
+    """
     alumno = models.ForeignKey(
         Alumno,
         on_delete=models.CASCADE,
@@ -100,15 +114,8 @@ class Restriccion(models.Model):
     )
     permitido = models.BooleanField(
         default=True,
-        help_text="True=puede comprar, False=no puede"
+        help_text="True = puede comprar, False = no puede"
     )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['alumno', 'producto'], name='unique_restriccion_alumno_producto')
-        ]
-        verbose_name = "Restricción"
-        verbose_name_plural = "Restricciones"
 
     def __str__(self):
         estado = "Permitido" if self.permitido else "Prohibido"
@@ -121,3 +128,11 @@ class Restriccion(models.Model):
             ventas = ventas.filter(fecha__year=fecha.year, fecha__month=fecha.month)
         total = ventas.aggregate(suma=Sum('total'))['suma'] or Decimal('0.00')
         return total
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['alumno', 'producto'], name='unique_restriccion_alumno_producto')
+        ]
+        verbose_name = "Restricción"
+        verbose_name_plural = "Restricciones"
+        ordering = ['alumno', 'producto']

@@ -1,15 +1,25 @@
-{% extends "base.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sesión cerrada | LGservice</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen px-4">
 
-{% block title %}Cerrar Sesión - LGservice{% endblock %}
+    <div class="bg-white shadow-lg rounded-xl p-8 max-w-md w-full text-center">
+        <img src="{% static 'img/lgservice_logo.png' %}" alt="LGservice" class="mx-auto h-16 mb-4">
+        
+        <h1 class="text-2xl font-bold text-green-600 mb-2">Sesión finalizada</h1>
+        <p class="text-gray-600 mb-6">Has cerrado sesión exitosamente.</p>
 
-{% block content %}
-<div style="max-width:370px;margin:3rem auto;padding:2rem 2rem;background:#fff;border-radius:16px;box-shadow:0 0 18px #0001;text-align:center;">
-    <img src="{% static 'img/logo.png' %}" alt="Logo" style="max-width:70px;">
-    <h2 style="color:#145ea8;margin-top:1.5rem;">¡Sesión cerrada!</h2>
-    <p style="margin-top:1rem;">Gracias por usar LGservice - La Cantina de Tita.</p>
-    <a href="
-{% url 'usuarios:login_simple' %}" class="main-btn" style="margin-top:1.3rem;">Volver a ingresar</a>
-    <a href="{% url 'usuarios:landing' %}" style="display:block;margin-top:0.8rem;color:#145ea8;">Ir al inicio</a>
-</div>
-{% endblock %}
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="{% url 'usuarios:landing' %}" class="px-5 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">Ir al inicio</a>
+            <a href="{% url 'usuarios:login_simple' %}" class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Iniciar sesión</a>
+        </div>
+    </div>
+
+</body>
+</html>

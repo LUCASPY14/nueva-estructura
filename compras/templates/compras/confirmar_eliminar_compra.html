@@ -1,20 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Eliminar Compra{% endblock %}
-{% block content %}
 
+{% block title %}Eliminar Compra{% endblock %}
+
+{% block content %}
 <a href="{% url 'compras:compras_lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
     ← Cancelar
 </a>
 
-<div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-lg text-center">
-  <h2 class="text-2xl font-bold mb-6 text-red-700">¿Seguro que deseas eliminar la compra #{{ compra.id }}?</h2>
-  <p class="mb-6 text-gray-600">
-    Esta acción restará del stock las cantidades ingresadas y no se puede deshacer.
-  </p>
-  <form method="post">
-    {% csrf_token %}
-    <button type="submit" class="bg-red-700 hover:bg-red-900 text-white font-semibold py-2 px-6 rounded transition mr-2">Eliminar</button>
-    <a href="{% url 'compras:compras_lista' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-6 rounded transition">Cancelar</a>
-  </form>
+<div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-bold mb-6 text-red-800">¿Eliminar Compra #{{ compra.id }}?</h2>
+    <p>Esta acción <span class="font-bold text-red-600">NO</span> se puede deshacer.<br>
+       Se restará el stock de productos cargados.</p>
+
+    <form method="post" class="mt-8">
+        {% csrf_token %}
+        <button type="submit" class="bg-red-700 hover:bg-red-900 text-white font-semibold py-2 px-6 rounded transition">
+            Sí, eliminar compra
+        </button>
+    </form>
 </div>
 {% endblock %}

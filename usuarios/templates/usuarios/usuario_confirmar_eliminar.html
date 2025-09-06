@@ -1,13 +1,23 @@
-{% extends "base.html" %}
-{% block title %}Eliminar Usuario{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Confirmar Eliminación | LGservice{% endblock %}
+
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg mt-10 text-center">
-    <h2 class="text-2xl font-bold mb-6 text-red-900">Eliminar Usuario</h2>
-    <p>¿Seguro que querés eliminar el usuario <span class="font-bold">{{ usuario.username }}</span>?</p>
-    <form method="post" class="mt-6">
+<div class="max-w-2xl mx-auto text-center">
+    <h2 class="text-2xl font-semibold text-red-600 mb-4">Confirmar Eliminación</h2>
+    <p class="mb-6 text-gray-700">
+        ¿Estás seguro de que deseas eliminar al usuario <strong>{{ usuario.username }}</strong>? Esta acción no se puede deshacer.
+    </p>
+
+    <form method="POST" class="space-y-4">
         {% csrf_token %}
-        <button type="submit" class="bg-red-700 px-4 py-2 text-white rounded hover:bg-red-900">Eliminar</button>
-        <a href="{% url 'usuarios:usuarios_lista' %}" class="ml-4 text-blue-700 underline">Cancelar</a>
+        <div class="flex justify-center gap-6">
+            <a href="{% url 'usuarios:usuarios_lista' %}" class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition">
+                Cancelar
+            </a>
+            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                Eliminar Usuario
+            </button>
+        </div>
     </form>
 </div>
 {% endblock %}

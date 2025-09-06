@@ -6,13 +6,18 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.db.models import Sum
 from decimal import Decimal
-from .models import Venta
-from .forms import VentaForm, DetalleFormSet, PagoFormSet
+from alumnos.models import Alumno
+from productos.models import Producto
+from .models import Venta, DetalleVenta, Pago
+from .forms import VentaForm, DetalleFormSet, PagoFormSet, PagoForm
 from weasyprint import HTML
 
 # Helper para control de acceso
 def es_cajero(user):
     return user.groups.filter(name='Cajeros').exists() or user.is_superuser
+
+def es_cajero_o_admin(user):
+    return user.is_superuser or user.groups.filter(name__in=['Cajeros', 'Administradores']).exists()
 
 # --------- CRUD DE VENTAS (Solo cajeros/admin) ---------
 @login_required
@@ -141,3 +146,35 @@ def reporte_ventas_pdf(request):
     response['Content-Disposition'] = 'inline; filename="reporte_ventas.pdf"'
     HTML(string=html_content).write_pdf(target=response)
     return response
+
+@login_required
+@user_passes_test(es_cajero_o_admin)
+@transaction.atomic
+def registrar_venta(request):
+    if request.method == 'POST':
+        venta_form = VentaForm(request.POST)
+        detalle_formset = DetalleFormSet(request.POST, prefix='detalle')
+        pago_formset = PagoFormSet(request.POST, prefix='pago')
+        if venta_form.is_valid() and detalle_formset.is_valid() and pago_formset.is_valid():
+            venta = venta_form.save(commit=False)
+            venta.cajero = request.user
+            venta.save()
+            detalle_formset.instance = venta
+            pago_formset.instance = venta
+            detalles = detalle_formset.save()
+            pagos = pago_formset.save()
+            # Actualiza el total de la venta
+            venta.actualizar_total()
+            messages.success(request, "Venta registrada correctamente.")
+            return redirect('ventas:detalle_venta', pk=venta.pk)
+        else:
+            messages.error(request, "Corrige los errores en el formulario.")
+    else:
+        venta_form = VentaForm()
+        detalle_formset = DetalleFormSet(prefix='detalle')
+        pago_formset = PagoFormSet(prefix='pago')
+    return render(request, 'ventas/registrar_venta.html', {
+        'venta_form': venta_form,
+        'detalle_formset': detalle_formset,
+        'pago_formset': pago_formset,
+    })

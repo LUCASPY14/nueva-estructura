@@ -1,0 +1,20 @@
+{% load static %}
+{% load roles_tags %}
+{% if user.is_authenticated %}
+<nav class="bg-green-600 text-white text-sm shadow">
+    <div class="max-w-7xl mx-auto px-6 py-3 flex flex-wrap gap-4 items-center">
+        {% if user.is_superuser or user|en_grupo:"Administradores" %}
+            <a href="{% url 'usuarios:dashboard_admin' %}" class="hover:underline">Dashboard Admin</a>
+            <a href="{% url 'usuarios:usuarios_lista' %}" class="hover:underline">Usuarios</a>
+            <a href="{% url 'productos:listar_productos' %}" class="hover:underline">Productos</a>
+            <a href="{% url 'reportes:reporte_stock' %}" class="hover:underline">Reporte Stock</a>
+        {% elif user|en_grupo:"Cajeros" or user.tipo == "CAJERO" %}
+            <a href="{% url 'usuarios:dashboard_cajero' %}" class="hover:underline">Dashboard Cajero</a>
+            <a href="{% url 'ventas:crear_venta' %}" class="hover:underline">Registrar Venta</a>
+        {% elif user|en_grupo:"Padres" or user.tipo == "PADRE" %}
+            <a href="{% url 'usuarios:dashboard_padre' %}" class="hover:underline">Dashboard Padre</a>
+        {% endif %}
+        <a href="{% url 'usuarios:logout_view' %}" class="ml-auto text-red-100 hover:underline">Cerrar sesión</a>
+    </div>
+</nav>
+{% endif %}

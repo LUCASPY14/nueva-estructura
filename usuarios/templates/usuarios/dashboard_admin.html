@@ -1,30 +1,57 @@
-{% extends "base.html" %}
-{% load static %}
-{% block title %}Dashboard Administrador{% endblock %}
+{# dashboard_admin.html #}
+{% extends "dashboard_base.html" %}
+{% block title %}Panel de Administración | LGservice{% endblock %}
 
 {% block content %}
-<div style="max-width:1080px;margin:2.5rem auto;padding:2.5rem;background:#fff;border-radius:20px;box-shadow:0 4px 28px #0001;">
-    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:2rem;">
-        <img src="{% static 'img/Tita-logo.jpg' %}" alt="Cantina de Tita" style="max-width:110px;border-radius:12px;">
-        <h2 style="color:#145ea8;font-size:2rem;font-weight:bold;margin-top:1.2rem;">
-            Panel de Administración
-        </h2>
-        <p style="color:#325d85;margin-top:0.7rem;font-size:1.1rem;">
-            Bienvenido, {{ user.get_full_name|default:user.username }}.<br>
-            Acceso rápido a las principales gestiones del sistema.
-        </p>
-    </div>
+<h1 class="text-2xl font-semibold text-gray-800 mb-6">Panel de Administración</h1>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px;">
-        <a href="{% url 'usuarios:usuarios_lista' %}" class="main-btn" style="background:#2563eb;font-size:1.11rem;">Gestionar Usuarios</a>
-        <a href="{% url 'alumnos:alumnos_lista' %}" class="main-btn" style="background:#059669;font-size:1.11rem;">Gestionar Alumnos</a>
-        <a href="{% url 'productos:listar_productos' %}" class="main-btn" style="background:#fbbf24;font-size:1.11rem;color:#222;">Gestionar Productos</a>
-        <a href="{% url 'compras:compras_lista' %}" class="main-btn" style="background:#8b5cf6;font-size:1.11rem;">Gestionar Compras</a>
-        <a href="{% url 'ventas:ventas_lista' %}" class="main-btn" style="background:#6366f1;font-size:1.11rem;">Gestionar Ventas</a>
-        <a href="{% url 'stock:movimientos_stock' %}" class="main-btn" style="background:#ec4899;font-size:1.11rem;">Ver Stock</a>
-        <a href="{% url 'reportes:reporte_ventas' %}" class="main-btn" style="background:#334155;font-size:1.11rem;grid-column:span 2;color:#fff;">
-            Reportes y Estadísticas
-        </a>
-    </div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <!-- Tarjeta: Usuarios -->
+  <a href="{% url 'usuarios:usuarios_lista' %}" class="bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 p-6 transition">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">👥 Usuarios</h2>
+    <p class="text-gray-600">Gestionar usuarios del sistema</p>
+  </a>
+
+  <!-- Tarjeta: Productos -->
+  <a href="{% url 'productos:listar_productos' %}" class="bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 p-6 transition">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">🍔 Productos</h2>
+    <p class="text-gray-600">Ver y administrar inventario</p>
+  </a>
+
+  <!-- Tarjeta: Reporte de Ventas -->
+  <a href="{% url 'reportes:reporte_ventas' %}" class="bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 p-6 transition">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">💰 Reporte de Ventas</h2>
+    <p class="text-gray-600">Ver informe de ventas realizadas</p>
+  </a>
+
+  <!-- Tarjeta: Reporte de Stock -->
+  <a href="{% url 'reportes:reporte_stock' %}" class="bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 p-6 transition">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">📦 Reporte de Stock</h2>
+    <p class="text-gray-600">Consulta de existencias actuales</p>
+  </a>
+
+  <!-- Tarjeta: Facturas -->
+  <a href="{% url 'facturacion:reporte_facturas' %}" class="bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 p-6 transition">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">🧾 Facturas</h2>
+    <p class="text-gray-600">Revisión de facturación</p>
+  </a>
+
+  <!-- Tarjeta: Alumnos -->
+  <a href="{% url 'alumnos:alumnos_lista' %}" class="bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 p-6 transition">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">🎓 Alumnos</h2>
+    <p class="text-gray-600">Ver y gestionar estudiantes</p>
+  </a>
+
+  <!-- Tarjeta: Compras -->
+  <a href="{% url 'compras:compras_lista' %}" class="bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 p-6 transition">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">🛒 Compras</h2>
+    <p class="text-gray-600">Ingreso de productos al stock</p>
+  </a>
+
+  <!-- Tarjeta: Configuración -->
+  <a href="{% url 'configuracion:editar_configuracion' %}" class="bg-white rounded-2xl shadow hover:shadow-lg border border-blue-100 p-6 transition">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">⚙️ Configuración</h2>
+    <p class="text-gray-600">Editar parámetros del sistema</p>
+  </a>
 </div>
 {% endblock %}

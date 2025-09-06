@@ -1,24 +1,29 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
 {% block title %}Cargar Saldo{% endblock %}
+
 {% block content %}
-<a href="{% url 'alumnos:alumnos_lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver a Alumnos</a>
-<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
-  <h2 class="text-2xl font-bold mb-4 text-blue-900">Cargar Saldo a Alumno</h2>
+<div class="max-w-xl mx-auto bg-white p-6 shadow-md rounded">
+  <h1 class="text-2xl font-bold mb-4">💳 Cargar saldo</h1>
   <form method="post">
     {% csrf_token %}
-    {% for field in form %}
-      <div class="mb-4">
-        {{ field.label_tag }}<br>
-        {{ field }}
-        {% if field.help_text %}
-          <p class="text-xs text-gray-500">{{ field.help_text }}</p>
-        {% endif %}
-        {% for error in field.errors %}
-          <p class="text-sm text-red-700">{{ error }}</p>
-        {% endfor %}
-      </div>
-    {% endfor %}
-    <button type="submit" class="w-full mt-4 bg-green-700 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded transition">Cargar Saldo</button>
+    {{ form.non_field_errors }}
+    <div class="mb-4">
+      {{ form.alumno.label_tag }} {{ form.alumno }}
+      {% if form.alumno.errors %}
+        <p class="text-red-500 text-sm">{{ form.alumno.errors }}</p>
+      {% endif %}
+    </div>
+    <div class="mb-4">
+      {{ form.monto.label_tag }} {{ form.monto }}
+      {% if form.monto.errors %}
+        <p class="text-red-500 text-sm">{{ form.monto.errors }}</p>
+      {% endif %}
+    </div>
+    <div class="flex justify-between">
+      <a href="{% url 'alumnos:alumnos_lista' %}" class="text-gray-600 hover:underline">← Volver</a>
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Cargar</button>
+    </div>
   </form>
 </div>
 {% endblock %}

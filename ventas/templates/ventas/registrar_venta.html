@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Registrar Venta</h2>
+{% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+<form method="post">
+    {% csrf_token %}
+    <fieldset>
+        <legend>Datos de la venta</legend>
+        {{ venta_form.as_p }}
+    </fieldset>
+    <fieldset>
+        <legend>Productos</legend>
+        {{ detalle_formset.management_form }}
+        <table>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio unitario</th>
+                <th>Eliminar</th>
+            </tr>
+            {% for form in detalle_formset %}
+            <tr>
+                <td>{{ form.producto }}</td>
+                <td>{{ form.cantidad }}</td>
+                <td>{{ form.precio_unitario }}</td>
+                <td>{% if form.instance.pk %}{{ form.DELETE }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </fieldset>
+    <fieldset>
+        <legend>Pagos</legend>
+        {{ pago_formset.management_form }}
+        <table>
+            <tr>
+                <th>Método</th>
+                <th>Monto</th>
+                <th>Observación</th>
+                <th>Eliminar</th>
+            </tr>
+            {% for form in pago_formset %}
+            <tr>
+                <td>{{ form.metodo }}</td>
+                <td>{{ form.monto }}</td>
+                <td>{{ form.observacion }}</td>
+                <td>{% if form.instance.pk %}{{ form.DELETE }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </fieldset>
+    <button type="submit" class="btn btn-success">Registrar</button>
+</form>
+{% endblock %}

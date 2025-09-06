@@ -1,29 +1,23 @@
-{% extends "base.html" %}
-{% block title %}Nueva Restricción{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Agregar Restricción{% endblock %}
+
 {% block content %}
-<a href="{% url 'alumnos:listar_restricciones' %}" 
-   class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
-    ← Volver a Restricciones
-</a>
-<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
-  <h2 class="text-2xl font-bold mb-4 text-blue-900">Agregar Restricción</h2>
+<div class="max-w-xl mx-auto bg-white p-6 shadow rounded">
+  <h1 class="text-2xl font-bold mb-4">➕ Agregar Restricción</h1>
   <form method="post">
     {% csrf_token %}
     {% for field in form %}
-      <div class="mb-4">
-        {{ field.label_tag }}<br>
-        {{ field }}
-        {% if field.help_text %}
-          <p class="text-xs text-gray-500">{{ field.help_text }}</p>
-        {% endif %}
-        {% for error in field.errors %}
-          <p class="text-sm text-red-700">{{ error }}</p>
-        {% endfor %}
-      </div>
+    <div class="mb-4">
+      {{ field.label_tag }} {{ field }}
+      {% if field.errors %}
+        <p class="text-red-500 text-sm">{{ field.errors }}</p>
+      {% endif %}
+    </div>
     {% endfor %}
-    <button type="submit" class="w-full mt-4 bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">
-      Guardar Restricción
-    </button>
+    <div class="flex justify-between">
+      <a href="{% url 'alumnos:listar_restricciones' %}" class="text-gray-600 hover:underline">← Volver</a>
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Guardar</button>
+    </div>
   </form>
 </div>
 {% endblock %}

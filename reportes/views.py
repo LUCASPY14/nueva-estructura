@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from weasyprint import HTML
+# Importación condicional de WeasyPrint\ntry:\n    from weasyprint import HTML\nexcept ImportError:\n    # Fallback para desarrollo\n    HTML = None
 from ventas.models import Venta, DetalleVenta
 from productos.models import Producto
 from alumnos.models import Alumno
@@ -40,8 +40,12 @@ def reporte_ventas_pdf(request):
     })
 
     # Generamos el PDF con WeasyPrint
-    pdf = HTML(string=html_string).write_pdf()
+    if HTML:\n        pdf = HTML(string=html_string).write_pdf()\n    else:\n        # Fallback para desarrollo\n        return HttpResponse("<h1>Generación de PDF no disponible en desarrollo</h1><p>Instale las dependencias de WeasyPrint para habilitar esta función</p>", content_type="text/html")
 
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'inline; filename="reporte_ventas.pdf"'
     return response
+
+def reporte_stock(request):
+    productos = Producto.objects.all().order_by('nombre')
+    return render(request, 'reportes/reporte_stock.html', {'productos': productos})

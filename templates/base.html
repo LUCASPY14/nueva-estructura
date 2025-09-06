@@ -1,56 +1,29 @@
 {% load static %}
-{% load roles_extras %}
+{% load roles_tags %}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}LGservice{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
 </head>
-
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col bg-gray-50 text-gray-800 font-sans overflow-x-hidden">
 
     <!-- HEADER -->
-    <header class="bg-white shadow-md py-3 px-6 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <img src="{% static 'img/lgservice_logo.png' %}" alt="Logo LGservice" class="h-10">
-            <span class="text-xl font-bold text-green-600">LGservice</span>
-        </div>
-        {% if user.is_authenticated %}
-        <div class="text-sm text-gray-600">
-            Bienvenido, <strong>{{ user.username }}</strong>
-        </div>
-        {% endif %}
-    </header>
+    {% include "partials/header.html" %}
 
-    <!-- NAVBAR OPCIONAL POR ROL -->
-    {% if user.is_authenticated %}
-    <nav class="bg-green-600 text-white py-2 px-6 text-sm">
-        <ul class="flex gap-4">
-            {% if user.is_superuser %}
-            <li><a href="{% url 'usuarios:dashboard_admin' %}" class="hover:underline">Dashboard Admin</a></li>
-            <li><a href="{% url 'usuarios:usuarios_lista' %}" class="hover:underline">Usuarios</a></li>
-            {% elif user|en_grupo:"Cajeros" %}
-            <li><a href="{% url 'usuarios:dashboard_cajero' %}" class="hover:underline">Dashboard Cajero</a></li>
-            <li><a href="{% url 'ventas:crear_venta' %}" class="hover:underline">Registrar Venta</a></li>
-            {% elif user.padre_profile %}
-            <li><a href="{% url 'usuarios:dashboard_padre' %}" class="hover:underline">Dashboard Padre</a></li>
-            {% endif %}
-            <li><a href="{% url 'usuarios:logout_view' %}" class="text-red-100 hover:underline">Cerrar sesión</a></li>
-        </ul>
-    </nav>
-    {% endif %}
+    <!-- NAVBAR -->
+    {% include "partials/navbar.html" %}
 
     <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-grow p-6">
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
 
     <!-- FOOTER -->
-    <footer class="bg-gray-100 text-center text-sm text-gray-500 py-3">
-        &copy; {{ year|default:2025 }} LGservice - Todos los derechos reservados | WhatsApp: +595985350656
-    </footer>
+    {% include "partials/footer.html" %}
+
 </body>
 </html>

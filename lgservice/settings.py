@@ -22,10 +22,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
 
     # Tailwind
     "tailwind",
     'theme',
+    
     
     
     # Terceros
@@ -39,10 +41,12 @@ INSTALLED_APPS = [
     'compras',
     'ventas',
     'facturacion',
-    'reportes',
+    'configuracion',
+    # # 'reportes', # Comentado por problemas con WeasyPrint # Comentado temporalmente por problemas con WeasyPrint
+    'proveedores',
+    'rest_framework',
 ]
 
-TAILWIND_APP_NAME = "theme"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -66,6 +70,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'usuarios.context_processors.year_context',
             ],
         },
     },
@@ -123,3 +128,14 @@ LOGIN_URL = 'usuarios:login_simple'
 
 # Código para override en ventas
 VENTA_OVERRIDE_CODE = "LA-CANTINA-1234"
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
+# Tipo de campo ID por defecto para todos los modelos
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+TAILWIND_APP_NAME = 'theme'  # ⬅️ Asegúrate de usar el nombre real de tu app Tailwind

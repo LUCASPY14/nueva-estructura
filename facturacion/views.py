@@ -8,6 +8,7 @@ from weasyprint import HTML
 import tempfile
 from .models import Factura
 from .forms import FacturaForm
+from facturacion.models import Factura
 
 # Chequeo de administrador
 from django.conf import settings
@@ -80,3 +81,6 @@ def factura_pdf_view(request, factura_id):
         response = HttpResponse(tmpfile.read(), content_type='application/pdf')
         response['Content-Disposition'] = f'filename=factura_{factura.numero}.pdf'
         return response
+def reporte_facturas(request):
+    facturas = Factura.objects.all()
+    return render(request, 'facturacion/reporte_facturas.html', {'facturas': facturas})

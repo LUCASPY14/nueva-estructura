@@ -1,0 +1,44 @@
+FROM python:3.9-slim
+
+# Establecer variables de entorno
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Crear usuario no root
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+WORKDIR /app
+
+# Instalar dependencias del sistema para WeasyPrint
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    python3-dev \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libffi-dev \
+    shared-mime-info \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements
+COPY requirements.txt .
+
+# Instalar dependencias Python
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar el proyecto
+COPY . .
+
+# Cambiar propiedad de los archivos
+RUN chown -R appuser:appuser /app
+
+# Cambiar al usuario no root
+USER appuser
+
+# Puerto para el servidor de desarrollo
+EXPOSE 8000
+
+# Comando para ejecutar el servidor
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -1,62 +1,72 @@
 {% extends "base.html" %}
 {% block title %}Reporte de Ventas{% endblock %}
+
 {% block content %}
-<a href="{% url 'usuarios:dashboard_admin' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+<a href="{% url 'usuarios:dashboard_admin' %}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded transition">
     ← Volver al Panel
 </a>
-<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-    <h2 class="text-2xl font-bold mb-6 text-blue-900">Reporte de Ventas</h2>
 
+<div class="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-bold mb-6 text-green-700">📈 Reporte de Ventas</h2>
+
+    <!-- Filtros -->
     <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div>
-            <label class="block font-semibold mb-1">Fecha inicio</label>
+            <label class="block font-semibold text-sm text-gray-700 mb-1">Fecha inicio</label>
             <input type="date" name="fecha_inicio" value="{{ fecha_inicio|default:'' }}" class="border rounded p-2 w-full">
         </div>
         <div>
-            <label class="block font-semibold mb-1">Fecha fin</label>
+            <label class="block font-semibold text-sm text-gray-700 mb-1">Fecha fin</label>
             <input type="date" name="fecha_fin" value="{{ fecha_fin|default:'' }}" class="border rounded p-2 w-full">
         </div>
         <div class="flex items-end">
-            <button type="submit" class="w-full bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">
-                Filtrar
+            <button type="submit" class="w-full bg-green-700 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded transition">
+                🔍 Filtrar
             </button>
         </div>
     </form>
 
+    <!-- Botón Exportar -->
     <div class="mb-4">
-        <a href="{% url 'ventas:reporte_ventas_pdf' %}?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}" target="_blank"
-            class="bg-green-700 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded transition">Exportar PDF</a>
+        <a href="{% url 'ventas:reporte_ventas_pdf' %}?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}"
+           target="_blank"
+           class="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">
+            🧾 Exportar a PDF
+        </a>
     </div>
 
-    <table class="min-w-full divide-y divide-gray-200 mb-4">
-        <thead>
-            <tr class="bg-blue-100">
-                <th class="py-2 px-4 text-left">ID</th>
-                <th class="py-2 px-4 text-left">Fecha</th>
-                <th class="py-2 px-4 text-left">Alumno</th>
-                <th class="py-2 px-4 text-left">Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for venta in ventas %}
-            <tr class="hover:bg-blue-50">
-                <td class="py-2 px-4">{{ venta.id }}</td>
-                <td class="py-2 px-4">{{ venta.fecha|date:"d/m/Y H:i" }}</td>
-                <td class="py-2 px-4">{{ venta.alumno }}</td>
-                <td class="py-2 px-4">{{ venta.total }} Gs.</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center py-4 text-gray-500">No hay ventas en este rango.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr class="font-bold bg-blue-50">
-                <td colspan="3" class="py-2 px-4 text-right">Total:</td>
-                <td class="py-2 px-4">{{ total }} Gs.</td>
-            </tr>
-        </tfoot>
-    </table>
+    <!-- Tabla de ventas -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm divide-y divide-gray-200 mb-4 border rounded">
+            <thead class="bg-gray-100 text-gray-700">
+                <tr>
+                    <th class="py-2 px-4 text-left">ID</th>
+                    <th class="py-2 px-4 text-left">Fecha</th>
+                    <th class="py-2 px-4 text-left">Alumno</th>
+                    <th class="py-2 px-4 text-left">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas %}
+                <tr class="hover:bg-green-50">
+                    <td class="py-2 px-4">{{ venta.id }}</td>
+                    <td class="py-2 px-4">{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                    <td class="py-2 px-4">{{ venta.alumno }}</td>
+                    <td class="py-2 px-4">{{ venta.total }} Gs.</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-gray-500 italic">No hay ventas registradas en este rango.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="font-bold bg-green-50">
+                    <td colspan="3" class="py-2 px-4 text-right">Total General:</td>
+                    <td class="py-2 px-4">{{ total }} Gs.</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 </div>
 {% endblock %}

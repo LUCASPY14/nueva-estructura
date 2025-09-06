@@ -1,23 +1,29 @@
-{% extends "base.html" %}
-{% load static %}
-{% block title %}Dashboard Padre{% endblock %}
-
+{% extends "dashboard_base.html" %}
+{% block title %}Panel del Padre | LGservice{% endblock %}
 {% block content %}
-<div style="max-width:980px;margin:2.5rem auto;padding:2.5rem;background:#fff;border-radius:20px;box-shadow:0 4px 28px #0001;">
-    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:2rem;">
-        <img src="{% static 'img/Tita-logo.jpg' %}" alt="Cantina de Tita" style="max-width:110px;border-radius:12px;">
-        <h2 style="color:#145ea8;font-size:2rem;font-weight:bold;margin-top:1.2rem;">
-            Panel del Padre
-        </h2>
-        <p style="color:#325d85;margin-top:0.7rem;font-size:1.1rem;">
-            ¡Bienvenido, {{ user.get_full_name|default:user.username }}! Consultá el consumo y saldos de tus hijos, y gestioná recargas.
-        </p>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:28px;">
-        <a href="{% url 'alumnos:mis_hijos' %}" class="main-btn" style="background:#2563eb;font-size:1.11rem;">Ver Consumo de Hijos</a>
-        <a href="{% url 'alumnos:cargar_saldo' %}" class="main-btn" style="background:#10b981;font-size:1.11rem;">Cargar Saldo</a>
-        <a href="{% url 'alumnos:editar_perfil_padre' %}" class="main-btn" style="background:#fbbf24;font-size:1.11rem;color:#222;">Mi Perfil</a>
-        <a href="{% url 'reportes:reporte_ventas' %}" class="main-btn" style="background:#334155;font-size:1.11rem;color:#fff;">Reporte Familiar</a>
-    </div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <!-- Tarjeta: Hijos -->
+  <a href="{% url 'alumnos:lista_hijos' %}" class="bg-white shadow hover:shadow-md rounded-xl p-6 transition border border-purple-100">
+    <h2 class="text-xl font-bold text-purple-800 mb-2">👨‍👧‍👦 Mis Hijos</h2>
+    <p class="text-gray-600">Ver información, consumo y restricciones</p>
+  </a>
+
+  <!-- Tarjeta: Cargar Saldo -->
+  <a href="{% url 'alumnos:cargar_saldo' %}" class="bg-white shadow hover:shadow-md rounded-xl p-6 transition border border-purple-100">
+    <h2 class="text-xl font-bold text-purple-800 mb-2">💳 Cargar Saldo</h2>
+    <p class="text-gray-600">Agregar dinero a la tarjeta del alumno</p>
+  </a>
+
+  <!-- Tarjeta: Reporte de Consumo -->
+  <a href="{% url 'reportes:reporte_consumo_alumno' %}" class="bg-white shadow hover:shadow-md rounded-xl p-6 transition border border-purple-100">
+    <h2 class="text-xl font-bold text-purple-800 mb-2">📊 Consumo</h2>
+    <p class="text-gray-600">Consultar lo que consumieron tus hijos</p>
+  </a>
+
+  <!-- Tarjeta: Editar Perfil -->
+  <a href="{% url 'alumnos:editar_perfil_padre' %}" class="bg-white shadow hover:shadow-md rounded-xl p-6 transition border border-purple-100">
+    <h2 class="text-xl font-bold text-purple-800 mb-2">🧍‍♂️ Mi Perfil</h2>
+    <p class="text-gray-600">Actualizar tus datos personales</p>
+  </a>
 </div>
 {% endblock %}

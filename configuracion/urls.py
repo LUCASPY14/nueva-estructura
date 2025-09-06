@@ -1,8 +1,9 @@
 from django.urls import path
-from . import views
+from .views import configuracion_view
 
 app_name = 'configuracion'
 
 urlpatterns = [
-    path('', views.configuracion_view, name='configuracion_view'),
+    path('', configuracion_view, name='configuracion'),  # <--- asigna este nombre
+    path('editar/', configuracion_view, name='editar_configuracion'),
 ]

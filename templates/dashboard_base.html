@@ -1,0 +1,30 @@
+{% load static %}
+{% load roles_tags %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}LGservice{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
+</head>
+<body class="min-h-screen flex flex-col bg-gray-50 text-gray-800 font-sans overflow-x-hidden">
+
+  <!-- HEADER -->
+  {% include "partials/header.html" %}
+
+  <!-- NAVBAR -->
+  {% include "partials/navbar.html" %}
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-grow p-6">
+    {% block content %}
+      {% block tarjetas %}{% endblock %}
+    {% endblock %}
+  </main>
+
+  <!-- FOOTER -->
+  {% include "partials/footer.html" %}
+
+</body>
+</html>

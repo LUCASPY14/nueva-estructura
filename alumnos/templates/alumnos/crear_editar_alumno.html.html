@@ -1,24 +1,60 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
 {% block title %}{{ form.instance.pk|yesno:"Editar Alumno,Agregar Alumno" }}{% endblock %}
+
 {% block content %}
-<a href="{% url 'alumnos:alumnos_lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver a la Lista</a>
-<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
-  <h2 class="text-2xl font-bold mb-4 text-blue-900">{{ form.instance.pk|yesno:"Editar Alumno,Agregar Alumno" }}</h2>
-  <form method="post">
-    {% csrf_token %}
-    {% for field in form %}
-      <div class="mb-4">
-        {{ field.label_tag }}<br>
-        {{ field }}
-        {% if field.help_text %}
-          <p class="text-xs text-gray-500">{{ field.help_text }}</p>
-        {% endif %}
-        {% for error in field.errors %}
-          <p class="text-sm text-red-700">{{ error }}</p>
-        {% endfor %}
+<h1 class="text-2xl font-bold mb-6">
+  {{ form.instance.pk|yesno:"✏️ Editar Alumno,➕ Agregar Alumno" }}
+</h1>
+
+<!-- Mensajes de éxito/error -->
+{% if messages %}
+  <div class="mb-4 space-y-2">
+    {% for message in messages %}
+      <div class="p-3 rounded text-white {% if message.tags == 'success' %}bg-green-500{% elif message.tags == 'error' %}bg-red-500{% else %}bg-blue-500{% endif %}">
+        {{ message }}
       </div>
     {% endfor %}
-    <button type="submit" class="w-full mt-4 bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">Guardar</button>
-  </form>
-</div>
+  </div>
+{% endif %}
+
+<form method="post" class="bg-white shadow-md rounded p-6 space-y-4 max-w-xl">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div>
+      <label for="id_nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+      {{ form.nombre }}
+    </div>
+    <div>
+      <label for="id_numero_tarjeta" class="block text-sm font-medium text-gray-700">N° Tarjeta</label>
+      {{ form.numero_tarjeta }}
+    </div>
+    <div>
+      <label for="id_grado" class="block text-sm font-medium text-gray-700">Grado</label>
+      {{ form.grado }}
+    </div>
+    <div>
+      <label for="id_nivel" class="block text-sm font-medium text-gray-700">Nivel</label>
+      {{ form.nivel }}
+    </div>
+    <div>
+      <label for="id_limite_consumo" class="block text-sm font-medium text-gray-700">Límite Diario Gs.</label>
+      {{ form.limite_consumo }}
+    </div>
+    <div>
+      <label for="id_padre" class="block text-sm font-medium text-gray-700">Padre</label>
+      {{ form.padre }}
+    </div>
+  </div>
+
+  <div class="pt-4 flex items-center justify-between">
+    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+      💾 Guardar
+    </button>
+    <a href="{% url 'alumnos:alumnos_lista' %}" class="text-gray-600 hover:underline">← Volver al listado</a>
+  </div>
+</form>
 {% endblock %}

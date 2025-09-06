@@ -1,34 +1,47 @@
-{% extends 'base.html' %}
+{# login.html #}
+{% extends "base.html" %}
 {% load static %}
+{% block title %}Iniciar Sesión | LGservice{% endblock %}
+
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
-  <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
-    <div class="flex flex-col items-center mb-6">
-      <img src="{% static 'img/lgservice_logo.png' %}" alt="LGservice Logo" class="w-20 h-20 mb-2">
-      <h1 class="text-2xl font-bold text-green-600">Bienvenido a LGservice</h1>
-      <p class="text-sm text-gray-500">Accedé con tus credenciales</p>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-100 to-blue-200 px-4 py-12">
+  <div class="w-full max-w-sm bg-white p-8 rounded-xl shadow-xl">
+    <div class="text-center mb-6">
+      <img src="{% static 'img/lgservice_logo.png' %}" alt="LGservice Logo" class="h-16 mx-auto mb-2">
+      <h1 class="text-2xl font-bold text-gray-700">Bienvenido a LGservice</h1>
+      <p class="text-gray-500 text-sm">Por favor, ingresa tus credenciales</p>
     </div>
 
-    <form method="POST" class="space-y-4">
+    <form method="post" class="space-y-4">
       {% csrf_token %}
-      {{ form.non_field_errors }}
-      <div>
-        <label class="block text-gray-700">Usuario</label>
-        {{ form.username|add_class:"input-field" }}
+      {% if form.errors %}
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded">
+        Verifica tu usuario y contraseña.
       </div>
+      {% endif %}
+
       <div>
-        <label class="block text-gray-700">Contraseña</label>
-        {{ form.password|add_class:"input-field" }}
+        <label for="username" class="block text-sm font-medium text-gray-700">Usuario</label>
+        <input type="text" name="username" id="username" required
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
       </div>
 
-      <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl transition">
-        Iniciar Sesión
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+        <input type="password" name="password" id="password" required
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+      </div>
+
+      <button type="submit"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition">
+        Iniciar sesión
       </button>
     </form>
 
-    <div class="mt-6 text-center text-sm text-gray-500">
-      ¿Olvidaste tu contraseña? <a href="{% url 'usuarios:password_reset' %}" class="text-green-600 hover:underline">Recuperar</a>
-    </div>
+    <p class="mt-4 text-center text-sm text-gray-500">
+      ¿Olvidaste tu contraseña?
+      <a href="{% url 'password_reset' %}" class="text-blue-600 hover:underline">Recupérala aquí</a>
+    </p>
   </div>
 </div>
 {% endblock %}

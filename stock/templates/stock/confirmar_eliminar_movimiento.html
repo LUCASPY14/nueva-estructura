@@ -1,13 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Eliminar Movimiento{% endblock %}
+
 {% block content %}
-<a href="{% url 'stock:movimientos_stock' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver a Stock</a>
-<div class="max-w-lg mx-auto bg-white p-8 rounded-xl shadow-lg">
-    <h2 class="text-2xl font-bold mb-4 text-red-900">¿Eliminar Movimiento?</h2>
-    <p class="mb-6">¿Estás seguro que deseas eliminar el movimiento de <strong>{{ mov.producto }}</strong> ({{ mov.tipo }}, {{ mov.cantidad }}) realizado el {{ mov.fecha|date:"d/m/Y H:i" }}?</p>
+<a href="{% url 'stock:movimientos_stock' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+    ← Cancelar
+</a>
+
+<div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-bold mb-6 text-red-800">¿Eliminar Movimiento?</h2>
+    <p class="mb-6 text-gray-700">
+        Estás por eliminar el movimiento de <strong>{{ mov.producto }}</strong>.<br>
+        <span class="text-sm text-gray-600">Tipo: <strong>{{ mov.tipo }}</strong> — Cantidad: <strong>{{ mov.cantidad }}</strong></span><br>
+        <span class="text-sm text-gray-500">Fecha: {{ mov.fecha|date:"d/m/Y H:i" }}</span><br><br>
+        <span class="text-sm text-red-600 font-medium">Esta acción no se puede deshacer.</span>
+    </p>
+
     <form method="post">
         {% csrf_token %}
-        <button type="submit" class="w-full mt-4 bg-red-700 hover:bg-red-900 text-white font-semibold py-2 px-4 rounded transition">Sí, eliminar</button>
+        <button type="submit" class="bg-red-700 hover:bg-red-900 text-white font-semibold py-2 px-6 rounded transition">
+            Sí, eliminar movimiento
+        </button>
     </form>
 </div>
 {% endblock %}

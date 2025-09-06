@@ -1,24 +1,30 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Agregar Producto{% endblock %}
+
 {% block content %}
-  <div class="max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
-    <h2 class="text-xl font-bold mb-4">Agregar Producto</h2>
-    <form method="post">
-      {% csrf_token %}
-      <div class="mb-4">
-        <label class="block font-bold">Nombre</label>
-        {{ form.nombre|add_class:"w-full p-2 border rounded" }}
-      </div>
-      <div class="mb-4">
-        <label class="block font-bold">Descripción</label>
-        {{ form.descripcion|add_class:"w-full p-2 border rounded" }}
-      </div>
-      <div class="mb-4">
-        <label class="block font-bold">Precio</label>
-        {{ form.precio|add_class:"w-full p-2 border rounded" }}
-      </div>
-      <button type="submit" class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-900">Guardar</button>
-      <a href="{% url 'productos:listar_productos' %}" class="ml-2 text-gray-500 underline">Volver</a>
+<div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-2xl font-bold mb-4 text-green-600">Agregar Nuevo Producto</h1>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        {% for field in form %}
+            <div>
+                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <div class="flex justify-between mt-6">
+            <a href="{% url 'productos:listar_productos' %}" class="text-sm text-gray-600 hover:underline">← Volver al listado</a>
+            <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Guardar Producto</button>
+        </div>
     </form>
-  </div>
+</div>
 {% endblock %}

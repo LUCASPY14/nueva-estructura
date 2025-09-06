@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.conf import settings
 from .forms import LoginForm, RegistroPadreForm, UserCreationForm, UserChangeForm
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+
 
 User = get_user_model()
 
@@ -13,40 +15,36 @@ def landing(request):
     return render(request, 'usuarios/landing.html')
 
 # Helpers de rol
+def es_admin(user):
+    return user.is_superuser or (hasattr(user, 'tipo') and user.tipo == 'ADMIN')
+
 def es_cajero(user):
     return user.groups.filter(name='Cajeros').exists() or (hasattr(user, 'tipo') and user.tipo == 'CAJERO')
 
 def es_padre(user):
     return hasattr(user, 'padre_profile') or (hasattr(user, 'tipo') and user.tipo == 'PADRE')
 
-def es_admin(user):
-    return user.is_superuser or (hasattr(user, 'tipo') and user.tipo == 'ADMIN')
+# Función centralizada para redirigir por tipo de usuario
+def redirigir_por_tipo(user):
+    if user.tipo == 'ADMIN':
+        return redirect('usuarios:dashboard_admin')
+    elif user.tipo == 'CAJERO':
+        return redirect('usuarios:dashboard_cajero')
+    elif user.tipo == 'PADRE':
+        return redirect('usuarios:dashboard_padre')
+    return redirect('usuarios:landing')
 
 # Login visual
 def login_simple(request):
     if request.user.is_authenticated:
-        # Redirige automáticamente al dashboard correspondiente, NO desloguea
-        if hasattr(request.user, 'tipo'):
-            if request.user.tipo == 'ADMIN':
-                return redirect('usuarios:dashboard_admin')
-            elif request.user.tipo == 'PADRE':
-                return redirect('usuarios:dashboard_padre')
-            elif request.user.tipo == 'CAJERO':
-                return redirect('usuarios:dashboard_cajero')
-        return redirect('usuarios:landing')
+        return redirigir_por_tipo(request.user)
+
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            if hasattr(user, 'tipo'):
-                if user.tipo == 'ADMIN':
-                    return redirect('usuarios:dashboard_admin')
-                elif user.tipo == 'PADRE':
-                    return redirect('usuarios:dashboard_padre')
-                elif user.tipo == 'CAJERO':
-                    return redirect('usuarios:dashboard_cajero')
-            return redirect('usuarios:landing')
+            return redirigir_por_tipo(user)
         else:
             messages.error(request, "Usuario o contraseña incorrectos.")
     else:
@@ -65,7 +63,7 @@ def registro_padre(request):
         if form.is_valid():
             user = form.save()
             from django.contrib.auth.models import Group
-            padres_group, created = Group.objects.get_or_create(name="Padres")
+            padres_group, _ = Group.objects.get_or_create(name="Padres")
             user.groups.add(padres_group)
             login(request, user)
             return redirect('usuarios:dashboard_padre')
@@ -73,19 +71,58 @@ def registro_padre(request):
         form = RegistroPadreForm()
     return render(request, 'usuarios/registro_padre.html', {'form': form})
 
-# Dashboards por rol (con login_url corregido)
+# Dashboards por rol
 @login_required
-@user_passes_test(lambda u: hasattr(u, 'tipo') and u.tipo == 'ADMIN', login_url='usuarios:login_simple')
+@user_passes_test(es_admin, login_url='usuarios:login_simple')
 def dashboard_admin(request):
-    return render(request, 'usuarios/dashboard_admin.html')
+    items = [
+        {
+            'title': 'Gestión de Usuarios',
+            'description': 'Agregar, editar o eliminar usuarios del sistema.',
+            'icon': '👥',
+            'url': reverse('usuarios:usuarios_lista')
+        },
+        {
+            'title': 'Productos',
+            'description': 'Controlar y administrar los productos disponibles.',
+            'icon': '🍔',
+            'url': reverse('productos:listar_productos')
+        },
+        {
+            'title': 'Reportes de Ventas',
+            'description': 'Ver estadísticas y descargar reportes de ventas.',
+            'icon': '💰',
+            'url': reverse('ventas:reporte_ventas')
+        },
+        {
+            'title': 'Stock',
+            'description': 'Ver el estado actual del inventario.',
+            'icon': '📦',
+            'url': reverse('reportes:reporte_stock')
+        },
+        {
+            'title': 'Facturación',
+            'description': 'Revisar facturas generadas en el sistema.',
+            'icon': '🧾',
+            'url': reverse('facturacion:reporte_facturas')
+        },
+        {
+            'title': 'Configuración del Sistema',
+            'description': 'Editar parámetros globales del sistema LGservice.',
+            'icon': '⚙️',
+            'url': reverse('configuracion:configuracion')
+        },
+    ]
+    return render(request, 'usuarios/dashboard_admin.html', {'items': items})
+
 
 @login_required
-@user_passes_test(lambda u: hasattr(u, 'tipo') and u.tipo == 'CAJERO', login_url='usuarios:login_simple')
+@user_passes_test(es_cajero, login_url='usuarios:login_simple')
 def dashboard_cajero(request):
     return render(request, 'usuarios/dashboard_cajero.html')
 
 @login_required
-@user_passes_test(lambda u: hasattr(u, 'tipo') and u.tipo == 'PADRE', login_url='usuarios:login_simple')
+@user_passes_test(es_padre, login_url='usuarios:login_simple')
 def dashboard_padre(request):
     from alumnos.models import Alumno
     try:
@@ -138,7 +175,7 @@ def usuario_eliminar(request, pk):
         return redirect('usuarios:usuarios_lista')
     return render(request, 'usuarios/usuario_confirmar_eliminar.html', {'usuario': usuario})
 
-# (Opcionales) Dashboards alternativos
+# Dashboards alternativos (si se usan)
 @login_required
 @user_passes_test(es_admin, login_url='usuarios:login_simple')
 def admin_dashboard_view(request):

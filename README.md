@@ -1,40 +1,107 @@
-# LGservice - Sistema de Gesti贸n de Cantina Escolar
+# LG Service - Sistema de Gesti髇
 
-Sistema web para la gesti贸n de ventas, stock y control de alumnos en la cantina del Colegio Santa Teresa de Jes煤s.
+## Descripci髇
 
-## 馃殌 Instalaci贸n
+LG Service es un sistema de gesti髇 desarrollado con Django para administrar operaciones comerciales. El sistema incluye funcionalidades para gesti髇 de ventas, inventario, clientes y reportes.
 
-```bash
-git clone https://github.com/LUCASPY14/nueva-estructura.git
-cd nueva-estructura
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-# Configura tu archivo .env seg煤n tus datos de base de datos y claves
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
-馃搨 Estructura de Apps
-alumnos: gesti贸n de alumnos y padres.
+## Requisitos
 
-compras: registro de compras y stock.
+- Docker y Docker Compose
+- Git
 
-facturacion: generaci贸n de facturas y reportes PDF.
+## Configuraci髇
 
-productos: cat谩logo y control de productos.
+### Configuraci髇 del entorno
 
-stock: movimientos de inventario.
+1. Clone el repositorio:
+   `ash
+   git clone [url-del-repositorio]
+   cd [nombre-del-directorio]
+   `
 
-usuarios: autenticaci贸n y gesti贸n de usuarios/roles.
+2. Configure las variables de entorno:
+   `ash
+   cp .env-example .env
+   `
+   Edite el archivo .env con sus configuraciones personalizadas.
 
-ventas: gesti贸n de ventas, pagos y reportes.
+3. Ejecute el script de configuraci髇:
+   `ash
+   chmod +x setup.sh
+   ./setup.sh
+   `
 
-鈿欙笍 Tecnolog铆as
-Python 3.x
+### Ejecuci髇 manual (alternativa)
 
-Django 5.x
+1. Inicie los servicios con Docker Compose:
+   `ash
+   docker-compose -f docker-compose.yml.optimized up -d
+   `
 
-PostgreSQL
+2. Ejecute las migraciones:
+   `ash
+   docker-compose -f docker-compose.yml.optimized exec web python manage.py migrate
+   `
 
-馃搫 Licencia
-MIT
+3. Acceda a la aplicaci髇 en http://localhost:8000
+
+## Estructura del proyecto
+
+`
+.
+ lgservice/          # Configuraci髇 principal de Django
+ apps/               # Aplicaciones del proyecto
+    core/           # Funcionalidades centrales
+    users/          # Gesti髇 de usuarios
+    ...             # Otras aplicaciones
+ static/             # Archivos est醫icos
+ templates/          # Plantillas HTML
+ Dockerfile          # Configuraci髇 de Docker
+ docker-compose.yml  # Configuraci髇 de Docker Compose
+`
+
+## Mejores pr醕ticas de seguridad
+
+1. **Variables de entorno**: Nunca almacene credenciales en el c骴igo. Use el archivo .env para configuraciones sensibles.
+
+2. **Actualizaciones regulares**: Mantenga las dependencias actualizadas para evitar vulnerabilidades de seguridad.
+
+3. **Backups**: Realice copias de seguridad peri骴icas de la base de datos.
+
+4. **Monitoreo**: Implemente herramientas de monitoreo para detectar comportamientos an髆alos.
+
+## Desarrollo
+
+### Entorno de desarrollo
+
+1. Inicie el servidor de desarrollo:
+   `ash
+   docker-compose -f docker-compose.yml.optimized up
+   `
+
+2. Para ejecutar pruebas:
+   `ash
+   docker-compose -f docker-compose.yml.optimized exec web python manage.py test
+   `
+
+### Contribuciones
+
+1. Cree una rama para su funcionalidad: git checkout -b feature/nombre-funcionalidad
+2. Realice sus cambios y pruebas
+3. Env韊 un pull request
+
+## Ventajas de usar Docker
+
+- **Entorno consistente**: Garantiza que todos los desarrolladores trabajen en el mismo entorno.
+- **Aislamiento**: Cada servicio se ejecuta en su propio contenedor, evitando conflictos.
+- **Portabilidad**: Funciona en cualquier sistema que tenga Docker instalado.
+- **Escalabilidad**: Facilita la escalabilidad horizontal de la aplicaci髇.
+- **Seguridad**: Mejora la seguridad al aislar los servicios y reducir la superficie de ataque.
+
+## Licencia
+
+[Incluir informaci髇 de licencia]
+
+## Contacto
+
+[Incluir informaci髇 de contacto]

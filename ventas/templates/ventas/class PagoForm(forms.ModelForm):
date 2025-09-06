@@ -1,0 +1,4 @@
+class PagoForm(forms.ModelForm):
+    class Meta:
+        model = Pago
+        fields = ['metodo', 'monto']

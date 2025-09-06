@@ -1,32 +1,21 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block title %}Mis Hijos{% endblock %}
+
 {% block content %}
-<a href="{% url 'usuarios:dashboard_padre' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver al Panel</a>
-<div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-  <h2 class="text-2xl font-bold mb-6 text-blue-900">Mis Hijos</h2>
-  <table class="min-w-full divide-y divide-gray-200">
-    <thead>
-      <tr class="bg-blue-100">
-        <th class="py-2 px-4 text-left">Nombre</th>
-        <th class="py-2 px-4 text-left">Grado</th>
-        <th class="py-2 px-4 text-left">Saldo</th>
-        <th class="py-2 px-4">Ver</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for hijo in hijos %}
-      <tr class="hover:bg-blue-50">
-        <td class="py-2 px-4">{{ hijo.nombre }}</td>
-        <td class="py-2 px-4">{{ hijo.grado }}</td>
-        <td class="py-2 px-4">{{ hijo.saldo_tarjeta }}</td>
-        <td class="py-2 px-4"><a href="{% url 'alumnos:detalle_alumno' hijo.pk %}" class="bg-blue-100 hover:bg-blue-200 text-blue-900 py-1 px-2 rounded">Detalle</a></td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="4" class="text-center py-4 text-gray-500">No hay alumnos cargados.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="max-w-4xl mx-auto">
+  <h1 class="text-2xl font-bold mb-4">👨‍👧 Mis Hijos</h1>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {% for hijo in hijos %}
+    <div class="bg-white p-4 shadow rounded hover:shadow-md transition">
+      <h2 class="text-lg font-semibold">{{ hijo.nombre }}</h2>
+      <p>Grado: {{ hijo.grado }}</p>
+      <p>Saldo: <span class="text-green-600 font-semibold">{{ hijo.saldo_tarjeta }} Gs.</span></p>
+      <p>Límite Diario: {{ hijo.limite_consumo }} Gs.</p>
+      <a href="{% url 'alumnos:detalle_alumno' hijo.pk %}" class="text-blue-600 hover:underline text-sm">Ver detalle →</a>
+    </div>
+    {% empty %}
+    <p class="text-gray-600">No hay hijos registrados.</p>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}

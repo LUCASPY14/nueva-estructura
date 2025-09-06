@@ -1,0 +1,12 @@
+{% load static %}
+<header class="bg-white shadow py-4 px-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <img src="{% static 'img/lgservice_logo.png' %}" alt="Logo LGservice" class="h-10 w-auto">
+        <span class="text-2xl font-bold text-green-600">LGservice</span>
+    </div>
+    {% if user.is_authenticated %}
+    <div class="text-sm text-gray-700">
+        Bienvenido, <strong>{{ user.username }}</strong>
+    </div>
+    {% endif %}
+</header>

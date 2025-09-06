@@ -1,57 +1,60 @@
-{% extends "base.html" %}
-{% block title %}Lista de Alumnos{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listado de Alumnos{% endblock %}
+
 {% block content %}
-<a href="{% url 'usuarios:dashboard_admin' %}" 
-   class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
-    ← Volver al Panel
-</a>
+<h1 class="text-2xl font-bold mb-6">📚 Alumnos Registrados</h1>
 
-<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-  <h2 class="text-2xl font-bold mb-6 text-blue-900">Alumnos Registrados</h2>
-
-  <!-- SOLO ADMIN ve este botón -->
-  {% if user.is_superuser %}
-    <a href="{% url 'alumnos:cargar_saldo' %}" 
-       class="mb-4 block w-full text-center bg-green-700 hover:bg-green-900 text-white font-semibold py-2 px-4 rounded transition">
-      Cargar Saldo
-    </a>
-  {% endif %}
-
-  <a href="{% url 'alumnos:crear_alumno' %}" 
-     class="mb-6 block w-full text-center bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">
-    Agregar Alumno
-  </a>
-
-  <div class="overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead>
-        <tr class="bg-blue-100">
-          <th class="py-2 px-4 text-left">Nombre</th>
-          <th class="py-2 px-4 text-left">Tarjeta</th>
-          <th class="py-2 px-4 text-left">Padre</th>
-          <th class="py-2 px-4 text-left">Grado</th>
-          <th class="py-2 px-4 text-center">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for alumno in alumnos %}
-        <tr class="hover:bg-blue-50">
-          <td class="py-2 px-4">{{ alumno.nombre }}</td>
-          <td class="py-2 px-4">{{ alumno.numero_tarjeta }}</td>
-          <td class="py-2 px-4">{{ alumno.padre }}</td>
-          <td class="py-2 px-4">{{ alumno.grado }}</td>
-          <td class="py-2 px-4 flex flex-wrap gap-2 justify-center">
-            <a href="{% url 'alumnos:editar_alumno' alumno.pk %}" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-900 py-1 px-2 rounded transition">Editar</a>
-            <a href="{% url 'alumnos:eliminar_alumno' alumno.pk %}" class="bg-red-100 hover:bg-red-200 text-red-900 py-1 px-2 rounded transition">Eliminar</a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="5" class="text-center py-4 text-gray-500">No hay alumnos registrados.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<!-- Mensajes de éxito/error -->
+{% if messages %}
+  <div class="mb-4 space-y-2">
+    {% for message in messages %}
+      <div class="p-3 rounded text-white {% if message.tags == 'success' %}bg-green-500{% elif message.tags == 'error' %}bg-red-500{% else %}bg-blue-500{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
   </div>
+{% endif %}
+
+<div class="mb-6">
+  <a href="{% url 'alumnos:crear_alumno' %}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+    ➕ Agregar nuevo alumno
+  </a>
+</div>
+
+<div class="overflow-x-auto bg-white shadow rounded">
+  <table class="min-w-full table-auto border border-gray-300">
+    <thead class="bg-green-600 text-white">
+      <tr>
+        <th class="px-4 py-2 text-left">Nombre</th>
+        <th class="px-4 py-2 text-left">Padre</th>
+        <th class="px-4 py-2 text-left">Grado</th>
+        <th class="px-4 py-2 text-left">Nivel</th>
+        <th class="px-4 py-2 text-left">Tarjeta</th>
+        <th class="px-4 py-2 text-left">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for alumno in alumnos %}
+      <tr class="border-b hover:bg-gray-100">
+        <td class="px-4 py-2">{{ alumno.nombre }}</td>
+        <td class="px-4 py-2">{{ alumno.padre.get_full_name }}</td>
+        <td class="px-4 py-2">{{ alumno.grado }}</td>
+        <td class="px-4 py-2">{{ alumno.nivel }}</td>
+        <td class="px-4 py-2">{{ alumno.numero_tarjeta|default:"-" }}</td>
+        <td class="px-4 py-2 space-x-2">
+          <a href="{% url 'alumnos:editar_alumno' alumno.pk %}" class="text-blue-600 hover:underline">✏️ Editar</a>
+          <a href="{% url 'alumnos:detalle_alumno' alumno.pk %}" class="text-green-600 hover:underline">👁️ Ver</a>
+          <a href="{% url 'alumnos:eliminar_alumno' alumno.pk %}" class="text-red-600 hover:underline" onclick="return confirm('¿Estás seguro que deseas eliminar este alumno?')">🗑️ Eliminar</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="text-center p-4 text-gray-500">No hay alumnos registrados.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}
