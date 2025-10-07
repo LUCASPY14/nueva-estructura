@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Ventas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .periodo {
+            color: #4b5563;
+            font-size: 14px;
+        }
+        .seccion {
+            margin-bottom: 30px;
+        }
+        .seccion h2 {
+            color: #1f2937;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+        }
+        .resumen-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .grafico {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Reporte de Ventas</h1>
+        <div class="periodo">
+            Período: {{ fecha_inicio|date:"d/m/Y" }} - {{ fecha_fin|date:"d/m/Y" }}
+        </div>
+    </div>
+
+    <div class="seccion">
+        <h2>Resumen General</h2>
+        <div class="resumen-item">
+            <span>Total de Ventas:</span>
+            <strong>{{ resumen.total_ventas }}</strong>
+        </div>
+        <div class="resumen-item">
+            <span>Monto Total:</span>
+            <strong>${{ resumen.monto_total|floatformat:2 }}</strong>
+        </div>
+        <div class="resumen-item">
+            <span>Ticket Promedio:</span>
+            <strong>${{ resumen.ticket_promedio|floatformat:2 }}</strong>
+        </div>
+    </div>
+
+    <div class="seccion">
+        <h2>Ventas por Día</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cantidad</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas_por_dia %}
+                <tr>
+                    <td>{{ venta.fecha__date|date:"d/m/Y" }}</td>
+                    <td>{{ venta.cantidad }}</td>
+                    <td>${{ venta.total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="seccion">
+        <h2>Productos Más Vendidos</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos_vendidos %}
+                <tr>
+                    <td>{{ producto.producto__nombre }}</td>
+                    <td>{{ producto.cantidad }}</td>
+                    <td>${{ producto.total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Generado el {{ fecha_generacion|date:"d/m/Y H:i:s" }}
+    </div>
+</body>
+</html>

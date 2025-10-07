@@ -1,0 +1,101 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Registrar Movimiento de Stock{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Registrar Movimiento de Stock</h1>
+        <a href="{% url 'productos:lista' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+            <i class="fas fa-arrow-left mr-1"></i> Volver
+        </a>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label for="{{ form.producto.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ form.producto.label }}{% if form.producto.field.required %} <span class="text-red-500">*</span>{% endif %}
+                </label>
+                {{ form.producto }}
+                {% if form.producto.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                        {% for error in form.producto.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="mb-4">
+                    <label for="{{ form.tipo_movimiento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.tipo_movimiento.label }}{% if form.tipo_movimiento.field.required %} <span class="text-red-500">*</span>{% endif %}
+                    </label>
+                    {{ form.tipo_movimiento }}
+                    {% if form.tipo_movimiento.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.tipo_movimiento.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label for="{{ form.cantidad.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.cantidad.label }}{% if form.cantidad.field.required %} <span class="text-red-500">*</span>{% endif %}
+                    </label>
+                    {{ form.cantidad }}
+                    <p class="mt-1 text-xs text-gray-500">{{ form.cantidad.help_text }}</p>
+                    {% if form.cantidad.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.cantidad.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.nota.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ form.nota.label }}
+                </label>
+                {{ form.nota }}
+                <p class="mt-1 text-xs text-gray-500">{{ form.nota.help_text }}</p>
+            </div>
+            
+            <div class="pt-4">
+                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                    <i class="fas fa-save mr-2"></i> Registrar Movimiento
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tipoSelect = document.getElementById('{{ form.tipo_movimiento.id_for_label }}');
+        const cantidadInput = document.getElementById('{{ form.cantidad.id_for_label }}');
+        
+        tipoSelect.addEventListener('change', function() {
+            // Para salidas y devoluciones, sugerir valores negativos
+            if (this.value === 'salida') {
+                if (cantidadInput.value === '' || parseInt(cantidadInput.value) > 0) {
+                    cantidadInput.value = '-';
+                }
+            } else if (this.value === 'entrada' || this.value === 'ajuste') {
+                // Para entradas, asegurarse que no empiece con un signo negativo
+                if (cantidadInput.value === '-') {
+                    cantidadInput.value = '';
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

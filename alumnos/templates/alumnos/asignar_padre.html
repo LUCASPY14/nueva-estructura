@@ -1,0 +1,117 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}Asignar Tutor{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white p-6 shadow rounded">
+  <h1 class="text-2xl font-bold mb-4">👨‍👩‍👧‍👦 Asignar Tutor a {{ alumno.nombre }} {{ alumno.apellido }}</h1>
+  
+  {% if relaciones %}
+  <div class="mb-6">
+    <h2 class="text-xl font-semibold mb-3">Tutores Actuales</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="border px-4 py-2 text-left">Tutor</th>
+            <th class="border px-4 py-2 text-center">Principal</th>
+            <th class="border px-4 py-2 text-center">Ver Movimientos</th>
+            <th class="border px-4 py-2 text-center">Notificaciones</th>
+            <th class="border px-4 py-2 text-center">Cargar Saldo</th>
+            <th class="border px-4 py-2 text-center">Restricciones</th>
+            <th class="border px-4 py-2 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for relacion in relaciones %}
+          <tr>
+            <td class="border px-4 py-2">{{ relacion.padre.nombre }} {{ relacion.padre.apellido }}</td>
+            <td class="border px-4 py-2 text-center">
+              {% if relacion.es_tutor_principal %}✅{% else %}❌{% endif %}
+            </td>
+            <td class="border px-4 py-2 text-center">
+              {% if relacion.puede_ver_movimientos %}✅{% else %}❌{% endif %}
+            </td>
+            <td class="border px-4 py-2 text-center">
+              {% if relacion.puede_recibir_notificaciones %}✅{% else %}❌{% endif %}
+            </td>
+            <td class="border px-4 py-2 text-center">
+              {% if relacion.puede_cargar_saldo %}✅{% else %}❌{% endif %}
+            </td>
+            <td class="border px-4 py-2 text-center">
+              {% if relacion.puede_modificar_restricciones %}✅{% else %}❌{% endif %}
+            </td>
+            <td class="border px-4 py-2 text-center">
+              <a href="{% url 'alumnos:eliminar_relacion' relacion.id %}" class="text-red-600 hover:text-red-800">
+                <i class="fas fa-trash"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="bg-yellow-50 border border-yellow-200 rounded p-4 mb-6">
+    <p class="text-yellow-700">Este alumno no tiene tutores asignados aún.</p>
+  </div>
+  {% endif %}
+  
+  <div class="bg-gray-50 p-6 rounded border mb-6">
+    <h2 class="text-xl font-semibold mb-3">Asignar Nuevo Tutor</h2>
+    <form method="post">
+      {% csrf_token %}
+      
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2" for="{{ form.padre.id_for_label }}">Seleccionar Padre/Tutor:</label>
+        {{ form.padre }}
+        {% if form.padre.errors %}
+        <p class="text-red-500 text-sm mt-1">{{ form.padre.errors.0 }}</p>
+        {% endif %}
+      </div>
+      
+      <div class="mb-4">
+        <label class="flex items-center">
+          {{ form.es_tutor_principal }}
+          <span class="ml-2">Designar como tutor principal</span>
+        </label>
+      </div>
+      
+      <div class="mb-4">
+        <h3 class="font-semibold mb-2">Permisos</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="bg-white p-3 rounded border">
+            <label class="flex items-center">
+              {{ form.puede_ver_movimientos }}
+              <span class="ml-2">Ver movimientos y compras</span>
+            </label>
+          </div>
+          <div class="bg-white p-3 rounded border">
+            <label class="flex items-center">
+              {{ form.puede_recibir_notificaciones }}
+              <span class="ml-2">Recibir notificaciones</span>
+            </label>
+          </div>
+          <div class="bg-white p-3 rounded border">
+            <label class="flex items-center">
+              {{ form.puede_cargar_saldo }}
+              <span class="ml-2">Cargar saldo</span>
+            </label>
+          </div>
+          <div class="bg-white p-3 rounded border">
+            <label class="flex items-center">
+              {{ form.puede_modificar_restricciones }}
+              <span class="ml-2">Modificar restricciones</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex justify-between mt-6">
+        <a href="{% url 'alumnos:detalle_alumno' alumno.pk %}" class="text-gray-600 hover:underline">← Volver al detalle del alumno</a>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Asignar Tutor</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

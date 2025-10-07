@@ -23,6 +23,15 @@ class LoginForm(AuthenticationForm):
         })
     )
 
+    class Meta:
+        model = UsuarioLG
+        fields = ['username', 'password']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['class'] = 'mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500'
+
 # Registro de Padre (solo para padres)
 class RegistroPadreForm(UserCreationForm):
     email = forms.EmailField(

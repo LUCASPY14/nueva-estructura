@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .comprobante-preview {
+        max-width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .decision-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .decision-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    .decision-card.selected {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .approve-card.selected {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+    .reject-card.selected {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+    .amount-suggestions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 8px;
+    }
+    .amount-btn {
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        cursor: pointer;
+        text-align: center;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+    .amount-btn:hover {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">{{ titulo }}</h1>
+                <p class="text-gray-600 mt-1">Revisar y procesar la solicitud de recarga</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Pendiente
+                    </span>
+                </div>
+                <a href="{% url 'alumnos:solicitudes_pendientes' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Columna Izquierda: Información de la Solicitud -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Datos del Alumno -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Información del Alumno</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0">
+                            {% if solicitud.alumno.foto %}
+                                <img class="w-16 h-16 rounded-full object-cover" src="{{ solicitud.alumno.foto.url }}" alt="{{ solicitud.alumno.get_nombre_completo }}">
+                            {% else %}
+                                <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <span class="text-blue-600 font-semibold text-xl">{{ solicitud.alumno.nombre.0 }}{{ solicitud.alumno.apellido.0 }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-xl font-semibold text-gray-900">{{ solicitud.alumno.get_nombre_completo }}</h4>
+                            <p class="text-gray-600">{{ solicitud.alumno.curso|default:"Sin curso asignado" }}</p>
+                            
+                            <div class="mt-4 grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-600">Matrícula:</p>
+                                    <p class="font-medium">{{ solicitud.alumno.numero_matricula }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Número de tarjeta:</p>
+                                    <p class="font-medium">{{ solicitud.alumno.numero_tarjeta|default:"No asignado" }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Saldo actual:</p>
+                                    <p class="font-medium text-lg text-blue-600">{{ solicitud.alumno.get_saldo_formateado }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Límite diario:</p>
+                                    <p class="font-medium">
+                                        {% if solicitud.alumno.limite_consumo > 0 %}
+                                            ${{ solicitud.alumno.limite_consumo|floatformat:0 }}
+                                        {% else %}
+                                            Sin límite
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Datos del Solicitante -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Datos del Solicitante</h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600">Nombre completo:</p>
+                            <p class="font-medium">{{ solicitud.padre_solicitante.get_full_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Email:</p>
+                            <p class="font-medium">{{ solicitud.padre_solicitante.email|default:"No registrado" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Fecha de solicitud:</p>
+                            <p class="font-medium">{{ solicitud.fecha_solicitud|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Método de pago:</p>
+                            <p class="font-medium">{{ solicitud.get_metodo_pago_display }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalles de la Solicitud -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Detalles de la Solicitud</h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600 mb-1">Monto Solicitado</p>
+                            <p class="text-2xl font-bold text-green-600">${{ solicitud.monto_solicitado|floatformat:0 }}</p>
+                        </div>
+                        {% if solicitud.referencia_pago %}
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <p class="text-sm text-gray-600 mb-1">Referencia de Pago</p>
+                            <p class="text-lg font-medium text-blue-600">{{ solicitud.referencia_pago }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Historial de Recargas del Alumno -->
+                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <h4 class="text-sm font-medium text-gray-900 mb-3">Historial de Recargas Recientes</h4>
+                        <div class="space-y-2 text-sm">
+                            <!-- Aquí podrías agregar las últimas recargas del alumno -->
+                            <p class="text-gray-600">Última recarga: Hace 5 días - $50.000</p>
+                            <p class="text-gray-600">Promedio mensual: $120.000</p>
+                            <p class="text-gray-600">Total de recargas este mes: $180.000</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comprobante -->
+            {% if solicitud.comprobante %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Comprobante de Pago</h3>
+                </div>
+                <div class="p-6">
+                    <div class="text-center">
+                        {% if ".pdf" in solicitud.comprobante.url %}
+                            <div class="inline-flex items-center justify-center w-32 h-32 bg-red-100 rounded-lg border-2 border-dashed border-red-300 mb-4">
+                                <svg class="w-16 h-16 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600 mb-2">Documento PDF</p>
+                                <a href="{{ solicitud.comprobante.url }}" target="_blank" 
+                                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                    Ver Comprobante
+                                </a>
+                            </div>
+                        {% else %}
+                            <img src="{{ solicitud.comprobante.url }}" alt="Comprobante de pago" class="comprobante-preview mx-auto">
+                            <div class="mt-4">
+                                <a href="{{ solicitud.comprobante.url }}" target="_blank" 
+                                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    Ver en tamaño completo
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Columna Derecha: Formulario de Decisión -->
+        <div class="lg:col-span-1">
+            <div class="sticky top-6">
+                <form method="post" id="procesarForm">
+                    {% csrf_token %}
+                    
+                    <!-- Decisión -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">Tomar Decisión</h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <!-- Opción: Aprobar -->
+                            <div class="decision-card approve-card border-2 border-gray-200 rounded-lg p-4" 
+                                 onclick="selectDecision('aprobada', this)">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-gray-900">Aprobar Solicitud</h4>
+                                        <p class="text-xs text-gray-500">Cargar saldo a la tarjeta del alumno</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Opción: Rechazar -->
+                            <div class="decision-card reject-card border-2 border-gray-200 rounded-lg p-4" 
+                                 onclick="selectDecision('rechazada', this)">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-gray-900">Rechazar Solicitud</h4>
+                                        <p class="text-xs text-gray-500">No procesar la recarga de saldo</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Campo oculto para el estado -->
+                            <input type="hidden" name="estado" id="estadoInput" required>
+                        </div>
+                    </div>
+
+                    <!-- Monto a Aprobar (solo si aprueba) -->
+                    <div id="montoSection" class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 hidden">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">Monto a Aprobar</h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="mb-4">
+                                <label for="{{ form.monto_aprobado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    {{ form.monto_aprobado.label }}
+                                </label>
+                                {{ form.monto_aprobado }}
+                                {% if form.monto_aprobado.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.monto_aprobado.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Sugerencias de monto -->
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-600 mb-2">Sugerencias:</p>
+                                <div class="amount-suggestions">
+                                    <button type="button" class="amount-btn" onclick="setAmount({{ solicitud.monto_solicitado }})">
+                                        Monto completo
+                                    </button>
+                                    <button type="button" class="amount-btn" onclick="setAmount({{ solicitud.monto_solicitado|floatformat:0|add:'0'|mul:'0.75'|floatformat:0 }})">
+                                        75% del monto
+                                    </button>
+                                    <button type="button" class="amount-btn" onclick="setAmount({{ solicitud.monto_solicitado|floatformat:0|add:'0'|mul:'0.5'|floatformat:0 }})">
+                                        50% del monto
+                                    </button>
+                                    <button type="button" class="amount-btn" onclick="setAmount(50000)">
+                                        $50.000
+                                    </button>
+                                    <button type="button" class="amount-btn" onclick="setAmount(100000)">
+                                        $100.000
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Nuevo saldo después de la aprobación -->
+                            <div class="p-3 bg-blue-50 rounded-lg">
+                                <p class="text-sm text-gray-600">Nuevo saldo después de la aprobación:</p>
+                                <p class="text-lg font-bold text-blue-600" id="nuevoSaldo">{{ solicitud.alumno.get_saldo_formateado }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-medium text-gray-900">Observaciones</h3>
+                        </div>
+                        <div class="p-6">
+                            <label for="{{ form.observaciones_admin.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ form.observaciones_admin.label }}
+                            </label>
+                            {{ form.observaciones_admin }}
+                            {% if form.observaciones_admin.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ form.observaciones_admin.errors.0 }}</p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-500">
+                                Estas observaciones serán enviadas al padre que realizó la solicitud.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                        <div class="p-6 space-y-4">
+                            <button type="submit" id="submitBtn" 
+                                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-400 cursor-not-allowed"
+                                    disabled>
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Seleccione una decisión
+                            </button>
+                            
+                            <a href="{% url 'alumnos:solicitudes_pendientes' %}" 
+                               class="w-full inline-flex justify-center items-center px-4 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedDecision = null;
+const saldoActual = {{ solicitud.alumno.saldo_tarjeta }};
+
+function selectDecision(decision, element) {
+    // Limpiar selecciones anteriores
+    document.querySelectorAll('.decision-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Seleccionar la nueva opción
+    element.classList.add('selected');
+    selectedDecision = decision;
+    
+    // Actualizar campo oculto
+    document.getElementById('estadoInput').value = decision;
+    
+    // Mostrar/ocultar sección de monto
+    const montoSection = document.getElementById('montoSection');
+    const montoInput = document.getElementById('{{ form.monto_aprobado.id_for_label }}');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (decision === 'aprobada') {
+        montoSection.classList.remove('hidden');
+        montoInput.required = true;
+        montoInput.value = {{ solicitud.monto_solicitado }};
+        updateNewBalance();
+        
+        submitBtn.textContent = 'Aprobar Solicitud';
+        submitBtn.className = 'w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700';
+        submitBtn.disabled = false;
+    } else if (decision === 'rechazada') {
+        montoSection.classList.add('hidden');
+        montoInput.required = false;
+        montoInput.value = '';
+        
+        submitBtn.innerHTML = '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>Rechazar Solicitud';
+        submitBtn.className = 'w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700';
+        submitBtn.disabled = false;
+    }
+}
+
+function setAmount(amount) {
+    const montoInput = document.getElementById('{{ form.monto_aprobado.id_for_label }}');
+    montoInput.value = amount;
+    updateNewBalance();
+}
+
+function updateNewBalance() {
+    const montoInput = document.getElementById('{{ form.monto_aprobado.id_for_label }}');
+    const nuevoSaldoElement = document.getElementById('nuevoSaldo');
+    
+    const montoAprobado = parseFloat(montoInput.value) || 0;
+    const nuevoSaldo = saldoActual + montoAprobado;
+    
+    nuevoSaldoElement.textContent = '$' + nuevoSaldo.toLocaleString('es-PY');
+}
+
+// Event listener para el cambio de monto
+document.getElementById('{{ form.monto_aprobado.id_for_label }}').addEventListener('input', updateNewBalance);
+
+// Validación del formulario
+document.getElementById('procesarForm').addEventListener('submit', function(e) {
+    if (!selectedDecision) {
+        e.preventDefault();
+        alert('Debe seleccionar una decisión (aprobar o rechazar)');
+        return false;
+    }
+    
+    const observaciones = document.getElementById('{{ form.observaciones_admin.id_for_label }}').value.trim();
+    if (!observaciones) {
+        e.preventDefault();
+        alert('Debe agregar observaciones explicando su decisión');
+        return false;
+    }
+    
+    if (selectedDecision === 'aprobada') {
+        const monto = parseFloat(document.getElementById('{{ form.monto_aprobado.id_for_label }}').value);
+        if (!monto || monto < 1000) {
+            e.preventDefault();
+            alert('Debe especificar un monto válido para aprobar (mínimo $1.000)');
+            return false;
+        }
+    }
+    
+    // Confirmación final
+    const confirmMessage = selectedDecision === 'aprobada' 
+        ? '¿Está seguro de aprobar esta solicitud? Se cargará el saldo inmediatamente.'
+        : '¿Está seguro de rechazar esta solicitud? Esta acción notificará al padre.';
+    
+    if (!confirm(confirmMessage)) {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// Sugerencias automáticas de observaciones
+document.addEventListener('DOMContentLoaded', function() {
+    const observacionesTextarea = document.getElementById('{{ form.observaciones_admin.id_for_label }}');
+    
+    // Agregar sugerencias según la decisión
+    document.querySelectorAll('.decision-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const decision = this.querySelector('h4').textContent.toLowerCase();
+            
+            if (decision.includes('aprobar') && !observacionesTextarea.value.trim()) {
+                observacionesTextarea.value = 'Solicitud aprobada. El comprobante de pago ha sido verificado correctamente.';
+            } else if (decision.includes('rechazar') && !observacionesTextarea.value.trim()) {
+                observacionesTextarea.value = 'Solicitud rechazada. Motivo: ';
+                observacionesTextarea.focus();
+                observacionesTextarea.setSelectionRange(observacionesTextarea.value.length, observacionesTextarea.value.length);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

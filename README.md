@@ -1,107 +1,69 @@
-# LG Service - Sistema de Gesti髇
+# Nueva Estructura
 
-## Descripci髇
+## Instalaci贸n
 
-LG Service es un sistema de gesti髇 desarrollado con Django para administrar operaciones comerciales. El sistema incluye funcionalidades para gesti髇 de ventas, inventario, clientes y reportes.
+1. Clona el repositorio:
+   ```sh
+   git clone https://github.com/tu_usuario/nueva_estructura.git
+   cd nueva_estructura
+   ```
 
-## Requisitos
+2. Crea y activa un entorno virtual:
+   ```sh
+   python3 -m venv env
+   source env/bin/activate
+   ```
 
-- Docker y Docker Compose
-- Git
+3. Instala las dependencias:
+   ```sh
+   pip install -r requirements.txt
+   ```
 
-## Configuraci髇
+4. Realiza las migraciones:
+   ```sh
+   python manage.py migrate
+   ```
 
-### Configuraci髇 del entorno
+5. Crea un superusuario:
+   ```sh
+   python manage.py createsuperuser
+   ```
 
-1. Clone el repositorio:
-   `ash
-   git clone [url-del-repositorio]
-   cd [nombre-del-directorio]
-   `
+6. Ejecuta el servidor:
+   ```sh
+   python manage.py runserver
+   ```
 
-2. Configure las variables de entorno:
-   `ash
-   cp .env-example .env
-   `
-   Edite el archivo .env con sus configuraciones personalizadas.
+## Uso
 
-3. Ejecute el script de configuraci髇:
-   `ash
-   chmod +x setup.sh
-   ./setup.sh
-   `
+- Accede a la administraci贸n en `http://localhost:8000/admin/`
+- Sigue las reglas de negocio y flujos definidos en la documentaci贸n interna del proyecto.
 
-### Ejecuci髇 manual (alternativa)
+## Variables de entorno
 
-1. Inicie los servicios con Docker Compose:
-   `ash
-   docker-compose -f docker-compose.yml.optimized up -d
-   `
+- Configura tus claves y secretos en un archivo `.env` (no lo subas al repositorio).
 
-2. Ejecute las migraciones:
-   `ash
-   docker-compose -f docker-compose.yml.optimized exec web python manage.py migrate
-   `
+## Backup
 
-3. Acceda a la aplicaci髇 en http://localhost:8000
+- Realiza backups regulares de la base de datos con:
+  ```sh
+  python manage.py dumpdata > backup.json
+  ````
 
-## Estructura del proyecto
+# LGservice
 
-`
-.
- lgservice/          # Configuraci髇 principal de Django
- apps/               # Aplicaciones del proyecto
-    core/           # Funcionalidades centrales
-    users/          # Gesti髇 de usuarios
-    ...             # Otras aplicaciones
- static/             # Archivos est醫icos
- templates/          # Plantillas HTML
- Dockerfile          # Configuraci髇 de Docker
- docker-compose.yml  # Configuraci髇 de Docker Compose
-`
+## Configuraci贸n del Entorno de Desarrollo
 
-## Mejores pr醕ticas de seguridad
+### Requisitos Previos
+- Python 3.8 o superior
+- Entorno virtual (virtualenv o venv)
+- Node.js y npm (para Tailwind CSS)
+- PostgreSQL (configurado en un puerto diferente al 8000/8002)
 
-1. **Variables de entorno**: Nunca almacene credenciales en el c骴igo. Use el archivo .env para configuraciones sensibles.
+### Inicio R谩pido del Servidor de Desarrollo
 
-2. **Actualizaciones regulares**: Mantenga las dependencias actualizadas para evitar vulnerabilidades de seguridad.
+Para iniciar el servidor de desarrollo con soporte de Tailwind CSS, utilizamos un script personalizado:
 
-3. **Backups**: Realice copias de seguridad peri骴icas de la base de datos.
-
-4. **Monitoreo**: Implemente herramientas de monitoreo para detectar comportamientos an髆alos.
-
-## Desarrollo
-
-### Entorno de desarrollo
-
-1. Inicie el servidor de desarrollo:
-   `ash
-   docker-compose -f docker-compose.yml.optimized up
-   `
-
-2. Para ejecutar pruebas:
-   `ash
-   docker-compose -f docker-compose.yml.optimized exec web python manage.py test
-   `
-
-### Contribuciones
-
-1. Cree una rama para su funcionalidad: git checkout -b feature/nombre-funcionalidad
-2. Realice sus cambios y pruebas
-3. Env韊 un pull request
-
-## Ventajas de usar Docker
-
-- **Entorno consistente**: Garantiza que todos los desarrolladores trabajen en el mismo entorno.
-- **Aislamiento**: Cada servicio se ejecuta en su propio contenedor, evitando conflictos.
-- **Portabilidad**: Funciona en cualquier sistema que tenga Docker instalado.
-- **Escalabilidad**: Facilita la escalabilidad horizontal de la aplicaci髇.
-- **Seguridad**: Mejora la seguridad al aislar los servicios y reducir la superficie de ataque.
-
-## Licencia
-
-[Incluir informaci髇 de licencia]
-
-## Contacto
-
-[Incluir informaci髇 de contacto]
+```bash
+[start.sh](http://_vscodecontentref_/3)
+```

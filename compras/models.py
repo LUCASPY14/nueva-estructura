@@ -1,61 +1,43 @@
 from django.db import models
-from decimal import Decimal
-
-class Proveedor(models.Model):
-    """
-    Representa a un proveedor de productos para la cantina.
-    """
-    nombre = models.CharField(max_length=100)
-    contacto = models.CharField(max_length=100, blank=True)  # Contacto opcional
-
-    def __str__(self):
-        return self.nombre
-
-    class Meta:
-        ordering = ['nombre']
-        verbose_name_plural = "Proveedores"
+from django.utils import timezone
+from proveedores.models import Proveedor  # Importar el modelo desde la app correcta
 
 class Compra(models.Model):
     """
-    Representa una compra de productos realizada a un proveedor.
+    Representa una compra realizada a un proveedor.
     """
-    proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)
-    fecha = models.DateTimeField(auto_now_add=True)
-    total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
-
-    def calcular_total(self):
-        total = sum(detalle.subtotal() for detalle in self.detalles.all())
-        self.total = total
-        return total
-
-    def save(self, *args, **kwargs):
-        self.calcular_total()
-        super().save(*args, **kwargs)
-
+    numero_factura = models.CharField(
+        max_length=50, 
+        unique=True, 
+        default='PENDIENTE',  # Agregar valor por defecto
+        help_text="Número de factura del proveedor"
+    )
+    proveedor = models.ForeignKey(Proveedor, on_delete=models.PROTECT, related_name='compras')
+    fecha = models.DateTimeField(default=timezone.now)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    pagada = models.BooleanField(default=False)
+    notas = models.TextField(blank=True)
+    
     def __str__(self):
-        return f"Compra #{self.id} - {self.proveedor.nombre} - {self.fecha:%d/%m/%Y}"
-
+        return f"Compra #{self.id} - {self.proveedor.nombre}"
+    
     class Meta:
         ordering = ['-fecha']
+        verbose_name = "Compra"
         verbose_name_plural = "Compras"
 
 class DetalleCompra(models.Model):
     """
-    Detalle de productos comprados en una compra.
+    Representa un ítem individual en una compra.
     """
-    compra = models.ForeignKey(Compra, on_delete=models.CASCADE, related_name='detalles')
+    compra = models.ForeignKey(Compra, on_delete=models.CASCADE, related_name='items')
     producto = models.ForeignKey('productos.Producto', on_delete=models.PROTECT)
-    cantidad = models.PositiveIntegerField(default=1)
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
-
-    def subtotal(self):
-        cantidad = self.cantidad or 0
-        precio = self.precio_unitario or Decimal('0.00')
-        return cantidad * precio
-
+    cantidad = models.PositiveIntegerField()
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    
     def __str__(self):
-        return f"{self.producto.nombre} x {self.cantidad} a {self.precio_unitario} Gs."
-
-    class Meta:
-        verbose_name_plural = "Detalles de compra"
-        ordering = ['compra', 'producto']
+        return f"{self.producto.nombre} - {self.cantidad} x ${self.precio_unitario}"
+    
+    @property
+    def subtotal(self):
+        return self.cantidad * self.precio_unitario

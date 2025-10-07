@@ -1,0 +1,50 @@
+{% extends "layout/list_view.html" %}
+
+{% block content %}
+<!-- Botón de regreso -->
+<a href="{{ back_url }}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al Panel
+</a>
+
+<div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-6 text-green-600">{{ page_title }}</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- Ventas -->
+    <div class="p-6 border rounded-lg shadow-sm hover:shadow-md transition">
+      <h3 class="text-xl font-semibold mb-3">Reporte de Ventas</h3>
+      <p class="text-gray-600 mb-4">Genera reportes de ventas por período, alumno o producto.</p>
+      <a href="{% url 'reportes:reporte_ventas_form' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition block text-center">
+        Generar Reporte
+      </a>
+    </div>
+    
+    <!-- Stock -->
+    <div class="p-6 border rounded-lg shadow-sm hover:shadow-md transition">
+      <h3 class="text-xl font-semibold mb-3">Reporte de Inventario</h3>
+      <p class="text-gray-600 mb-4">Consulta el estado actual del inventario y productos bajos en stock.</p>
+      <a href="{% url 'reportes:reporte_stock' %}" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition block text-center">
+        Ver Reporte
+      </a>
+    </div>
+    
+    <!-- Alumnos -->
+    <div class="p-6 border rounded-lg shadow-sm hover:shadow-md transition">
+      <h3 class="text-xl font-semibold mb-3">Reporte de Alumnos</h3>
+      <p class="text-gray-600 mb-4">Información detallada sobre alumnos, saldos y consumos.</p>
+      <a href="{% url 'reportes:reporte_alumnos_form' %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition block text-center">
+        Generar Reporte
+      </a>
+    </div>
+    
+    <!-- Ventas por período -->
+    <div class="p-6 border rounded-lg shadow-sm hover:shadow-md transition">
+      <h3 class="text-xl font-semibold mb-3">Ventas por Período</h3>
+      <p class="text-gray-600 mb-4">Análisis de ventas por día, semana o mes.</p>
+      <a href="{% url 'reportes:reporte_ventas_periodo_form' %}" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg transition block text-center">
+        Analizar Ventas
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

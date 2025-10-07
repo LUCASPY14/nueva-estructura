@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">{{ titulo }}</h1>
+        <nav class="flex mt-2" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li><a href="{% url 'alumnos:lista' %}" class="text-blue-600 hover:text-blue-800">Alumnos</a></li>
+                <li><span class="text-gray-500"> / </span></li>
+                <li class="text-gray-500">Editar</li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Información básica del alumno -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
+                    {{ alumno_form.nombre }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Apellido</label>
+                    {{ alumno_form.apellido }}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Número de Matrícula</label>
+                    {{ alumno_form.numero_matricula }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Número de Tarjeta</label>
+                    {{ alumno_form.numero_tarjeta }}
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Curso</label>
+                    {{ alumno_form.curso }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                    {{ alumno_form.estado }}
+                </div>
+            </div>
+            
+            <!-- Padres existentes -->
+            <div>
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Padres Asignados</h3>
+                <div class="space-y-2">
+                    {% for padre in padres %}
+                        <label class="flex items-center">
+                            <input type="checkbox" name="padres_existentes" value="{{ padre.id }}" 
+                                   {% if padre in alumno.padres.all %}checked{% endif %}
+                                   class="mr-2">
+                            {{ padre.get_nombre_completo }} - {{ padre.email }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Agregar nuevo padre -->
+            <div>
+                <label class="flex items-center mb-4">
+                    <input type="checkbox" name="crear_padre" class="mr-2" id="toggle-padre">
+                    <span class="font-medium">Agregar nuevo padre</span>
+                </label>
+                
+                <div id="nuevo-padre" class="hidden space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Padre</label>
+                            {{ padre_form.nombre }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Apellido del Padre</label>
+                            {{ padre_form.apellido }}
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            {{ padre_form.email }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                            {{ padre_form.telefono }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botones -->
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'alumnos:lista' %}" 
+                   class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                    Actualizar Alumno
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('toggle-padre').addEventListener('change', function() {
+    const nuevopadre = document.getElementById('nuevo-padre');
+    if (this.checked) {
+        nuevopadre.classList.remove('hidden');
+    } else {
+        nuevopadre.classList.add('hidden');
+    }
+});
+</script>
+{% endblock %}

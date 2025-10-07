@@ -1,0 +1,245 @@
+{% extends "proveedores/base_proveedores.html" %}
+{% load static %}
+
+{% block extra_head %}
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+{% endblock %}
+
+{% block proveedor_content %}
+<div x-data="{ 
+    formData: {
+        nombre: '{{ form.nombre.value|default:""|escapejs }}',
+        numero_documento: '{{ form.numero_documento.value|default:""|escapejs }}',
+        email: '{{ form.email.value|default:""|escapejs }}'
+    },
+    validateEmail(email) {
+        return email === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    },
+    isFormValid() {
+        return this.formData.nombre && 
+               this.formData.numero_documento &&
+               this.validateEmail(this.formData.email);
+    }
+}"
+<div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+    <div class="p-6">
+        <!-- Encabezado -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+                {% if proveedor %}
+                    Editar Proveedor
+                {% else %}
+                    Nuevo Proveedor
+                {% endif %}
+            </h1>
+        </div>
+
+        <!-- Formulario -->
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="bg-red-50 dark:bg-red-900 p-4 rounded-lg mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-circle text-red-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
+                            Se encontraron errores en el formulario
+                        </h3>
+                        <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                            <ul class="list-disc pl-5 space-y-1">
+                                {% for field in form %}
+                                    {% if field.errors %}
+                                        {% for error in field.errors %}
+                                            <li>{{ field.label }}: {{ error }}</li>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Información Principal -->
+            <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                    Información Principal
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Nombre -->
+                    <div>
+                        <label for="{{ form.nombre.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ form.nombre.label }}{% if form.nombre.field.required %} *{% endif %}
+                        </label>
+                        <div class="mt-1">
+                            <input type="text" 
+                                   name="{{ form.nombre.name }}" 
+                                   id="{{ form.nombre.id_for_label }}"
+                                   value="{{ form.nombre.value|default:'' }}"
+                                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                                   {% if form.nombre.field.required %}required{% endif %}>
+                        </div>
+                        {% if form.nombre.help_text %}
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ form.nombre.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Nombre Comercial -->
+                    <div>
+                        <label for="{{ form.nombre_comercial.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ form.nombre_comercial.label }}
+                        </label>
+                        <div class="mt-1">
+                            <input type="text" 
+                                   name="{{ form.nombre_comercial.name }}" 
+                                   id="{{ form.nombre_comercial.id_for_label }}"
+                                   value="{{ form.nombre_comercial.value|default:'' }}"
+                                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+                        </div>
+                    </div>
+
+                    <!-- Tipo Documento -->
+                    <div>
+                        <label for="{{ form.tipo_documento.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ form.tipo_documento.label }}{% if form.tipo_documento.field.required %} *{% endif %}
+                        </label>
+                        <div class="mt-1">
+                            <select name="{{ form.tipo_documento.name }}" 
+                                    id="{{ form.tipo_documento.id_for_label }}"
+                                    class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                                    {% if form.tipo_documento.field.required %}required{% endif %}>
+                                {% for value, label in form.tipo_documento.field.choices %}
+                                <option value="{{ value }}" {% if form.tipo_documento.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Número Documento -->
+                    <div>
+                        <label for="{{ form.numero_documento.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ form.numero_documento.label }}{% if form.numero_documento.field.required %} *{% endif %}
+                        </label>
+                        <div class="mt-1">
+                            <input type="text" 
+                                   name="{{ form.numero_documento.name }}" 
+                                   id="{{ form.numero_documento.id_for_label }}"
+                                   value="{{ form.numero_documento.value|default:'' }}"
+                                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                                   {% if form.numero_documento.field.required %}required{% endif %}>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
+                <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                    Información de Contacto
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Dirección -->
+                    <div>
+                        <label for="{{ form.direccion.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ form.direccion.label }}
+                        </label>
+                        <div class="mt-1">
+                            <input type="text" 
+                                   name="{{ form.direccion.name }}" 
+                                   id="{{ form.direccion.id_for_label }}"
+                                   value="{{ form.direccion.value|default:'' }}"
+                                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+                        </div>
+                    </div>
+
+                    <!-- Ciudad -->
+                    <div>
+                        <label for="{{ form.ciudad.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ form.ciudad.label }}
+                        </label>
+                        <div class="mt-1">
+                            <input type="text" 
+                                   name="{{ form.ciudad.name }}" 
+                                   id="{{ form.ciudad.id_for_label }}"
+                                   value="{{ form.ciudad.value|default:'' }}"
+                                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+                        </div>
+                    </div>
+
+                    <!-- Teléfono -->
+                    <div>
+                        <label for="{{ form.telefono.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ form.telefono.label }}
+                        </label>
+                        <div class="mt-1">
+                            <input type="tel" 
+                                   name="{{ form.telefono.name }}" 
+                                   id="{{ form.telefono.id_for_label }}"
+                                   value="{{ form.telefono.value|default:'' }}"
+                                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ form.email.label }}
+                        </label>
+                        <div class="mt-1">
+                            <input type="email" 
+                                   name="{{ form.email.name }}" 
+                                   id="{{ form.email.id_for_label }}"
+                                   value="{{ form.email.value|default:'' }}"
+                                   class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md dark:bg-gray-600 dark:border-gray-500 dark:text-white">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estado -->
+            <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           name="{{ form.activo.name }}" 
+                           id="{{ form.activo.id_for_label }}"
+                           {% if form.activo.value %}checked{% endif %}
+                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                    <label for="{{ form.activo.id_for_label }}" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                        {{ form.activo.label }}
+                    </label>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'proveedores:lista' %}" 
+                   class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-700">
+                    Cancelar
+                </a>
+                <button type="submit"
+                        x-bind:disabled="!isFormValid()"
+                        x-bind:class="{
+                            'opacity-50 cursor-not-allowed': !isFormValid(),
+                            'hover:bg-blue-700': isFormValid()
+                        }"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <span x-show="!isFormValid()" class="mr-2">
+                        <i class="fas fa-lock"></i>
+                    </span>
+                    {% if proveedor %}
+                        Actualizar
+                    {% else %}
+                        Crear
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

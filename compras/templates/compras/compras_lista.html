@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "dashboard_base.html" %}
 {% block title %}Compras Registradas{% endblock %}
 {% block content %}
 
@@ -8,7 +8,7 @@
 
 <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
   <h2 class="text-2xl font-bold mb-6 text-blue-900">Compras Registradas</h2>
-  <a href="{% url 'compras:crear_compra' %}" class="mb-6 block w-full text-center bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">Nueva Compra</a>
+  <a href="{% url 'compras:crear' %}" class="mb-6 block w-full text-center bg-blue-700 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded transition">Nueva Compra</a>
   <table class="min-w-full divide-y divide-gray-200">
     <thead>
       <tr class="bg-blue-100">

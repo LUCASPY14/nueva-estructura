@@ -1,3 +1,5 @@
+{% extends "layout/form_view.html" %}
+
 <form method="POST" class="space-y-4">
     {% csrf_token %}
     {% for field in form %}

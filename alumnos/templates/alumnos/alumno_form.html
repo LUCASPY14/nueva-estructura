@@ -1,36 +1,71 @@
 {% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Formulario de Alumno{% endblock %}
-
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">
-        {{ form.instance.pk|yesno:"✏️ Editar Alumno,➕ Crear Alumno" }}
-    </h2>
-
-    <form method="post" class="space-y-4">
-        {% csrf_token %}
-        {% for field in form %}
-            <div>
-                <label for="{{ field.id_for_label }}" class="block text-gray-700 font-semibold mb-1">
-                    {{ field.label }}
-                </label>
-                {{ field }}
-                {% if field.errors %}
-                    <p class="text-red-600 text-sm mt-1">{{ field.errors.as_text }}</p>
-                {% endif %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">{% if form.instance.pk %}Editar{% else %}Crear{% endif %} Alumno</h1>
+    
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2" for="{{ form.nombre.id_for_label }}">Nombre:</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.nombre.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2" for="{{ form.apellido.id_for_label }}">Apellido:</label>
+                    {{ form.apellido }}
+                    {% if form.apellido.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.apellido.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2" for="{{ form.numero_tarjeta.id_for_label }}">Número de tarjeta:</label>
+                    {{ form.numero_tarjeta }}
+                    {% if form.numero_tarjeta.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.numero_tarjeta.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2" for="{{ form.grado.id_for_label }}">Grado:</label>
+                    {{ form.grado }}
+                    {% if form.grado.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.grado.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2" for="{{ form.nivel.id_for_label }}">Nivel:</label>
+                    {{ form.nivel }}
+                    {% if form.nivel.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.nivel.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2" for="{{ form.limite_consumo.id_for_label }}">Límite de consumo diario (Gs):</label>
+                    {{ form.limite_consumo }}
+                    {% if form.limite_consumo.errors %}
+                    <p class="text-red-500 text-sm mt-1">{{ form.limite_consumo.errors.0 }}</p>
+                    {% endif %}
+                </div>
             </div>
-        {% endfor %}
-
-        <div class="flex justify-between mt-6">
-            <a href="{% url 'alumnos:alumnos_lista' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded">
-                ⬅️ Cancelar
-            </a>
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded shadow">
-                💾 Guardar
-            </button>
-        </div>
-    </form>
+            
+            <div class="mt-6 flex items-center justify-between">
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">
+                    {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Alumno
+                </button>
+                <a href="{% url 'alumnos:lista' %}" class="text-gray-600 hover:text-gray-800">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

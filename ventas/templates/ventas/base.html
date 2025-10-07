@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="es">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema POS - Cantina de Tita{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/cantinadetita.png' %}">
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.20/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- jQuery UI para autocompletado -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/ui-lightness/jquery-ui.css">
+    
+    <!-- Estilos personalizados del POS -->
+    <style>
+        :root {
+            --primary-color: #8B4513;
+            --secondary-color: #CD853F;
+            --accent-color: #D2691E;
+            --success-color: #228B22;
+            --danger-color: #DC143C;
+            --warning-color: #FF8C00;
+            --light-bg: #FFF8DC;
+            --dark-bg: #654321;
+            --cantina-brown: #8B4513;
+            --cantina-gold: #DAA520;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light-bg), #FAEBD7);
+            overflow-x: hidden;
+        }
+
+        .pos-header {
+            background: linear-gradient(135deg, var(--cantina-brown), var(--cantina-gold));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(139, 69, 19, 0.3);
+            position: relative;
+        }
+
+        .pos-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("{% static 'images/pattern-food.png' %}") repeat;
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            z-index: 2;
+            position: relative;
+        }
+
+        .logo-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid white;
+            margin-right: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .logo-img:hover {
+            transform: scale(1.1);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .brand-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        .pos-sidebar {
+            background: linear-gradient(to bottom, white, #FFFAF0);
+            min-height: calc(100vh - 80px);
+            box-shadow: 2px 0 15px rgba(139, 69, 19, 0.1);
+            transition: all 0.3s ease;
+            border-right: 3px solid var(--cantina-gold);
+        }
+
+        .pos-content {
+            background: linear-gradient(to bottom, white, #FFFAF0);
+            min-height: calc(100vh - 80px);
+            padding: 2rem;
+        }
+
+        .producto-card {
+            border: none;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.1);
+            overflow: hidden;
+            background: white;
+            border: 2px solid transparent;
+        }
+
+        .producto-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.2);
+            border-color: var(--cantina-gold);
+        }
+
+        .producto-card.touched {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(139, 69, 19, 0.3);
+        }
+
+        .producto-img {
+            height: 120px;
+            object-fit: cover;
+            width: 100%;
+            border-bottom: 2px solid var(--light-bg);
+        }
+
+        .btn-pos {
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-pos:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary.btn-pos {
+            background: linear-gradient(45deg, var(--cantina-brown), var(--cantina-gold));
+        }
+
+        .btn-success.btn-pos {
+            background: linear-gradient(45deg, var(--success-color), #32CD32);
+        }
+
+        .carrito-item {
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 12px;
+            padding: 18px;
+            box-shadow: 0 3px 10px rgba(139, 69, 19, 0.1);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--cantina-gold);
+        }
+
+        .carrito-item:hover {
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.15);
+            transform: translateX(5px);
+        }
+
+        .total-panel {
+            background: linear-gradient(135deg, var(--success-color), #32CD32);
+            color: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 6px 25px rgba(34, 139, 34, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .total-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            transform: rotate(45deg);
+        }
+
+        .metodo-pago-btn {
+            border: 3px solid var(--cantina-brown);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: white;
+            color: var(--cantina-brown);
+            font-weight: 600;
+        }
+
+        .metodo-pago-btn:hover,
+        .metodo-pago-btn.active {
+            background: linear-gradient(45deg, var(--cantina-brown), var(--cantina-gold));
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(139, 69, 19, 0.3);
+        }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .touch-button {
+            min-height: 65px;
+            font-size: 1.1rem;
+            border-radius: 15px;
+            touch-action: manipulation;
+            font-weight: 600;
+        }
+
+        .categoria-tab {
+            border-radius: 25px;
+            margin: 0 8px 8px 0;
+            padding: 12px 24px;
+            border: 2px solid var(--cantina-brown);
+            background: white;
+            color: var(--cantina-brown);
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .categoria-tab.active {
+            background: linear-gradient(45deg, var(--cantina-brown), var(--cantina-gold));
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
+        }
+
+        .numero-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 320px;
+        }
+
+        .numero-pad button {
+            height: 70px;
+            font-size: 1.6rem;
+            border-radius: 15px;
+            border: 2px solid var(--cantina-brown);
+            background: white;
+            color: var(--cantina-brown);
+            transition: all 0.2s ease;
+            font-weight: bold;
+        }
+
+        .numero-pad button:hover {
+            background: linear-gradient(45deg, var(--cantina-brown), var(--cantina-gold));
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Modo táctil */
+        .modo-tactil .touch-button {
+            min-height: 70px;
+            font-size: 1.2rem;
+        }
+
+        .modo-tactil .producto-card {
+            margin-bottom: 15px;
+        }
+
+        /* Alto contraste */
+        .alto-contraste {
+            filter: contrast(150%);
+        }
+
+        /* Mejoras de accesibilidad */
+        .form-control:focus,
+        .btn:focus {
+            outline: 3px solid var(--cantina-gold);
+            outline-offset: 2px;
+        }
+
+        /* Responsive mejorado */
+        @media (max-width: 768px) {
+            .pos-sidebar {
+                position: fixed;
+                left: -100%;
+                top: 80px;
+                width: 100%;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+
+            .pos-sidebar.show {
+                left: 0;
+            }
+
+            .pos-content {
+                padding: 1rem;
+            }
+
+            .producto-card {
+                margin-bottom: 12px;
+            }
+
+            .brand-name {
+                font-size: 1.2rem;
+            }
+
+            .logo-img {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        /* Animaciones */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Estados de validación mejorados */
+        .is-valid {
+            border-color: var(--success-color) !important;
+            box-shadow: 0 0 0 0.2rem rgba(34, 139, 34, 0.25) !important;
+        }
+
+        .is-invalid {
+            border-color: var(--danger-color) !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 20, 60, 0.25) !important;
+        }
+
+        /* Mejoras visuales para SweetAlert */
+        .swal2-popup {
+            border-radius: 20px !important;
+            border: 3px solid var(--cantina-gold) !important;
+        }
+
+        .swal2-confirm {
+            background: linear-gradient(45deg, var(--cantina-brown), var(--cantina-gold)) !important;
+            border: none !important;
+            border-radius: 25px !important;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header del POS -->
+    <header class="pos-header">
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <div class="logo-container">
+                        <img src="{% static 'images/cantinadetita.png' %}" 
+                             alt="Cantina de Tita" 
+                             class="logo-img">
+                        <div class="brand-text">
+                            <h4 class="brand-name mb-0">Cantina de Tita</h4>
+                            <small class="brand-subtitle">Sistema POS</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-center">
+                    {% block header_info %}
+                    <div id="turno-info" class="d-flex justify-content-center align-items-center flex-wrap">
+                        <div class="me-3 mb-1">
+                            <i class="fas fa-user me-2"></i>
+                            <span>{{ user.get_full_name|default:user.username }}</span>
+                        </div>
+                        <div class="me-3 mb-1">
+                            <i class="fas fa-clock me-2"></i>
+                            <span id="fecha-hora"></span>
+                        </div>
+                    </div>
+                    {% endblock %}
+                </div>
+                <div class="col-md-3 text-end">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle btn-pos" 
+                                type="button" 
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                            <i class="fas fa-user-circle me-2"></i>
+                            Menú
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'ventas:dashboard' %}">
+                                    <i class="fas fa-chart-bar me-2 text-primary"></i>Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'ventas:reportes' %}">
+                                    <i class="fas fa-file-alt me-2 text-info"></i>Reportes
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="#" onclick="window.pos.mostrarAyuda()">
+                                    <i class="fas fa-question-circle me-2 text-warning"></i>Ayuda (F1)
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="container-fluid p-0">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Loading Spinner mejorado -->
+    <div class="loading-spinner">
+        <div class="text-center">
+            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mb-0 fw-bold">Procesando...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.20/dist/sweetalert2.all.min.js"></script>
+
+    <!-- Script base del POS mejorado -->
+    <script>
+        // Configuración global del POS
+        const POS_CONFIG = {
+            CSRF_TOKEN: '{{ csrf_token }}',
+            API_BASE: '/ventas/api/',
+            MONEDA: '$',
+            SIMBOLO_MONEDA: '$',
+            DECIMALES: 0,
+            SONIDOS_ACTIVOS: true,
+            EMPRESA: {
+                nombre: 'Cantina de Tita',
+                logo: '{% static "images/cantinadetita.png" %}',
+                colores: {
+                    primario: '#8B4513',
+                    secundario: '#DAA520'
+                }
+            }
+        };
+
+        // Utility functions mejoradas
+        function formatearMoneda(monto) {
+            if (monto === null || monto === undefined) return POS_CONFIG.SIMBOLO_MONEDA + ' 0';
+            
+            return POS_CONFIG.SIMBOLO_MONEDA + ' ' + Number(monto).toLocaleString('es-CL', {
+                minimumFractionDigits: POS_CONFIG.DECIMALES,
+                maximumFractionDigits: POS_CONFIG.DECIMALES
+            });
+        }
+
+        function mostrarLoading(mostrar = true) {
+            const spinner = document.querySelector('.loading-spinner');
+            if (spinner) {
+                spinner.style.display = mostrar ? 'flex' : 'none';
+            }
+        }
+
+        function reproducirSonido(tipo) {
+            if (!POS_CONFIG.SONIDOS_ACTIVOS) return;
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                const frequencies = {
+                    'success': 800,
+                    'error': 300,
+                    'warning': 600,
+                    'info': 500
+                };
+                
+                oscillator.frequency.value = frequencies[tipo] || 600;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            } catch (error) {
+                console.warn('No se pudo reproducir sonido:', error);
+            }
+        }
+
+        function mostrarNotificacion(tipo, titulo, mensaje) {
+            const config = {
+                title: titulo,
+                text: mensaje,
+                icon: tipo,
+                timer: 4000,
+                timerProgressBar: true,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'animated fadeInRight'
+                }
+            };
+            
+            Swal.fire(config);
+            reproducirSonido(tipo);
+        }
+
+        // Actualizar fecha y hora con mejor formato
+        function actualizarFechaHora() {
+            const ahora = new Date();
+            const opciones = {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            
+            const fechaHora = ahora.toLocaleDateString('es-CL', opciones);
+            
+            const elemento = document.getElementById('fecha-hora');
+            if (elemento) {
+                elemento.textContent = fechaHora;
+            }
+        }
+
+        // Detectar dispositivo táctil
+        function esPantallaMultitactil() {
+            return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        }
+
+        // Inicializar configuración base
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar modo táctil
+            if (esPantallaMultitactil()) {
+                document.body.classList.add('modo-tactil');
+                POS_CONFIG.MODO_TACTIL = true;
+            }
+
+            // Actualizar fecha y hora
+            actualizarFechaHora();
+            setInterval(actualizarFechaHora, 1000);
+            
+            // Configurar CSRF token para AJAX
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", POS_CONFIG.CSRF_TOKEN);
+                    }
+                }
+            });
+
+            // Configurar tooltips de Bootstrap
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Mostrar notificación de bienvenida
+            setTimeout(() => {
+                mostrarNotificacion('success', '¡Bienvenido!', 'Sistema POS listo para usar');
+            }, 1000);
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

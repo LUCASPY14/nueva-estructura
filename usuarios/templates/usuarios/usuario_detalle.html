@@ -1,0 +1,56 @@
+{% extends "layout/detail_view.html" %}
+
+{% block detail_content %}
+  <div>
+    <p class="text-sm text-gray-500">ID:</p>
+    <p class="font-medium">{{ usuario.id }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Nombre de usuario:</p>
+    <p class="font-medium">{{ usuario.username }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Correo electrónico:</p>
+    <p class="font-medium">{{ usuario.email }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Tipo:</p>
+    <p class="font-medium">{{ usuario.get_tipo_display }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Estado:</p>
+    <p class="font-medium">{{ usuario.is_active|yesno:"Activo,Inactivo" }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Fecha de registro:</p>
+    <p class="font-medium">{{ usuario.date_joined|date:"d/m/Y" }}</p>
+  </div>
+  
+  {% if usuario.tipo == 'PADRE' %}
+  <div class="col-span-2 mt-4">
+    <h3 class="text-lg font-semibold mb-3">Alumnos asociados</h3>
+    {% if usuario.alumnos.all %}
+      <table class="w-full border rounded-lg overflow-hidden">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left">Nombre</th>
+            <th class="px-4 py-2 text-left">Grado</th>
+            <th class="px-4 py-2 text-left">Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for alumno in usuario.alumnos.all %}
+          <tr class="border-b">
+            <td class="px-4 py-2">{{ alumno.nombre }} {{ alumno.apellido }}</td>
+            <td class="px-4 py-2">{{ alumno.get_grado_display }}</td>
+            <td class="px-4 py-2">${{ alumno.saldo|floatformat:2 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-gray-500">No hay alumnos asociados</p>
+    {% endif %}
+  </div>
+  {% endif %}
+{% endblock %}

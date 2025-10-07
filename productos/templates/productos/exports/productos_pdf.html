@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Lista de Productos</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 2.5cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+            }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.3;
+        }
+        h1 {
+            color: #1a73e8;
+            font-size: 24pt;
+            margin-bottom: 20pt;
+            text-align: center;
+        }
+        .fecha {
+            text-align: right;
+            color: #666;
+            margin-bottom: 30pt;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20pt;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+            text-align: left;
+            padding: 8pt;
+        }
+        td {
+            padding: 8pt;
+            border-bottom: 1px solid #ddd;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .precio {
+            text-align: right;
+        }
+        .cantidad {
+            text-align: center;
+        }
+        .estado {
+            text-transform: capitalize;
+        }
+        .footer {
+            margin-top: 30pt;
+            font-size: 9pt;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista de Productos</h1>
+    <div class="fecha">{{ fecha|date:"d/m/Y H:i" }}</div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>P. Venta</th>
+                <th>Stock</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos %}
+            <tr>
+                <td>{{ producto.codigo }}</td>
+                <td>{{ producto.nombre }}</td>
+                <td>{{ producto.categoria.nombre|default:"Sin Categoría" }}</td>
+                <td class="precio">${{ producto.precio_venta|floatformat:2 }}</td>
+                <td class="cantidad">{{ producto.cantidad }}</td>
+                <td class="estado">{{ producto.get_estado_display }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="footer">
+        Este documento fue generado automáticamente por el sistema.
+    </div>
+</body>
+</html>

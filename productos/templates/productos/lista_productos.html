@@ -1,0 +1,160 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Lista de Productos{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Lista de Productos</h1>
+        <div class="space-x-2 flex items-center">
+            <!-- Botones de exportación -->
+            <div class="dropdown relative mr-4">
+                <button class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center">
+                    <span>Exportar</span>
+                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
+                    <a href="{% url 'productos:exportar_productos' %}?formato=excel" 
+                       class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                        Exportar a Excel
+                    </a>
+                    <a href="{% url 'productos:exportar_productos' %}?formato=pdf" 
+                       class="block px-4 py-2 text-gray-800 hover:bg-gray-100">
+                        Exportar a PDF
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Botones principales -->
+            <a href="{% url 'productos:crear' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
+                Nuevo Producto
+            </a>
+            <a href="{% url 'productos:movimientos_crear' %}" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg">
+                Registrar Movimiento
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-gray-500 font-medium">Total Productos</h3>
+            <p class="text-2xl font-bold">{{ total_productos }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-gray-500 font-medium">Bajo Stock</h3>
+            <p class="text-2xl font-bold text-amber-600">{{ productos_bajo_stock }}</p>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {{ filter_form.as_p }}
+            <div class="flex items-end">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg">
+                    Filtrar
+                </button>
+                <a href="{% url 'productos:lista' %}" class="ml-2 text-gray-600 hover:text-gray-900">
+                    Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla de productos -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for producto in productos %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ producto.codigo }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ producto.nombre }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="{% if producto.cantidad <= producto.cantidad_minima %}text-red-600 font-bold{% endif %}">
+                            {{ producto.cantidad }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ producto.precio_venta }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            {% if producto.estado == 'activo' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ producto.get_estado_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="{% url 'productos:detalle' producto.id %}" class="text-blue-600 hover:text-blue-900 mr-3">
+                            Ver
+                        </a>
+                        <a href="{% url 'productos:editar' producto.id %}" class="text-green-600 hover:text-green-900 mr-3">
+                            Editar
+                        </a>
+                        <a href="{% url 'productos:eliminar' producto.id %}" class="text-red-600 hover:text-red-900">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center">No hay productos registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación -->
+    {% if productos.has_other_pages %}
+    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
+        <div>
+            <p class="text-sm text-gray-700">
+                Mostrando <span class="font-medium">{{ productos.start_index }}</span>
+                al <span class="font-medium">{{ productos.end_index }}</span>
+                de <span class="font-medium">{{ productos.paginator.count }}</span>
+                productos
+            </p>
+        </div>
+        <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                {% if productos.has_previous %}
+                <a href="?page={{ productos.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Anterior
+                </a>
+                {% endif %}
+                
+                {% for i in productos.paginator.page_range %}
+                    {% if productos.number == i %}
+                    <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                        {{ i }}
+                    </a>
+                    {% else %}
+                    <a href="?page={{ i }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                        {{ i }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if productos.has_next %}
+                <a href="?page={{ productos.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                    Siguiente
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

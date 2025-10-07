@@ -1,0 +1,615 @@
+{% extends 'ventas/base.html' %}
+{% load static %}
+
+{% block title %}Configuración del Sistema - Cantina de Tita{% endblock %}
+
+{% block header_info %}
+<div class="d-flex justify-content-center align-items-center flex-wrap">
+    <div class="me-4 mb-1">
+        <i class="fas fa-cogs me-2"></i>
+        <span>Configuración del Sistema</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Menú Lateral de Configuración -->
+        <div class="col-lg-3 col-md-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Secciones
+                    </h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#general" class="list-group-item list-group-item-action config-tab active" data-tab="general">
+                        <i class="fas fa-home me-2"></i>General
+                    </a>
+                    <a href="#empresa" class="list-group-item list-group-item-action config-tab" data-tab="empresa">
+                        <i class="fas fa-building me-2"></i>Datos de Empresa
+                    </a>
+                    <a href="#pos" class="list-group-item list-group-item-action config-tab" data-tab="pos">
+                        <i class="fas fa-cash-register me-2"></i>Punto de Venta
+                    </a>
+                    <a href="#facturas" class="list-group-item list-group-item-action config-tab" data-tab="facturas">
+                        <i class="fas fa-receipt me-2"></i>Facturación
+                    </a>
+                    <a href="#impresoras" class="list-group-item list-group-item-action config-tab" data-tab="impresoras">
+                        <i class="fas fa-print me-2"></i>Impresoras
+                    </a>
+                    <a href="#usuarios" class="list-group-item list-group-item-action config-tab" data-tab="usuarios">
+                        <i class="fas fa-users me-2"></i>Usuarios
+                    </a>
+                    <a href="#seguridad" class="list-group-item list-group-item-action config-tab" data-tab="seguridad">
+                        <i class="fas fa-shield-alt me-2"></i>Seguridad
+                    </a>
+                    <a href="#respaldos" class="list-group-item list-group-item-action config-tab" data-tab="respaldos">
+                        <i class="fas fa-database me-2"></i>Respaldos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div class="col-lg-9 col-md-8">
+            <!-- Configuración General -->
+            <div class="config-content" id="content-general">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-home me-2"></i>Configuración General
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="form-general">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Nombre del Sistema</label>
+                                        <input type="text" class="form-control" value="Sistema POS - Cantina de Tita">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Zona Horaria</label>
+                                        <select class="form-select">
+                                            <option selected>America/Santiago</option>
+                                            <option>America/Argentina/Buenos_Aires</option>
+                                            <option>America/Lima</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Idioma</label>
+                                        <select class="form-select">
+                                            <option selected>Español (Chile)</option>
+                                            <option>Español (Argentina)</option>
+                                            <option>English</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Moneda</label>
+                                        <select class="form-select">
+                                            <option selected>Peso Chileno (CLP)</option>
+                                            <option>Peso Argentino (ARS)</option>
+                                            <option>Dólar Estadounidense (USD)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Símbolo de Moneda</label>
+                                        <input type="text" class="form-control" value="$" maxlength="5">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Decimales en Precios</label>
+                                        <select class="form-select">
+                                            <option selected>0 decimales</option>
+                                            <option>2 decimales</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6 class="text-primary mb-3">Opciones de Interfaz</h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="sonidos" checked>
+                                        <label class="form-check-label" for="sonidos">
+                                            Activar sonidos del sistema
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="modo-tactil">
+                                        <label class="form-check-label" for="modo-tactil">
+                                            Modo táctil (botones más grandes)
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="tema-oscuro">
+                                        <label class="form-check-label" for="tema-oscuro">
+                                            Tema oscuro
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="animaciones" checked>
+                                        <label class="form-check-label" for="animaciones">
+                                            Animaciones de interfaz
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Datos de Empresa -->
+            <div class="config-content d-none" id="content-empresa">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-building me-2"></i>Datos de la Empresa
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="form-empresa">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Razón Social</label>
+                                                <input type="text" class="form-control" value="Cantina de Tita SpA">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">RUT/NIT</label>
+                                                <input type="text" class="form-control" value="12.345.678-9">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Giro/Actividad</label>
+                                                <input type="text" class="form-control" value="Restaurante y Servicios de Comida">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Dirección</label>
+                                                <input type="text" class="form-control" value="Av. Principal 123, Local 45">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Ciudad</label>
+                                                <input type="text" class="form-control" value="Santiago">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Código Postal</label>
+                                                <input type="text" class="form-control" value="8320000">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Teléfono</label>
+                                                <input type="text" class="form-control" value="(02) 234-5678">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Email</label>
+                                                <input type="email" class="form-control" value="contacto@cantinadetita.cl">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Sitio Web</label>
+                                                <input type="url" class="form-control" value="www.cantinadetita.cl">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Instagram</label>
+                                                <input type="text" class="form-control" value="@cantinadetita">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <label class="form-label">Logo de la Empresa</label>
+                                        <div class="logo-upload-area border rounded p-4 mb-3">
+                                            <img src="{% static 'images/cantinadetita.png' %}" 
+                                                 alt="Logo actual" 
+                                                 class="img-fluid mb-3" 
+                                                 style="max-width: 150px;">
+                                            <div>
+                                                <button type="button" class="btn btn-outline-primary btn-sm mb-2">
+                                                    <i class="fas fa-upload me-2"></i>Cambiar Logo
+                                                </button>
+                                                <p class="small text-muted mb-0">
+                                                    Formatos: PNG, JPG<br>
+                                                    Tamaño máximo: 2MB<br>
+                                                    Recomendado: 200x200px
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración POS -->
+            <div class="config-content d-none" id="content-pos">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cash-register me-2"></i>Configuración del Punto de Venta
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="form-pos">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary mb-3">Comportamiento de Ventas</h6>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="cliente-obligatorio">
+                                        <label class="form-check-label" for="cliente-obligatorio">
+                                            Cliente obligatorio en ventas
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="stock-negativo">
+                                        <label class="form-check-label" for="stock-negativo">
+                                            Permitir stock negativo
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="descuentos-automaticos" checked>
+                                        <label class="form-check-label" for="descuentos-automaticos">
+                                            Aplicar descuentos automáticos
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="confirmacion-cancelar" checked>
+                                        <label class="form-check-label" for="confirmacion-cancelar">
+                                            Confirmar antes de cancelar venta
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="text-primary mb-3">Opciones de Interfaz</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">Productos por página</label>
+                                        <select class="form-select">
+                                            <option>12 productos</option>
+                                            <option selected>20 productos</option>
+                                            <option>30 productos</option>
+                                            <option>50 productos</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Vista por defecto</label>
+                                        <select class="form-select">
+                                            <option selected>Grilla con imágenes</option>
+                                            <option>Lista compacta</option>
+                                            <option>Categorías</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="busqueda-automatica" checked>
+                                        <label class="form-check-label" for="busqueda-automatica">
+                                            Búsqueda automática al escribir
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6 class="text-primary mb-3">Configuración de Turno</h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Duración máxima de turno (horas)</label>
+                                        <input type="number" class="form-control" value="12" min="1" max="24">
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="cierre-automatico" checked>
+                                        <label class="form-check-label" for="cierre-automatico">
+                                            Cerrar turno automáticamente
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Alerta de diferencia en caja (monto)</label>
+                                        <input type="number" class="form-control" value="1000" min="0">
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="multiple-cajero">
+                                        <label class="form-check-label" for="multiple-cajero">
+                                            Permitir múltiples cajeros por turno
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración de Facturación -->
+            <div class="config-content d-none" id="content-facturas">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-receipt me-2"></i>Configuración de Facturación
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="form-facturas">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-primary mb-3">Numeración</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">Próximo número de factura</label>
+                                        <input type="number" class="form-control" value="1001" min="1">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Prefijo de numeración</label>
+                                        <input type="text" class="form-control" value="CT-" maxlength="10">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Formato de fecha en factura</label>
+                                        <select class="form-select">
+                                            <option selected>DD/MM/YYYY</option>
+                                            <option>MM/DD/YYYY</option>
+                                            <option>YYYY-MM-DD</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="text-primary mb-3">Opciones de Impresión</h6>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="imprimir-automatico">
+                                        <label class="form-check-label" for="imprimir-automatico">
+                                            Imprimir automáticamente después de venta
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="incluir-qr" checked>
+                                        <label class="form-check-label" for="incluir-qr">
+                                            Incluir código QR en facturas
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="mostrar-descuentos" checked>
+                                        <label class="form-check-label" for="mostrar-descuentos">
+                                            Mostrar descuentos en detalle
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6 class="text-primary mb-3">Mensaje Personalizado en Facturas</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label">Mensaje de agradecimiento</label>
+                                        <textarea class="form-control" rows="3">¡Gracias por su compra!
+Esperamos verle pronto en Cantina de Tita.
+Su satisfacción es nuestra prioridad.</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Otras secciones se cargarían dinámicamente -->
+            <div class="config-content d-none" id="content-impresoras">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-print me-2"></i>Configuración de Impresoras
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center py-5">
+                            <i class="fas fa-print fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">Configuración de Impresoras</h5>
+                            <p class="text-muted">Esta sección está en desarrollo</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botón de Guardar Global -->
+            <div class="text-center mt-4">
+                <button class="btn btn-success btn-lg me-3" onclick="guardarTodasLasConfiguraciones()">
+                    <i class="fas fa-save me-2"></i>Guardar Todas las Configuraciones
+                </button>
+                <button class="btn btn-outline-secondary btn-lg" onclick="restaurarConfiguracionPorDefecto()">
+                    <i class="fas fa-undo me-2"></i>Restaurar por Defecto
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .config-tab {
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .config-tab:hover {
+        background-color: var(--light-bg);
+        color: var(--cantina-brown);
+        transform: translateX(5px);
+    }
+
+    .config-tab.active {
+        background: linear-gradient(45deg, var(--cantina-brown), var(--cantina-gold));
+        color: white;
+        border-color: var(--cantina-brown);
+    }
+
+    .config-content {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-upload-area {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .logo-upload-area:hover {
+        background-color: var(--light-bg);
+        border-color: var(--cantina-gold) !important;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--cantina-brown);
+        border-color: var(--cantina-brown);
+    }
+
+    .form-check-input:focus {
+        border-color: var(--cantina-gold);
+        box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    initConfiguracion();
+});
+
+function initConfiguracion() {
+    // Event listeners para tabs
+    $('.config-tab').on('click', function(e) {
+        e.preventDefault();
+        const tab = $(this).data('tab');
+        cambiarTab(tab);
+    });
+
+    // Event listeners para formularios
+    $('form[id^="form-"]').on('submit', function(e) {
+        e.preventDefault();
+        const formId = $(this).attr('id');
+        guardarConfiguracion(formId);
+    });
+}
+
+function cambiarTab(tab) {
+    // Cambiar tab activo
+    $('.config-tab').removeClass('active');
+    $(`.config-tab[data-tab="${tab}"]`).addClass('active');
+
+    // Mostrar contenido correspondiente
+    $('.config-content').addClass('d-none');
+    $(`#content-${tab}`).removeClass('d-none');
+}
+
+function guardarConfiguracion(formId) {
+    const form = $(`#${formId}`);
+    const seccion = formId.replace('form-', '');
+    
+    // Simular guardado
+    mostrarLoading(true);
+    
+    setTimeout(() => {
+        mostrarLoading(false);
+        mostrarNotificacion('success', 'Configuración Guardada', 
+            `La configuración de ${seccion} ha sido actualizada correctamente`);
+    }, 1000);
+}
+
+function guardarTodasLasConfiguraciones() {
+    Swal.fire({
+        title: '¿Guardar todas las configuraciones?',
+        text: 'Se aplicarán todos los cambios realizados en todas las secciones',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Guardar Todo',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            mostrarLoading(true);
+            
+            setTimeout(() => {
+                mostrarLoading(false);
+                Swal.fire({
+                    title: '¡Configuración Guardada!',
+                    text: 'Todas las configuraciones han sido actualizadas correctamente',
+                    icon: 'success',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }, 2000);
+        }
+    });
+}
+
+function restaurarConfiguracionPorDefecto() {
+    Swal.fire({
+        title: '¿Restaurar configuración por defecto?',
+        text: 'Se perderán todos los cambios personalizados',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Restaurar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc3545'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            mostrarLoading(true);
+            
+            setTimeout(() => {
+                mostrarLoading(false);
+                location.reload();
+            }, 1500);
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Confirmar eliminación{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <a href="{% url 'proveedores:lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">← Volver a Proveedores</a>
+
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">Confirmar eliminación</h1>
+        <p class="mb-6">¿Estás seguro de que deseas eliminar el proveedor <strong>{{ object.nombre }}</strong>?</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="flex space-x-4">
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                    Eliminar
+                </button>
+                <a href="{% url 'proveedores:lista' %}" class="bg-gray-400 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

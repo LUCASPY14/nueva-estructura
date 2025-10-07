@@ -1,0 +1,43 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}Restricciones{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+  <h1 class="text-2xl font-bold mb-4">🚫 Restricciones por alumno</h1>
+  <table class="w-full border-collapse bg-white shadow-md rounded">
+    <thead class="bg-gray-100 text-left">
+      <tr>
+        <th class="p-3">Alumno</th>
+        <th class="p-3">Producto</th>
+        <th class="p-3">Estado</th>
+        <th class="p-3">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for restriccion in restricciones %}
+      <tr class="border-t">
+        <td class="p-3">{{ restriccion.alumno.nombre }}</td>
+        <td class="p-3">{{ restriccion.producto.nombre }}</td>
+        <td class="p-3">
+          {% if restriccion.permitido %}
+            <span class="text-green-600 font-semibold">Permitido</span>
+          {% else %}
+            <span class="text-red-600 font-semibold">Prohibido</span>
+          {% endif %}
+        </td>
+        <td class="p-3">
+          <form method="post" action="{% url 'alumnos:eliminar_restriccion' restriccion.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="text-red-500 hover:underline">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="p-4 text-center text-gray-500">No hay restricciones registradas.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

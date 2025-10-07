@@ -1,26 +1,66 @@
-# Entornos virtuales
-venv/
-.env
-*.env
-
-# Archivos de Python
-*.pyc
+# Python
 __pycache__/
+*.py[cod]
 *.pyo
 *.pyd
+*.pyc
 
-# Archivos de la base de datos
+# Entorno virtual
+env/
+venv/
+ENV/
+.venv/
+.env/
+
+# Archivos de configuración de entorno
+*.env
+*.env.*
+
+# Archivos de base de datos locales
+*.sqlite3
 db.sqlite3
 
-# Archivos de Django static y media
-/static/
-media/
-MEDIA/
-staticfiles/
+# Archivos de migraciones compilados
+*.mo
+*.pot
 
-# Archivos de VSCode
+# Archivos de logs
+*.log
+
+# Archivos de caché
+.cache/
+*.cache
+
+# Archivos de VSCode y otros editores
 .vscode/
+.idea/
+*.swp
 
-# Archivos de sistema
+# Archivos de node/npm (si usas npm/yarn para frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos de compilación de frontend
+staticfiles/
+static/
+dist/
+build/
+
+# Archivos de media subidos por usuarios (opcional, si no quieres subirlos)
+media/
+
+# Archivos de cobertura de tests
+htmlcov/
+.coverage
+.tox/
+.nox/
+.pytest_cache/
+
+# Archivos de Docker (si usas)
+*.pid
+
+# Otros
 .DS_Store
 Thumbs.db

@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-800">{{ titulo }}</h1>
+        <nav class="flex mt-2" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li><a href="{% url 'alumnos:lista' %}" class="text-blue-600 hover:text-blue-800">Alumnos</a></li>
+                <li><span class="text-gray-500"> / </span></li>
+                <li><a href="{% url 'alumnos:detalle' pk=alumno.id %}" class="text-blue-600 hover:text-blue-800">{{ alumno.get_nombre_completo }}</a></li>
+                <li><span class="text-gray-500"> / </span></li>
+                <li class="text-gray-500">Historial</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Información del Alumno -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="text-center">
+                <div class="text-2xl font-bold text-green-600">${{ alumno.saldo_tarjeta|floatformat:0 }}</div>
+                <div class="text-sm text-gray-600">Saldo Actual</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-semibold text-gray-800">{{ alumno.get_nombre_completo }}</div>
+                <div class="text-sm text-gray-600">{{ alumno.curso|default:"Sin curso" }}</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-semibold text-gray-800">{{ alumno.numero_tarjeta|default:"Sin tarjeta" }}</div>
+                <div class="text-sm text-gray-600">Número de Tarjeta</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-semibold text-gray-800">{{ alumno.numero_matricula }}</div>
+                <div class="text-sm text-gray-600">Matrícula</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Desde</label>
+                <input type="date" name="fecha_desde" value="{{ request.GET.fecha_desde }}" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha Hasta</label>
+                <input type="date" name="fecha_hasta" value="{{ request.GET.fecha_hasta }}" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                <select name="tipo" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todos</option>
+                    <option value="recarga" {% if request.GET.tipo == 'recarga' %}selected{% endif %}>Recargas</option>
+                    <option value="consumo" {% if request.GET.tipo == 'consumo' %}selected{% endif %}>Consumos</option>
+                    <option value="ajuste" {% if request.GET.tipo == 'ajuste' %}selected{% endif %}>Ajustes</option>
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                    Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resumen -->
+    {% if page_obj %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-green-50 rounded-lg p-4">
+            <div class="flex items-center">
+                <div class="p-2 bg-green-500 rounded-lg">
+                    <svg class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L7.53 10.53a.75.75 0 00-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <div class="text-lg font-semibold text-green-800">
+                        ${% widthratio page_obj.object_list|length 1 page_obj.object_list|length as total_recargas %}0
+                    </div>
+                    <div class="text-sm text-green-600">Total Recargas</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-red-50 rounded-lg p-4">
+            <div class="flex items-center">
+                <div class="p-2 bg-red-500 rounded-lg">
+                    <svg class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <div class="text-lg font-semibold text-red-800">$0</div>
+                    <div class="text-sm text-red-600">Total Consumos</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-blue-50 rounded-lg p-4">
+            <div class="flex items-center">
+                <div class="p-2 bg-blue-500 rounded-lg">
+                    <svg class="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M1 11.27c0-.246.033-.492.099-.728l1.523-5.521C2.754 4.455 3.213 4 3.793 4h12.414c.58 0 1.04.455 1.17 1.021l1.523 5.521c.066.236.099.482.099.728v6.23c0 .599-.24 1.154-.628 1.56A2.213 2.213 0 0116.207 20H3.793c-.58 0-1.139-.24-1.565-.66A2.213 2.213 0 011 17.5v-6.23zm3.793-6.27a1 1 0 00-.97.757L2.31 11.27a1 1 0 00.97 1.243h13.44a1 1 0 00.97-1.243L15.177 5.757a1 1 0 00-.97-.757H4.793z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <div class="text-lg font-semibold text-blue-800">{{ page_obj.object_list|length }}</div>
+                    <div class="text-sm text-blue-600">Total Transacciones</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabla de Transacciones -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b">
+            <h2 class="text-lg font-semibold text-gray-800">Historial de Transacciones de Saldo</h2>
+        </div>
+        
+        {% if page_obj %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Anterior</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo Posterior</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for transaccion in page_obj %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ transaccion.fecha|date:"d/m/Y H:i" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if transaccion.tipo == 'recarga' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Recarga
+                                </span>
+                            {% elif transaccion.tipo == 'consumo' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    Consumo
+                                </span>
+                            {% elif transaccion.tipo == 'ajuste' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Ajuste
+                                </span>
+                            {% else %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    {{ transaccion.tipo|title }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">
+                            {{ transaccion.descripcion|default:"Sin descripción" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+                            {% if transaccion.tipo == 'consumo' %}
+                                <span class="text-red-600 font-medium">-${{ transaccion.monto|floatformat:0 }}</span>
+                            {% else %}
+                                <span class="text-green-600 font-medium">+${{ transaccion.monto|floatformat:0 }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                            ${{ transaccion.saldo_anterior|floatformat:0 }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                            ${{ transaccion.saldo_posterior|floatformat:0 }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ transaccion.usuario_responsable.get_full_name|default:transaccion.usuario_responsable.username|default:"Sistema" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div class="px-6 py-4 bg-gray-50 border-t">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                    Mostrando {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} transacciones
+                </div>
+                <div class="flex space-x-1">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}" 
+                           class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Primera
+                        </a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}" 
+                           class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Anterior
+                        </a>
+                    {% endif %}
+                    
+                    <span class="px-3 py-2 text-sm bg-blue-600 text-white border border-blue-600 rounded-md">
+                        {{ page_obj.number }}
+                    </span>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}" 
+                           class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Siguiente
+                        </a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}" 
+                           class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Última
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="px-6 py-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No hay transacciones</h3>
+            <p class="mt-1 text-sm text-gray-500">Este alumno aún no tiene transacciones registradas.</p>
+            <div class="mt-6">
+                <a href="{% url 'alumnos:cargar_saldo' alumno_id=alumno.id %}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Cargar Saldo
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Historial del Sistema Anterior (si existe) -->
+    {% if transacciones_tarjeta %}
+    <div class="bg-white rounded-lg shadow-md overflow-hidden mt-6">
+        <div class="px-6 py-4 bg-gray-50 border-b">
+            <h2 class="text-lg font-semibold text-gray-800">Historial del Sistema Anterior (Solo Lectura)</h2>
+            <p class="text-sm text-gray-600 mt-1">Transacciones del sistema anterior para referencia histórica</p>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for transaccion in transacciones_tarjeta %}
+                    <tr class="bg-gray-50 opacity-75">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {{ transaccion.fecha|date:"d/m/Y H:i" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
+                                {{ transaccion.tipo|title }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            {{ transaccion.descripcion|default:"Transacción del sistema anterior" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
+                            ${{ transaccion.monto|floatformat:0 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Botones de Acción -->
+    <div class="flex justify-between mt-6">
+        <div>
+            <a href="{% url 'alumnos:detalle' pk=alumno.id %}" 
+               class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                </svg>
+                Volver al Detalle
+            </a>
+        </div>
+        <div class="space-x-2">
+            <a href="{% url 'alumnos:cargar_saldo' alumno_id=alumno.id %}" 
+               class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                Cargar Saldo
+            </a>
+            <button onclick="window.print()" 
+                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                <svg class="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zM5 14H4v-3h1v3zm2 0h6v2H7v-2zm0-5h6V8H7v1z" clip-rule="evenodd" />
+                </svg>
+                Imprimir
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CSS para impresión -->
+<style>
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .print-full-width {
+        width: 100% !important;
+        max-width: none !important;
+    }
+    
+    .container {
+        max-width: none !important;
+        padding: 0 !important;
+    }
+}
+</style>
+{% endblock %}

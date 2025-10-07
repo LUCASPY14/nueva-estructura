@@ -1,21 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from .models import Compra, DetalleCompra
 from .forms import CompraForm, DetalleCompraFormSet
 
-def es_admin(user):
-    return user.is_superuser or user.groups.filter(name='Administradores').exists()
-
 @login_required
-@user_passes_test(es_admin, login_url='usuarios:login')
 def compras_lista(request):
-    compras = Compra.objects.select_related('proveedor').all().order_by('-fecha')
+    compras = Compra.objects.all().order_by('-fecha')
     return render(request, 'compras/compras_lista.html', {'compras': compras})
 
 @login_required
-@user_passes_test(es_admin, login_url='usuarios:login')
 @transaction.atomic
 def crear_compra(request):
     if request.method == 'POST':
@@ -48,7 +43,6 @@ def crear_compra(request):
     })
 
 @login_required
-@user_passes_test(es_admin, login_url='usuarios:login')
 def detalle_compra(request, pk):
     compra = get_object_or_404(Compra, pk=pk)
     detalles = compra.detalles.select_related('producto').all()
@@ -58,7 +52,6 @@ def detalle_compra(request, pk):
     })
 
 @login_required
-@user_passes_test(es_admin, login_url='usuarios:login')
 @transaction.atomic
 def editar_compra(request, pk):
     compra = get_object_or_404(Compra, pk=pk)
@@ -97,7 +90,6 @@ def editar_compra(request, pk):
     })
 
 @login_required
-@user_passes_test(es_admin, login_url='usuarios:login')
 @transaction.atomic
 def eliminar_compra(request, pk):
     compra = get_object_or_404(Compra, pk=pk)

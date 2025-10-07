@@ -9,4 +9,8 @@ class ConfiguracionSistema(models.Model):
     logo = models.ImageField(upload_to='logos/', null=True, blank=True)
 
     def __str__(self):
-        return "Configuración del Sistema"
+        return f"Configuración - {self.nombre_sistema}"
+    
+    class Meta:
+        verbose_name = "Configuración del Sistema"
+        verbose_name_plural = "Configuraciones del Sistema"

@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notificaciones - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Filtros -->
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Filtros</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Estado</h6>
+                    <div class="list-group mb-3">
+                        <a href="{% url 'notificaciones:lista' %}" class="list-group-item list-group-item-action {% if not estado_actual %}active{% endif %}">
+                            Todas
+                        </a>
+                        <a href="{% url 'notificaciones:lista' %}?estado=no_leidas" class="list-group-item list-group-item-action {% if estado_actual == 'no_leidas' %}active{% endif %}">
+                            No leídas
+                        </a>
+                        <a href="{% url 'notificaciones:lista' %}?estado=leidas" class="list-group-item list-group-item-action {% if estado_actual == 'leidas' %}active{% endif %}">
+                            Leídas
+                        </a>
+                    </div>
+
+                    <h6>Tipo</h6>
+                    <div class="list-group">
+                        <a href="{% url 'notificaciones:lista' %}" class="list-group-item list-group-item-action {% if not tipo_actual %}active{% endif %}">
+                            Todas
+                        </a>
+                        <a href="{% url 'notificaciones:lista' %}?tipo=saldo_bajo" class="list-group-item list-group-item-action {% if tipo_actual == 'saldo_bajo' %}active{% endif %}">
+                            Saldo Bajo
+                        </a>
+                        <a href="{% url 'notificaciones:lista' %}?tipo=transaccion" class="list-group-item list-group-item-action {% if tipo_actual == 'transaccion' %}active{% endif %}">
+                            Transacciones
+                        </a>
+                        <a href="{% url 'notificaciones:lista' %}?tipo=solicitud" class="list-group-item list-group-item-action {% if tipo_actual == 'solicitud' %}active{% endif %}">
+                            Solicitudes
+                        </a>
+                        <a href="{% url 'notificaciones:lista' %}?tipo=limite_consumo" class="list-group-item list-group-item-action {% if tipo_actual == 'limite_consumo' %}active{% endif %}">
+                            Límite de Consumo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Notificaciones -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4>Notificaciones</h4>
+                <div>
+                    {% if total_no_leidas > 0 %}
+                    <button class="btn btn-primary btn-sm me-2" id="marcarTodasLeidas">
+                        Marcar todas como leídas
+                    </button>
+                    {% endif %}
+                    <button class="btn btn-danger btn-sm" id="eliminarLeidas">
+                        Eliminar leídas
+                    </button>
+                </div>
+            </div>
+
+            {% if notificaciones %}
+                <div class="list-group">
+                    {% for notif in notificaciones %}
+                    <div class="list-group-item {% if not notif.leida %}list-group-item-light{% endif %}" id="notif-{{ notif.id }}">
+                        <div class="d-flex w-100 justify-content-between align-items-start">
+                            <div>
+                                <span class="me-2">{{ notif.get_icono }}</span>
+                                <h6 class="mb-1 d-inline">{{ notif.titulo }}</h6>
+                                {% if not notif.leida %}
+                                <span class="badge bg-primary ms-2">Nueva</span>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ notif.fecha_creacion|timesince }}</small>
+                        </div>
+                        <p class="mb-1">{{ notif.mensaje }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ notif.get_tipo_display }}</small>
+                            <div>
+                                {% if notif.url_accion %}
+                                <a href="{{ notif.url_accion }}" class="btn btn-sm btn-outline-primary me-2">
+                                    {% if notif.texto_accion %}
+                                        {{ notif.texto_accion }}
+                                    {% else %}
+                                        Ver más
+                                    {% endif %}
+                                </a>
+                                {% endif %}
+                                {% if not notif.leida %}
+                                <button class="btn btn-sm btn-outline-success me-2 marcarLeida" data-id="{{ notif.id }}">
+                                    Marcar leída
+                                </button>
+                                {% endif %}
+                                <button class="btn btn-sm btn-outline-danger eliminarNotif" data-id="{{ notif.id }}">
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Paginación -->
+                {% if notificaciones.has_other_pages %}
+                <nav aria-label="Navegación de páginas" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if notificaciones.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ notificaciones.previous_page_number }}{% if tipo_actual %}&tipo={{ tipo_actual }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">Anterior</a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in notificaciones.paginator.page_range %}
+                            {% if notificaciones.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if tipo_actual %}&tipo={{ tipo_actual }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if notificaciones.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ notificaciones.next_page_number }}{% if tipo_actual %}&tipo={{ tipo_actual }}{% endif %}{% if estado_actual %}&estado={{ estado_actual }}{% endif %}">Siguiente</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    No hay notificaciones para mostrar.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Marcar una notificación como leída
+    $('.marcarLeida').click(function() {
+        const id = $(this).data('id');
+        $.post("{% url 'notificaciones:marcar_leida' 0 %}".replace('0', id))
+            .done(function() {
+                $(`#notif-${id}`).removeClass('list-group-item-light')
+                    .find('.badge.bg-primary, .marcarLeida').remove();
+            });
+    });
+
+    // Marcar todas como leídas
+    $('#marcarTodasLeidas').click(function() {
+        $.post("{% url 'notificaciones:marcar_todas_leidas' %}")
+            .done(function() {
+                $('.list-group-item').removeClass('list-group-item-light');
+                $('.badge.bg-primary, .marcarLeida').remove();
+                $(this).remove();
+            });
+    });
+
+    // Eliminar una notificación
+    $('.eliminarNotif').click(function() {
+        const id = $(this).data('id');
+        if (confirm('¿Estás seguro de eliminar esta notificación?')) {
+            $.post("{% url 'notificaciones:eliminar' 0 %}".replace('0', id))
+                .done(function() {
+                    $(`#notif-${id}`).fadeOut();
+                });
+        }
+    });
+
+    // Eliminar todas las leídas
+    $('#eliminarLeidas').click(function() {
+        if (confirm('¿Estás seguro de eliminar todas las notificaciones leídas?')) {
+            $.post("{% url 'notificaciones:eliminar_leidas' %}")
+                .done(function() {
+                    $('.list-group-item:not(.list-group-item-light)').fadeOut();
+                });
+        }
+    });
+});
+</script>
+{% endblock %}

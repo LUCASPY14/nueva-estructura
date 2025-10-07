@@ -6,6 +6,11 @@ from django.conf import settings
 from .forms import LoginForm, RegistroPadreForm, UserCreationForm, UserChangeForm
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.contrib.auth.views import LoginView
+from usuarios.models import UsuarioLG
+from ventas.models import Venta
+from productos.models import Producto
+from compras.models import Compra  # Asegúrate que solo importa Compra, no Proveedor
 
 
 User = get_user_model()
@@ -16,7 +21,8 @@ def landing(request):
 
 # Helpers de rol
 def es_admin(user):
-    return user.is_superuser or (hasattr(user, 'tipo') and user.tipo == 'ADMIN')
+    """Verifica si el usuario es administrador"""
+    return user.is_superuser or user.groups.filter(name='Administradores').exists()
 
 def es_cajero(user):
     return user.groups.filter(name='Cajeros').exists() or (hasattr(user, 'tipo') and user.tipo == 'CAJERO')
@@ -24,34 +30,32 @@ def es_cajero(user):
 def es_padre(user):
     return hasattr(user, 'padre_profile') or (hasattr(user, 'tipo') and user.tipo == 'PADRE')
 
+def es_admin_o_cajero(user):
+    """Verifica si el usuario es administrador o cajero"""
+    return user.is_superuser or user.groups.filter(name__in=['Administradores', 'Cajeros']).exists()
+
 # Función centralizada para redirigir por tipo de usuario
 def redirigir_por_tipo(user):
     if user.tipo == 'ADMIN':
-        return redirect('usuarios:dashboard_admin')
+        return reverse('usuarios:dashboard_admin')
     elif user.tipo == 'CAJERO':
-        return redirect('usuarios:dashboard_cajero')
+        return reverse('usuarios:dashboard_cajero')
     elif user.tipo == 'PADRE':
-        return redirect('usuarios:dashboard_padre')
-    return redirect('usuarios:landing')
+        return reverse('usuarios:dashboard_padre')
+    return reverse('usuarios:landing')
 
 # Login visual
-def login_simple(request):
-    if request.user.is_authenticated:
-        return redirigir_por_tipo(request.user)
+class LoginSimpleView(LoginView):
+    template_name = 'registration/login.html'  # Usa el template existente
+    authentication_form = LoginForm
 
-    if request.method == 'POST':
-        form = LoginForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirigir_por_tipo(user)
-        else:
-            messages.error(request, "Usuario o contraseña incorrectos.")
-    else:
-        form = LoginForm()
-    return render(request, 'registration/login.html', {'form': form})
+    def form_invalid(self, form):
+        messages.error(self.request, "Usuario o contraseña incorrectos.")
+        return redirect('usuarios:login_simple')
 
-# Logout
+    def get_success_url(self):
+        return redirigir_por_tipo(self.request.user)
+
 def logout_view(request):
     logout(request)
     return redirect('usuarios:landing')
@@ -75,45 +79,24 @@ def registro_padre(request):
 @login_required
 @user_passes_test(es_admin, login_url='usuarios:login_simple')
 def dashboard_admin(request):
-    items = [
-        {
-            'title': 'Gestión de Usuarios',
-            'description': 'Agregar, editar o eliminar usuarios del sistema.',
-            'icon': '👥',
-            'url': reverse('usuarios:usuarios_lista')
-        },
-        {
-            'title': 'Productos',
-            'description': 'Controlar y administrar los productos disponibles.',
-            'icon': '🍔',
-            'url': reverse('productos:listar_productos')
-        },
-        {
-            'title': 'Reportes de Ventas',
-            'description': 'Ver estadísticas y descargar reportes de ventas.',
-            'icon': '💰',
-            'url': reverse('ventas:reporte_ventas')
-        },
-        {
-            'title': 'Stock',
-            'description': 'Ver el estado actual del inventario.',
-            'icon': '📦',
-            'url': reverse('reportes:reporte_stock')
-        },
-        {
-            'title': 'Facturación',
-            'description': 'Revisar facturas generadas en el sistema.',
-            'icon': '🧾',
-            'url': reverse('facturacion:reporte_facturas')
-        },
-        {
-            'title': 'Configuración del Sistema',
-            'description': 'Editar parámetros globales del sistema LGservice.',
-            'icon': '⚙️',
-            'url': reverse('configuracion:configuracion')
-        },
-    ]
-    return render(request, 'usuarios/dashboard_admin.html', {'items': items})
+    total_usuarios = UsuarioLG.objects.count()
+    total_admins = UsuarioLG.objects.filter(tipo='ADMIN').count()
+    total_cajeros = UsuarioLG.objects.filter(tipo='CAJERO').count()
+    total_padres = UsuarioLG.objects.filter(tipo='PADRE').count()
+    ventas_recientes = Venta.objects.order_by('-fecha')[:5]
+    productos_bajo_stock = Producto.objects.filter(cantidad__lte=10).order_by('cantidad')[:5]  # Ajusta el número y el umbral según tu lógica
+    compras_recientes = Compra.objects.order_by('-fecha')[:5]
+
+    context = {
+        'total_usuarios': total_usuarios,
+        'total_admins': total_admins,
+        'total_cajeros': total_cajeros,
+        'total_padres': total_padres,
+        'ventas_recientes': ventas_recientes,
+        'productos_bajo_stock': productos_bajo_stock,
+        'compras_recientes': compras_recientes,
+    }
+    return render(request, 'usuarios/dashboard_admin.html', context)
 
 
 @login_required
@@ -135,7 +118,7 @@ def dashboard_padre(request):
 @login_required
 @user_passes_test(es_admin, login_url='usuarios:login_simple')
 def usuarios_lista(request):
-    usuarios = User.objects.all().order_by('username')
+    usuarios = UsuarioLG.objects.all()
     return render(request, 'usuarios/usuarios_lista.html', {'usuarios': usuarios})
 
 @login_required
@@ -190,3 +173,5 @@ def padre_dashboard_view(request):
 @user_passes_test(es_cajero, login_url='usuarios:login_simple')
 def cajero_dashboard_view(request):
     return render(request, 'dashboard/cajero_dashboard.html')
+
+

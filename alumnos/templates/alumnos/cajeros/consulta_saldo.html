@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-input {
+        font-size: 1.25rem;
+        padding: 1rem;
+    }
+    .student-card {
+        transition: all 0.3s ease;
+        transform: translateY(10px);
+        opacity: 0;
+        animation: slideIn 0.5s ease forwards;
+    }
+    @keyframes slideIn {
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    .balance-display {
+        font-size: 3rem;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    .card-scanner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="card-scanner rounded-lg shadow-lg p-6 mb-8 text-white">
+        <div class="text-center">
+            <div class="mx-auto w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold mb-2">{{ titulo }}</h1>
+            <p class="text-lg opacity-90">Consulta rápida de saldo por número de tarjeta</p>
+        </div>
+    </div>
+
+    <!-- Formulario de Búsqueda -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+        <form method="post" id="consultaForm">
+            {% csrf_token %}
+            <div class="max-w-md mx-auto">
+                <label for="{{ form.numero_tarjeta.id_for_label }}" class="block text-lg font-medium text-gray-700 mb-4 text-center">
+                    Número de Tarjeta
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" 
+                           id="{{ form.numero_tarjeta.id_for_label }}" 
+                           name="{{ form.numero_tarjeta.name }}"
+                           class="search-input block w-full pl-12 pr-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Ingrese número de tarjeta..."
+                           autocomplete="off"
+                           autofocus>
+                </div>
+                {% if form.numero_tarjeta.errors %}
+                    <p class="mt-2 text-sm text-red-600 text-center">{{ form.numero_tarjeta.errors.0 }}</p>
+                {% endif %}
+                
+                <div class="mt-6 text-center">
+                    <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-lg font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Consultar Saldo
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resultado de la Consulta -->
+    {% if alumno %}
+    <div class="student-card bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+        <!-- Header del estudiante -->
+        <div class="bg-gradient-to-r from-green-500 to-blue-600 px-8 py-6 text-white">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        {% if alumno.foto %}
+                            <img class="w-16 h-16 rounded-full border-4 border-white shadow-lg" src="{{ alumno.foto.url }}" alt="{{ alumno.get_nombre_completo }}">
+                        {% else %}
+                            <div class="w-16 h-16 rounded-full border-4 border-white bg-white flex items-center justify-center shadow-lg">
+                                <span class="text-green-600 font-bold text-2xl">{{ alumno.nombre.0 }}{{ alumno.apellido.0 }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold">{{ alumno.get_nombre_completo }}</h2>
+                        <p class="text-green-100 text-lg">{{ alumno.curso|default:"Sin curso asignado" }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-green-100 text-sm">Matrícula</p>
+                    <p class="text-xl font-semibold">{{ alumno.numero_matricula }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saldo Principal -->
+        <div class="p-8 text-center">
+            <div class="mb-6">
+                <p class="text-gray-600 text-xl mb-2">Saldo Disponible</p>
+                <div class="balance-display 
+                    {% if alumno.saldo_tarjeta < 5000 %}
+                        text-red-600 pulse-animation
+                    {% elif alumno.saldo_tarjeta < 20000 %}
+                        text-yellow-600
+                    {% else %}
+                        text-green-600
+                    {% endif %}
+                ">
+                    {{ alumno.get_saldo_formateado }}
+                </div>
+                
+                {% if alumno.saldo_tarjeta < 5000 %}
+                    <div class="mt-4 inline-flex items-center px-4 py-2 bg-red-100 rounded-full">
+                        <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <span class="text-red-800 font-medium">Saldo Bajo</span>
+                    </div>
+                {% elif alumno.saldo_tarjeta < 20000 %}
+                    <div class="mt-4 inline-flex items-center px-4 py-2 bg-yellow-100 rounded-full">
+                        <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="text-yellow-800 font-medium">Saldo Medio</span>
+                    </div>
+                {% else %}
+                    <div class="mt-4 inline-flex items-center px-4 py-2 bg-green-100 rounded-full">
+                        <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="text-green-800 font-medium">Saldo Suficiente</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Información Adicional -->
+        <div class="px-8 pb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-gray-600 text-sm mb-1">Número de Tarjeta</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ alumno.numero_tarjeta }}</p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-gray-600 text-sm mb-1">Límite Diario</p>
+                    <p class="text-lg font-semibold text-gray-900">
+                        {% if alumno.limite_consumo > 0 %}
+                            ${{ alumno.limite_consumo|floatformat:0 }}
+                        {% else %}
+                            Sin límite
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-gray-600 text-sm mb-1">Consumo Hoy</p>
+                    <p class="text-lg font-semibold text-gray-900">${{ alumno.consumo_diario|floatformat:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado del Alumno -->
+        <div class="px-8 pb-6">
+            <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                <span class="text-blue-800 font-medium">Estado de la cuenta:</span>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                    {% if alumno.estado == 'activo' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                    {{ alumno.get_estado_display }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="px-8 pb-8">
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="{% url 'alumnos:cargar_saldo' alumno.pk %}" 
+                   class="flex-1 inline-flex justify-center items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Cargar Saldo
+                </a>
+                <a href="{% url 'alumnos:transacciones' alumno.pk %}" 
+                   class="flex-1 inline-flex justify-center items-center px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                    </svg>
+                    Ver Historial
+                </a>
+                <button onclick="imprimirConsulta()" 
+                        class="flex-1 inline-flex justify-center items-center px-6 py-3 border border-blue-300 rounded-lg shadow-sm text-base font-medium text-blue-700 bg-blue-50 hover:bg-blue-100">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    Imprimir
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Consultas Rápidas -->
+    <div class="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Atajos de Teclado</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div class="flex items-center space-x-2">
+                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs">F1</kbd>
+                <span class="text-gray-600">Enfocar campo de búsqueda</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs">Enter</kbd>
+                <span class="text-gray-600">Consultar saldo</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <kbd class="px-2 py-1 bg-gray-100 border border-gray-300 rounded text-xs">Esc</kbd>
+                <span class="text-gray-600">Limpiar búsqueda</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enfocar automáticamente el campo de búsqueda
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('{{ form.numero_tarjeta.id_for_label }}');
+    input.focus();
+    
+    // Seleccionar todo el texto si hay algo
+    if (input.value) {
+        input.select();
+    }
+});
+
+// Atajos de teclado
+document.addEventListener('keydown', function(e) {
+    const input = document.getElementById('{{ form.numero_tarjeta.id_for_label }}');
+    
+    switch(e.key) {
+        case 'F1':
+            e.preventDefault();
+            input.focus();
+            break;
+        case 'Escape':
+            input.value = '';
+            input.focus();
+            break;
+    }
+});
+
+// Validación en tiempo real
+document.getElementById('{{ form.numero_tarjeta.id_for_label }}').addEventListener('input', function(e) {
+    // Remover caracteres no numéricos
+    this.value = this.value.replace(/[^0-9]/g, '');
+    
+    // Limitar longitud
+    if (this.value.length > 10) {
+        this.value = this.value.slice(0, 10);
+    }
+});
+
+// Auto-submit después de ingresar número completo
+document.getElementById('{{ form.numero_tarjeta.id_for_label }}').addEventListener('input', function(e) {
+    if (this.value.length >= 6) { // Asumiendo que las tarjetas tienen al menos 6 dígitos
+        // Pequeño delay para permitir que el usuario termine de escribir
+        clearTimeout(this.autoSubmitTimer);
+        this.autoSubmitTimer = setTimeout(() => {
+            document.getElementById('consultaForm').submit();
+        }, 1000);
+    }
+});
+
+// Función para imprimir consulta
+function imprimirConsulta() {
+    const printWindow = window.open('', '_blank');
+    const studentCard = document.querySelector('.student-card');
+    
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Consulta de Saldo - {{ alumno.get_nombre_completo|default:"" }}</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .header { text-align: center; margin-bottom: 20px; }
+                .student-info { margin-bottom: 20px; }
+                .balance { font-size: 2rem; font-weight: bold; text-align: center; margin: 20px 0; }
+                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+                .info-item { padding: 10px; border: 1px solid #ccc; }
+                .footer { text-align: center; margin-top: 20px; font-size: 0.8rem; color: #666; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Consulta de Saldo</h1>
+                <p>Fecha: ${new Date().toLocaleDateString('es-PY')} - Hora: ${new Date().toLocaleTimeString('es-PY')}</p>
+            </div>
+            {% if alumno %}
+            <div class="student-info">
+                <h2>{{ alumno.get_nombre_completo }}</h2>
+                <p><strong>Curso:</strong> {{ alumno.curso|default:"Sin curso asignado" }}</p>
+                <p><strong>Matrícula:</strong> {{ alumno.numero_matricula }}</p>
+            </div>
+            <div class="balance">Saldo: {{ alumno.get_saldo_formateado }}</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Número de Tarjeta:</strong><br>
+                    {{ alumno.numero_tarjeta }}
+                </div>
+                <div class="info-item">
+                    <strong>Límite Diario:</strong><br>
+                    {% if alumno.limite_consumo > 0 %}${{ alumno.limite_consumo|floatformat:0 }}{% else %}Sin límite{% endif %}
+                </div>
+                <div class="info-item">
+                    <strong>Consumo Hoy:</strong><br>
+                    ${{ alumno.consumo_diario|floatformat:0 }}
+                </div>
+                <div class="info-item">
+                    <strong>Estado:</strong><br>
+                    {{ alumno.get_estado_display }}
+                </div>
+            </div>
+            {% endif %}
+            <div class="footer">
+                <p>Sistema de Gestión de Tarjetas - Colegio</p>
+            </div>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+}
+
+// Refresh automático cada 30 segundos si hay un alumno mostrado
+{% if alumno %}
+setInterval(function() {
+    // Actualizar solo los datos dinámicos vía AJAX
+    fetch('/alumnos/api/consulta-saldo/?numero_tarjeta={{ alumno.numero_tarjeta }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Actualizar saldo en tiempo real
+                document.querySelector('.balance-display').textContent = data.alumno.saldo_formateado;
+                
+                // Actualizar consumo del día
+                const consumoElement = document.querySelector('[data-consumo-hoy]');
+                if (consumoElement) {
+                    consumoElement.textContent = '$' + data.alumno.consumo_diario.toLocaleString('es-PY');
+                }
+            }
+        })
+        .catch(error => console.log('Error actualizando datos:', error));
+}, 30000);
+{% endif %}
+</script>
+{% endblock %}

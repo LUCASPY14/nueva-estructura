@@ -1,0 +1,174 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
+{% block title %}Resultado del Reporte de Ventas{% endblock %}
+
+{% block content %}
+<!-- Botón de regreso -->
+<a href="{% url 'reportes:reporte_ventas_form' %}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al Formulario
+</a>
+
+<div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-green-600">Reporte de Ventas</h2>
+    <div class="flex space-x-2">
+      <a href="{{ request.path }}?{{ request.GET.urlencode }}&formato=pdf" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+        Exportar PDF
+      </a>
+      <a href="{{ request.path }}?{{ request.GET.urlencode }}&formato=csv" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+        Exportar CSV
+      </a>
+    </div>
+  </div>
+  
+  <div class="bg-gray-50 p-4 rounded-lg mb-6">
+    <h3 class="font-semibold mb-2">Parámetros del reporte:</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <div>
+        <span class="text-gray-500">Fecha inicio:</span> 
+        <span class="font-medium">{{ fecha_inicio|date:"d/m/Y" }}</span>
+      </div>
+      <div>
+        <span class="text-gray-500">Fecha fin:</span> 
+        <span class="font-medium">{{ fecha_fin|date:"d/m/Y" }}</span>
+      </div>
+      <div>
+        <span class="text-gray-500">Alumno:</span> 
+        <span class="font-medium">{{ alumno.nombre|default:"Todos los alumnos" }}</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="mb-6">
+    <h3 class="text-lg font-semibold mb-2">Resumen</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Total ventas</p>
+        <p class="text-2xl font-bold">{{ total_ventas }}</p>
+      </div>
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Monto total</p>
+        <p class="text-2xl font-bold">${{ total_monto|floatformat:2 }}</p>
+      </div>
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Productos vendidos</p>
+        <p class="text-2xl font-bold">{{ total_productos }}</p>
+      </div>
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Promedio por venta</p>
+        <p class="text-2xl font-bold">${{ promedio|floatformat:2 }}</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Tabla de ventas -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm text-left border rounded-lg overflow-hidden divide-y divide-gray-200">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 font-medium">ID</th>
+          <th class="px-4 py-3 font-medium">Fecha</th>
+          <th class="px-4 py-3 font-medium">Alumno</th>
+          <th class="px-4 py-3 font-medium">Productos</th>
+          <th class="px-4 py-3 font-medium">Total</th>
+          <th class="px-4 py-3 font-medium text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for venta in ventas %}
+          <tr class="border-b hover:bg-gray-50">
+            <td class="px-4 py-3">{{ venta.id }}</td>
+            <td class="px-4 py-3">{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+            <td class="px-4 py-3">{{ venta.alumno }}</td>
+            <td class="px-4 py-3">{{ venta.detalles.count }}</td>
+            <td class="px-4 py-3">${{ venta.total|floatformat:2 }}</td>
+            <td class="px-4 py-3 text-right">
+              <a href="{% url 'ventas:detalle_venta' venta.id %}" class="text-blue-600 hover:text-blue-800">Ver</a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="px-4 py-3 text-center">No hay ventas para mostrar en este período.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Gráficos (opcional) -->
+  {% if total_ventas > 0 %}
+  <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="bg-white p-4 border rounded-lg shadow-sm">
+      <h3 class="text-lg font-semibold mb-4">Ventas por día</h3>
+      <canvas id="ventasPorDia" height="200"></canvas>
+    </div>
+    <div class="bg-white p-4 border rounded-lg shadow-sm">
+      <h3 class="text-lg font-semibold mb-4">Productos más vendidos</h3>
+      <canvas id="productosMasVendidos" height="200"></canvas>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Gráfico de ventas por día
+      const ctxVentas = document.getElementById('ventasPorDia').getContext('2d');
+      new Chart(ctxVentas, {
+        type: 'line',
+        data: {
+          labels: {{ fechas_grafico|safe }},
+          datasets: [{
+            label: 'Ventas por día',
+            data: {{ montos_grafico|safe }},
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2,
+            tension: 0.1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+      
+      // Gráfico de productos más vendidos
+      const ctxProductos = document.getElementById('productosMasVendidos').getContext('2d');
+      new Chart(ctxProductos, {
+        type: 'bar',
+        data: {
+          labels: {{ productos_nombres|safe }},
+          datasets: [{
+            label: 'Cantidad vendida',
+            data: {{ productos_cantidades|safe }},
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.2)',
+              'rgba(54, 162, 235, 0.2)',
+              'rgba(255, 206, 86, 0.2)',
+              'rgba(75, 192, 192, 0.2)',
+              'rgba(153, 102, 255, 0.2)',
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    });
+  </script>
+  {% endif %}
+</div>
+{% endblock %}

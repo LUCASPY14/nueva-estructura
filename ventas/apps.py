@@ -1,10 +1,11 @@
-from datetime import date
+from django.apps import AppConfig
 
-def registrar_venta(request):
-    # ...obtén alumno, productos, total...
-    hoy = date.today()
-    consumido = alumno.total_consumido(fecha=hoy)
-    if not venta.sobregiro_autorizado and (consumido + total) > alumno.limite_consumo:
-        messages.error(request, "El alumno superó su límite de consumo mensual.")
-        return redirect('ventas:nueva_venta')
-    # ...continúa con la venta...
+class VentasConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'ventas'
+    
+    # No importar modelos aquí
+    
+    def ready(self):
+        # Importaciones solo dentro de ready
+        pass

@@ -9,8 +9,8 @@ urlpatterns = [
     path('', views.landing, name='landing'),
 
     # Autenticación
-    path('login/', views.login_simple, name='login_simple'),
-    path('logout/', views.logout_view, name='logout_view'),
+    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login_simple'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='usuarios:login_simple'), name='logout'),
     path('registro/', views.registro_padre, name='registro_padre'),
 
     # Dashboards por rol
@@ -19,12 +19,13 @@ urlpatterns = [
     path('dashboard/padre/', views.dashboard_padre, name='dashboard_padre'),
 
     # Gestión de usuarios (solo admin)
-    path('usuarios/', views.usuarios_lista, name='usuarios_lista'),
-    path('usuarios/crear/', views.usuario_crear, name='usuario_crear'),
-    path('usuarios/<int:pk>/editar/', views.usuario_editar, name='usuario_editar'),
-    path('usuarios/<int:pk>/eliminar/', views.usuario_eliminar, name='usuario_eliminar'),
+    # Cambiar de 'usuarios_lista' a 'lista' para estandarizar
+    path('usuarios/', views.usuarios_lista, name='lista'),
+    path('usuarios/crear/', views.usuario_crear, name='crear'),
+    path('usuarios/<int:pk>/editar/', views.usuario_editar, name='editar'),
+    path('usuarios/<int:pk>/eliminar/', views.usuario_eliminar, name='eliminar'),
 
-    # ----- Cambio de contraseña (usuario logueado) -----
+    # Mantener rutas de autenticación como están
     path(
         'password_change/',
         auth_views.PasswordChangeView.as_view(
@@ -39,8 +40,6 @@ urlpatterns = [
         ),
         name='password_change_done'
     ),
-
-    # ----- Recuperación de contraseña (no logueado) -----
     path(
         'password_reset/',
         auth_views.PasswordResetView.as_view(

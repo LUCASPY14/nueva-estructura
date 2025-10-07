@@ -1,0 +1,58 @@
+{% load static %}
+{% comment %}
+Componente base para formularios
+Uso: {% include "components/form-field.html" with field=form.campo label="Mi Campo" %}
+{% endcomment %}
+
+<div class="mb-4">
+    {% if label %}
+    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+        {{ label }}{% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+    </label>
+    {% endif %}
+    
+    <div class="mt-1 relative rounded-md shadow-sm">
+        {{ field }}
+        {% if field.errors %}
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if field.help_text %}
+    <p class="mt-2 text-sm text-gray-500">{{ field.help_text }}</p>
+    {% endif %}
+    
+    {% if field.errors %}
+    <p class="mt-2 text-sm text-red-600">
+        {% for error in field.errors %}
+        {{ error }}
+        {% endfor %}
+    </p>
+    {% endif %}
+</div>
+
+{% block extra_css %}
+<style>
+    /* Estilos base para inputs */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+        @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm;
+    }
+    
+    /* Estilos para campos con error */
+    .error input,
+    .error select,
+    .error textarea {
+        @apply border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,530 @@
+{% extends 'ventas/base.html' %}
+{% load static %}
+
+{% block title %}Resumen de Turno - Cantina de Tita{% endblock %}
+
+{% block header_info %}
+<div class="d-flex justify-content-center align-items-center flex-wrap">
+    <div class="me-4 mb-1">
+        <i class="fas fa-file-alt me-2"></i>
+        <span>Resumen de Turno</span>
+    </div>
+    <div class="me-4 mb-1">
+        <i class="fas fa-calendar me-2"></i>
+        <span>{{ turno.fecha_inicio|date:"d/m/Y" }}</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Encabezado del Resumen -->
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-gradient-success text-white text-center py-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <img src="{% static 'images/cantinadetita.png' %}" 
+                                 alt="Cantina de Tita" 
+                                 class="img-fluid rounded-circle" 
+                                 style="width: 80px; height: 80px; border: 3px solid white;">
+                        </div>
+                        <div class="col-md-8">
+                            <h2 class="mb-1">Resumen de Turno</h2>
+                            <h4 class="mb-0">{{ turno.caja.nombre }}</h4>
+                            <p class="mb-0">{{ turno.fecha_inicio|date:"l, d \d\e F \d\e Y" }}</p>
+                        </div>
+                        <div class="col-md-2">
+                            <h1 class="mb-0">#{{ turno.numero }}</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Información General -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Información General
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold">Cajero:</td>
+                                    <td>{{ turno.cajero.get_full_name|default:turno.cajero.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Caja:</td>
+                                    <td>{{ turno.caja.nombre }} - {{ turno.caja.ubicacion }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Inicio:</td>
+                                    <td>{{ turno.fecha_inicio|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                {% if turno.fecha_fin %}
+                                <tr>
+                                    <td class="fw-bold">Fin:</td>
+                                    <td>{{ turno.fecha_fin|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Duración:</td>
+                                    <td>{{ duracion_turno }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td class="fw-bold">Estado:</td>
+                                    <td><span class="badge bg-success">Activo</span></td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen Financiero -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-success">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-dollar-sign me-2"></i>Resumen Financiero
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="fw-bold">Monto Inicial:</td>
+                                    <td class="text-end">${{ turno.monto_inicial|floatformat:0 }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Total Ventas:</td>
+                                    <td class="text-end text-success">${{ turno.total_ventas|floatformat:0 }}</td>
+                                </tr>
+                                {% if turno.fecha_fin %}
+                                <tr>
+                                    <td class="fw-bold">Monto Final:</td>
+                                    <td class="text-end">${{ turno.monto_final|floatformat:0 }}</td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td class="fw-bold">Debería Haber:</td>
+                                    <td class="text-end">${{ turno.monto_inicial|add:turno.total_ventas|floatformat:0 }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Diferencia:</td>
+                                    <td class="text-end {% if diferencia >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        {% if diferencia >= 0 %}+{% endif %}${{ diferencia|floatformat:0 }}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr class="border-top">
+                                    <td class="fw-bold">Efectivo Esperado:</td>
+                                    <td class="text-end">${{ turno.monto_inicial|add:turno.total_ventas|floatformat:0 }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estadísticas de Ventas -->
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Cantidad de Ventas
+                                    </div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800">
+                                        {{ estadisticas.cantidad_ventas }}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Productos Vendidos
+                                    </div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800">
+                                        {{ estadisticas.total_productos }}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Promedio por Venta
+                                    </div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800">
+                                        ${{ estadisticas.promedio_venta|floatformat:0 }}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Clientes Atendidos
+                                    </div>
+                                    <div class="h4 mb-0 font-weight-bold text-gray-800">
+                                        {{ estadisticas.clientes_atendidos }}
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Métodos de Pago -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-credit-card me-2"></i>Métodos de Pago
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-pie pt-4 pb-2">
+                                <canvas id="metodosPagoChart"></canvas>
+                            </div>
+                            <div class="mt-4">
+                                {% for metodo in metodos_pago %}
+                                <div class="row mb-2">
+                                    <div class="col-8">
+                                        <div class="d-flex align-items-center">
+                                            <div class="color-indicator me-2" 
+                                                 style="width: 12px; height: 12px; border-radius: 50%; background-color: {{ metodo.color }};"></div>
+                                            {{ metodo.nombre }}
+                                        </div>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <strong>${{ metodo.total|floatformat:0 }}</strong>
+                                        <br><small class="text-muted">{{ metodo.cantidad }} ventas</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Productos Más Vendidos -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-success">
+                                <i class="fas fa-trophy me-2"></i>Productos Más Vendidos
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if top_productos %}
+                                {% for producto in top_productos %}
+                                <div class="row mb-3 align-items-center">
+                                    <div class="col-1">
+                                        <div class="ranking-number">{{ forloop.counter }}</div>
+                                    </div>
+                                    <div class="col-7">
+                                        <div class="fw-bold">{{ producto.nombre }}</div>
+                                        <small class="text-muted">{{ producto.categoria|default:"Sin categoría" }}</small>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="fw-bold text-success">${{ producto.total|floatformat:0 }}</div>
+                                        <small class="text-muted">{{ producto.cantidad }} unidades</small>
+                                    </div>
+                                </div>
+                                {% if not forloop.last %}<hr class="my-2">{% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-box fa-3x mb-3"></i>
+                                    <p>No hay productos vendidos</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalle de Ventas -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-list me-2"></i>Detalle de Ventas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if ventas %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Hora</th>
+                                        <th>Cliente</th>
+                                        <th>Productos</th>
+                                        <th>Método de Pago</th>
+                                        <th class="text-end">Total</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for venta in ventas %}
+                                    <tr>
+                                        <td>
+                                            <strong>#{{ venta.numero_venta }}</strong>
+                                        </td>
+                                        <td>{{ venta.fecha|time:"H:i" }}</td>
+                                        <td>
+                                            {% if venta.cliente %}
+                                                {{ venta.cliente.nombre }} {{ venta.cliente.apellido }}
+                                            {% else %}
+                                                <em class="text-muted">Cliente general</em>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ venta.total_productos }} item{{ venta.total_productos|pluralize }}</span>
+                                        </td>
+                                        <td>
+                                            {% for pago in venta.pagos.all %}
+                                                <span class="badge bg-info">{{ pago.metodo_pago.nombre }}</span>
+                                            {% endfor %}
+                                        </td>
+                                        <td class="text-end">
+                                            <strong class="text-success">${{ venta.total|floatformat:0 }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if venta.estado == 'completada' %}
+                                                <span class="badge bg-success">Completada</span>
+                                            {% elif venta.estado == 'cancelada' %}
+                                                <span class="badge bg-danger">Cancelada</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">{{ venta.estado|capfirst }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                            <h5>No hay ventas registradas</h5>
+                            <p>Las ventas aparecerán aquí una vez que se realicen</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Observaciones -->
+            {% if turno.observaciones_apertura or turno.observaciones_cierre %}
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-sticky-note me-2"></i>Observaciones
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if turno.observaciones_apertura %}
+                    <div class="mb-3">
+                        <h6 class="text-success">Apertura:</h6>
+                        <p class="mb-0">{{ turno.observaciones_apertura }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if turno.observaciones_cierre %}
+                    <div>
+                        <h6 class="text-warning">Cierre:</h6>
+                        <p class="mb-0">{{ turno.observaciones_cierre }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Botones de Acción -->
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'ventas:dashboard' %}" class="btn btn-secondary btn-lg w-100">
+                                <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <button class="btn btn-info btn-lg w-100" onclick="window.print()">
+                                <i class="fas fa-print me-2"></i>Imprimir Resumen
+                            </button>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="{% url 'ventas:exportar_resumen_turno' turno.id %}" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-file-excel me-2"></i>Exportar Excel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bg-gradient-success {
+        background: linear-gradient(135deg, var(--success-color), #32CD32);
+    }
+
+    .border-left-primary {
+        border-left: 0.25rem solid var(--cantina-brown) !important;
+    }
+    .border-left-success {
+        border-left: 0.25rem solid var(--success-color) !important;
+    }
+    .border-left-info {
+        border-left: 0.25rem solid var(--secondary-color) !important;
+    }
+    .border-left-warning {
+        border-left: 0.25rem solid var(--warning-color) !important;
+    }
+
+    .ranking-number {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, var(--cantina-brown), var(--cantina-gold));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .color-indicator {
+        border: 2px solid white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .text-xs {
+        font-size: 0.75rem;
+    }
+
+    @media print {
+        .btn, .card-header .dropdown {
+            display: none !important;
+        }
+        
+        .card {
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+        }
+        
+        .pos-header {
+            display: none !important;
+        }
+        
+        body {
+            background: white !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Crear gráfico de métodos de pago
+    const ctx = document.getElementById('metodosPagoChart').getContext('2d');
+    
+    const metodosPagoData = [
+        {% for metodo in metodos_pago %}
+        {
+            label: '{{ metodo.nombre }}',
+            value: {{ metodo.total }},
+            color: '{{ metodo.color }}'
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    if (metodosPagoData.length > 0) {
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: metodosPagoData.map(item => item.label),
+                datasets: [{
+                    data: metodosPagoData.map(item => item.value),
+                    backgroundColor: metodosPagoData.map(item => item.color),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const porcentaje = ((context.raw / total) * 100).toFixed(1);
+                                return `${context.label}: ${formatearMoneda(context.raw)} (${porcentaje}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+    
+    // Configurar impresión
+    window.addEventListener('beforeprint', function() {
+        document.title = 'Resumen Turno {{ turno.numero }} - {{ turno.fecha_inicio|date:"d/m/Y" }}';
+    });
+});
+</script>
+{% endblock %}

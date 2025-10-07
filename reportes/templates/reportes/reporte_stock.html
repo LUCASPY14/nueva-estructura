@@ -1,28 +1,115 @@
 {% extends "dashboard_base.html" %}
-{% block title %}Reporte de Stock | LGservice{% endblock %}
+{% block title %}Reporte de Inventario{% endblock %}
 
 {% block content %}
+<!-- Botón de regreso -->
+<a href="{% url 'reportes:lista' %}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver a Reportes
+</a>
 
-<h1 class="text-2xl font-bold mb-6 text-blue-700">Reporte de Stock</h1>
-
-<table class="w-full table-auto border border-gray-300 text-sm bg-white shadow">
-  <thead class="bg-blue-100">
-    <tr>
-      <th class="px-4 py-2 border">Producto</th>
-      <th class="px-4 py-2 border">Stock actual</th>
-      <th class="px-4 py-2 border">Precio</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for producto in productos %}
-      <tr class="text-gray-700">
-        <td class="px-4 py-2 border">{{ producto.nombre }}</td>
-        <td class="px-4 py-2 border text-center">{{ producto.stock }}</td>
-        <td class="px-4 py-2 border text-right">Gs. {{ producto.precio }}</td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="3" class="text-center py-4">No hay productos cargados.</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-green-600">Reporte de Inventario</h2>
+    <div class="flex space-x-2">
+      <a href="?formato=pdf" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+        Exportar PDF
+      </a>
+      <a href="?formato=csv" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+        Exportar CSV
+      </a>
+    </div>
+  </div>
+  
+  <div class="mb-6">
+    <h3 class="text-lg font-semibold mb-2">Resumen</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Total productos</p>
+        <p class="text-2xl font-bold">{{ total_productos }}</p>
+      </div>
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Valor del inventario</p>
+        <p class="text-2xl font-bold">${{ valor_total|floatformat:2 }}</p>
+      </div>
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Productos bajos</p>
+        <p class="text-2xl font-bold text-red-600">{{ productos_bajos }}</p>
+      </div>
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Categorías</p>
+        <p class="text-2xl font-bold">{{ total_categorias }}</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Productos bajos en stock -->
+  <div class="mb-8">
+    <h3 class="text-lg font-semibold mb-4 text-red-600">Productos Bajos en Stock</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm text-left border rounded-lg overflow-hidden divide-y divide-gray-200">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-3 font-medium">ID</th>
+            <th class="px-4 py-3 font-medium">Producto</th>
+            <th class="px-4 py-3 font-medium">Categoría</th>
+            <th class="px-4 py-3 font-medium">Cantidad</th>
+            <th class="px-4 py-3 font-medium">Precio</th>
+            <th class="px-4 py-3 font-medium text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for producto in productos_bajo_stock %}
+            <tr class="border-b hover:bg-gray-50">
+              <td class="px-4 py-3">{{ producto.id }}</td>
+              <td class="px-4 py-3">{{ producto.nombre }}</td>
+              <td class="px-4 py-3">{{ producto.categoria.nombre|default:"-" }}</td>
+              <td class="px-4 py-3 text-red-600 font-semibold">{{ producto.cantidad }}</td>
+              <td class="px-4 py-3">${{ producto.precio_venta|floatformat:2 }}</td>
+              <td class="px-4 py-3 text-right">
+                <a href="{% url 'productos:producto_detalle' producto.id %}" class="text-blue-600 hover:text-blue-800">Ver</a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="px-4 py-3 text-center">No hay productos bajos en stock.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Inventario completo -->
+  <div>
+    <h3 class="text-lg font-semibold mb-4">Inventario Completo</h3>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm text-left border rounded-lg overflow-hidden divide-y divide-gray-200">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-3 font-medium">ID</th>
+            <th class="px-4 py-3 font-medium">Producto</th>
+            <th class="px-4 py-3 font-medium">Categoría</th>
+            <th class="px-4 py-3 font-medium">Cantidad</th>
+            <th class="px-4 py-3 font-medium">Precio Venta</th>
+            <th class="px-4 py-3 font-medium">Precio Costo</th>
+            <th class="px-4 py-3 font-medium">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for producto in productos %}
+            <tr class="border-b hover:bg-gray-50">
+              <td class="px-4 py-3">{{ producto.id }}</td>
+              <td class="px-4 py-3">{{ producto.nombre }}</td>
+              <td class="px-4 py-3">{{ producto.categoria.nombre|default:"-" }}</td>
+              <td class="px-4 py-3">{{ producto.cantidad }}</td>
+              <td class="px-4 py-3">${{ producto.precio_venta|floatformat:2 }}</td>
+              <td class="px-4 py-3">${{ producto.precio_costo|floatformat:2 }}</td>
+              <td class="px-4 py-3">${{ producto.valor_inventario|floatformat:2 }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="px-4 py-3 text-center">No hay productos en inventario.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 {% endblock %}

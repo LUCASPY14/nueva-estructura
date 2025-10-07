@@ -1,0 +1,215 @@
+{% extends "proveedores/base_proveedores.html" %}
+{% load static %}
+
+{% block proveedor_content %}
+<div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+    <!-- Encabezado -->
+    <div class="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 px-6 py-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+                    {{ proveedor.nombre }}
+                </h1>
+                {% if proveedor.nombre_comercial %}
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{ proveedor.nombre_comercial }}
+                </p>
+                {% endif %}
+            </div>
+            <div class="mt-4 md:mt-0 flex space-x-3">
+                <a href="{% url 'proveedores:editar' proveedor.pk %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-600 dark:text-gray-200 dark:border-gray-500 dark:hover:bg-gray-700">
+                    <i class="fas fa-edit mr-2"></i>
+                    Editar
+                </a>
+                <a href="{% url 'proveedores:lista' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <i class="fas fa-list mr-2"></i>
+                    Volver a la Lista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-6 space-y-6">
+        <!-- Estado -->
+        <div class="flex items-center">
+            {% if proveedor.activo %}
+            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                <i class="fas fa-check-circle mr-2"></i>
+                Activo
+            </span>
+            {% else %}
+            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                <i class="fas fa-times-circle mr-2"></i>
+                Inactivo
+            </span>
+            {% endif %}
+        </div>
+
+        <!-- Información Principal -->
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                <i class="fas fa-info-circle mr-2"></i>
+                Información Principal
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Tipo de Documento
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                        {{ proveedor.get_tipo_documento_display }}
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Número de Documento
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                        {{ proveedor.numero_documento }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Contacto -->
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                <i class="fas fa-address-card mr-2"></i>
+                Información de Contacto
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Dirección
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                        {{ proveedor.direccion|default:"No especificada" }}
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Ciudad
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                        {{ proveedor.ciudad|default:"No especificada" }}
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Teléfono
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                        {% if proveedor.telefono %}
+                        <a href="tel:{{ proveedor.telefono }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                            {{ proveedor.telefono }}
+                        </a>
+                        {% else %}
+                        No especificado
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Email
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                        {% if proveedor.email %}
+                        <a href="mailto:{{ proveedor.email }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                            {{ proveedor.email }}
+                        </a>
+                        {% else %}
+                        No especificado
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos -->
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">
+                <i class="fas fa-box mr-2"></i>
+                Productos ({{ proveedor.productos.count }})
+            </h2>
+            {% if proveedor.productos.exists %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 bg-gray-100 dark:bg-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Nombre
+                            </th>
+                            <th class="px-6 py-3 bg-gray-100 dark:bg-gray-600 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Código
+                            </th>
+                            <th class="px-6 py-3 bg-gray-100 dark:bg-gray-600 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Precio
+                            </th>
+                            <th class="px-6 py-3 bg-gray-100 dark:bg-gray-600 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                Stock
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-600">
+                        {% for producto in proveedor.productos.all %}
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                <a href="{% url 'productos:detalle' producto.pk %}" class="hover:text-blue-600 dark:hover:text-blue-400">
+                                    {{ producto.nombre }}
+                                </a>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                {{ producto.codigo }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white text-right">
+                                ${{ producto.precio }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                {% if producto.stock > producto.stock_minimo %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    {{ producto.stock }}
+                                </span>
+                                {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    {{ producto.stock }}
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Este proveedor no tiene productos asociados.
+            </p>
+            {% endif %}
+        </div>
+
+        <!-- Metadatos -->
+        <div class="border-t border-gray-200 dark:border-gray-600 pt-4 mt-6">
+            <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
+                <div>
+                    <span class="mr-4">
+                        <i class="fas fa-calendar-plus mr-1"></i>
+                        Creado: {{ proveedor.created_at|date:"d/m/Y H:i" }}
+                    </span>
+                    <span>
+                        <i class="fas fa-calendar-check mr-1"></i>
+                        Actualizado: {{ proveedor.updated_at|date:"d/m/Y H:i" }}
+                    </span>
+                </div>
+                <div>
+                    <span>
+                        <i class="fas fa-id-card mr-1"></i>
+                        ID: {{ proveedor.pk }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

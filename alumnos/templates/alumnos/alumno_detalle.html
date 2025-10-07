@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load roles_tags %}
+
+{% block title %}{{ alumno.get_nombre_completo }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header con breadcrumb -->
+    <div class="mb-6">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">{{ alumno.get_nombre_completo }}</h1>
+                <nav class="flex mt-2" aria-label="Breadcrumb">
+                    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                        <li><a href="{% url 'alumnos:lista' %}" class="text-blue-600 hover:text-blue-800">Alumnos</a></li>
+                        <li><span class="text-gray-500"> / </span></li>
+                        <li class="text-gray-500">{{ alumno.get_nombre_completo }}</li>
+                    </ol>
+                </nav>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="flex space-x-2">
+                {% if perms.alumnos.change_alumno %}
+                <a href="{% url 'alumnos:editar' pk=alumno.id %}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    <svg class="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                    Editar
+                </a>
+                {% endif %}
+                
+                {% if perms.alumnos.add_transaccionsaldo %}
+                <a href="{% url 'alumnos:cargar_saldo' alumno_id=alumno.id %}" 
+                   class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                    <svg class="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Cargar Saldo
+                </a>
+                {% endif %}
+                
+                {% if perms.alumnos.view_transaccionsaldo %}
+                <a href="{% url 'alumnos:historial_transacciones' pk=alumno.id %}" 
+                   class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                    <svg class="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    Historial
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Información General -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <svg class="mr-2 h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+                Información General
+            </h2>
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Tarjeta:</label>
+                        <div class="mt-1 text-lg font-semibold text-gray-800">
+                            {{ alumno.numero_tarjeta|default:"No asignada" }}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Matrícula:</label>
+                        <div class="mt-1 text-lg font-semibold text-gray-800">
+                            {{ alumno.numero_matricula }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Grado:</label>
+                        <div class="mt-1 text-lg text-gray-800">
+                            {{ alumno.curso|default:"Sin asignar" }}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Estado:</label>
+                        <div class="mt-1">
+                            {% if alumno.estado == 'activo' %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    Activo
+                                </span>
+                            {% else %}
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                    {{ alumno.get_estado_display }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Saldo y Límites -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <svg class="mr-2 h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                </svg>
+                Saldo y Límites
+            </h2>
+            <div class="space-y-4">
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-sm font-medium text-gray-600">Saldo actual:</div>
+                    <div class="text-3xl font-bold text-green-600">
+                        ${{ alumno.saldo_tarjeta|floatformat:0 }}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Límite de consumo diario:</label>
+                        <div class="mt-1 text-lg text-gray-800">
+                            {% if alumno.limite_consumo %}
+                                ${{ alumno.limite_consumo|floatformat:0 }}
+                            {% else %}
+                                Sin límite
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-600">Saldo disponible hoy:</label>
+                        <div class="mt-1 text-lg font-semibold text-gray-800">
+                            ${{ alumno.saldo_tarjeta|floatformat:0 }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botones de acción rápida -->
+                <div class="pt-4 border-t">
+                    <div class="flex space-x-2">
+                        {% if perms.alumnos.add_transaccionsaldo %}
+                        <a href="{% url 'alumnos:cargar_saldo' alumno_id=alumno.id %}" 
+                           class="flex-1 inline-flex justify-center items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                            <svg class="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            Cargar Saldo
+                        </a>
+                        {% endif %}
+                        
+                        {% if perms.alumnos.view_transaccionsaldo %}
+                        <a href="{% url 'alumnos:historial_transacciones' pk=alumno.id %}" 
+                           class="flex-1 inline-flex justify-center items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                            <svg class="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            Ver Historial
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutores -->
+    <div class="mt-6 bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <svg class="mr-2 h-5 w-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+            </svg>
+            Tutores
+        </h2>
+        {% if alumno.padres.exists %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for padre in alumno.padres.all %}
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <div class="font-semibold text-gray-800">{{ padre.get_nombre_completo }}</div>
+                    {% if padre.telefono %}
+                        <div class="text-sm text-gray-600">📞 {{ padre.telefono }}</div>
+                    {% endif %}
+                    {% if padre.email %}
+                        <div class="text-sm text-gray-600">📧 {{ padre.email }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500 italic">Este alumno no tiene tutores asignados.</p>
+        {% endif %}
+    </div>
+
+    <!-- Transacciones Recientes -->
+    <div class="mt-6 bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-800 flex items-center">
+                <svg class="mr-2 h-5 w-5 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                </svg>
+                Transacciones Recientes
+            </h2>
+            {% if transacciones_recientes %}
+            <a href="{% url 'alumnos:historial_transacciones' pk=alumno.id %}" 
+               class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                Ver todas →
+            </a>
+            {% endif %}
+        </div>
+        
+        {% if transacciones_recientes %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for transaccion in transacciones_recientes %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ transaccion.fecha|date:"d/m/Y H:i" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if transaccion.tipo == 'recarga' %}
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Recarga
+                                    </span>
+                                {% elif transaccion.tipo == 'consumo' %}
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                        Consumo
+                                    </span>
+                                {% else %}
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        {{ transaccion.tipo|title }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900">
+                                {{ transaccion.descripcion|default:"Sin descripción" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right">
+                                {% if transaccion.tipo == 'consumo' %}
+                                    <span class="text-red-600 font-medium">-${{ transaccion.monto|floatformat:0 }}</span>
+                                {% else %}
+                                    <span class="text-green-600 font-medium">+${{ transaccion.monto|floatformat:0 }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-500 italic">No hay transacciones registradas.</p>
+            {% if perms.alumnos.add_transaccionsaldo %}
+            <div class="mt-4">
+                <a href="{% url 'alumnos:cargar_saldo' alumno_id=alumno.id %}" 
+                   class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                    <svg class="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Cargar Primer Saldo
+                </a>
+            </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <!-- Restricciones de Productos -->
+    <div class="mt-6 bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <svg class="mr-2 h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
+            </svg>
+            Restricciones de Productos
+        </h2>
+        <p class="text-gray-500 italic">No hay restricciones configuradas.</p>
+    </div>
+
+    <!-- Botones de navegación -->
+    <div class="mt-8 flex justify-between">
+        <a href="{% url 'alumnos:lista' %}" 
+           class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+            <svg class="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            Volver a la Lista
+        </a>
+        
+        {% if perms.alumnos.delete_alumno %}
+        <a href="{% url 'alumnos:eliminar' pk=alumno.id %}" 
+           class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+           onclick="return confirm('¿Está seguro de eliminar este alumno?')">
+            <svg class="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.236 4.53L7.53 10.53a.75.75 0 00-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+            </svg>
+            Eliminar Alumno
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

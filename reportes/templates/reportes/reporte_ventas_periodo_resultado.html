@@ -1,0 +1,239 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
+{% block title %}Análisis de Ventas{% endblock %}
+
+{% block content %}
+<!-- Botón de regreso -->
+<a href="{% url 'reportes:reporte_ventas_periodo_form' %}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al Formulario
+</a>
+
+<div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-green-600">Análisis de Ventas - {{ tipo_analisis|title }}</h2>
+    <div class="flex space-x-2">
+      <a href="{{ request.path }}?{{ request.GET.urlencode }}&formato=pdf" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
+        Exportar PDF
+      </a>
+      <a href="{{ request.path }}?{{ request.GET.urlencode }}&formato=csv" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+        Exportar CSV
+      </a>
+    </div>
+  </div>
+  
+  <div class="bg-gray-50 p-4 rounded-lg mb-6">
+    <h3 class="font-semibold mb-2">Parámetros del análisis:</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+      <div>
+        <span class="text-gray-500">Tipo:</span> 
+        <span class="font-medium">{{ tipo_analisis|title }}</span>
+      </div>
+      <div>
+        <span class="text-gray-500">Fecha inicio:</span> 
+        <span class="font-medium">{{ fecha_inicio|date:"d/m/Y" }}</span>
+      </div>
+      <div>
+        <span class="text-gray-500">Fecha fin:</span> 
+        <span class="font-medium">{{ fecha_fin|date:"d/m/Y" }}</span>
+      </div>
+      <div>
+        <span class="text-gray-500">Categoría:</span> 
+        <span class="font-medium">{{ categoria.nombre|default:"Todas" }}</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="mb-6">
+    <h3 class="text-lg font-semibold mb-2">Resumen del período</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Total ventas</p>
+        <p class="text-2xl font-bold">{{ total_ventas }}</p>
+      </div>
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Monto total</p>
+        <p class="text-2xl font-bold">${{ total_monto|floatformat:2 }}</p>
+      </div>
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Promedio por día</p>
+        <p class="text-2xl font-bold">${{ promedio_diario|floatformat:2 }}</p>
+      </div>
+      <div class="bg-white p-4 border rounded-lg shadow-sm">
+        <p class="text-sm text-gray-500">Mejor {{ mejor_periodo_tipo }}</p>
+        <p class="text-2xl font-bold">{{ mejor_periodo }}</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Gráficos principales -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <div class="bg-white p-4 border rounded-lg shadow-sm">
+      <h3 class="text-lg font-semibold mb-4">Ventas por {{ tipo_analisis }}</h3>
+      <canvas id="ventasPorPeriodo" height="300"></canvas>
+    </div>
+    <div class="bg-white p-4 border rounded-lg shadow-sm">
+      <h3 class="text-lg font-semibold mb-4">Tendencia de ventas</h3>
+      <canvas id="tendenciaVentas" height="300"></canvas>
+    </div>
+  </div>
+  
+  <!-- Tabla de datos -->
+  <div class="overflow-x-auto mb-8">
+    <table class="min-w-full text-sm text-left border rounded-lg overflow-hidden divide-y divide-gray-200">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-3 font-medium">Período</th>
+          <th class="px-4 py-3 font-medium">Ventas</th>
+          <th class="px-4 py-3 font-medium">Total</th>
+          <th class="px-4 py-3 font-medium">Promedio</th>
+          <th class="px-4 py-3 font-medium">% del Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for periodo in datos_periodos %}
+          <tr class="border-b hover:bg-gray-50">
+            <td class="px-4 py-3">{{ periodo.nombre }}</td>
+            <td class="px-4 py-3">{{ periodo.ventas }}</td>
+            <td class="px-4 py-3">${{ periodo.total|floatformat:2 }}</td>
+            <td class="px-4 py-3">${{ periodo.promedio|floatformat:2 }}</td>
+            <td class="px-4 py-3">{{ periodo.porcentaje|floatformat:1 }}%</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="px-4 py-3 text-center">No hay datos para mostrar en este período.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Gráficos secundarios -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="bg-white p-4 border rounded-lg shadow-sm">
+      <h3 class="text-lg font-semibold mb-4">Top 5 Productos</h3>
+      <canvas id="topProductos" height="300"></canvas>
+    </div>
+    <div class="bg-white p-4 border rounded-lg shadow-sm">
+      <h3 class="text-lg font-semibold mb-4">Ventas por Categoría</h3>
+      <canvas id="ventasPorCategoria" height="300"></canvas>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Gráfico de ventas por período
+      const ctxPeriodo = document.getElementById('ventasPorPeriodo').getContext('2d');
+      new Chart(ctxPeriodo, {
+        type: 'bar',
+        data: {
+          labels: {{ periodos_nombres|safe }},
+          datasets: [{
+            label: 'Ventas ($)',
+            data: {{ periodos_montos|safe }},
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+      
+      // Gráfico de tendencia de ventas
+      const ctxTendencia = document.getElementById('tendenciaVentas').getContext('2d');
+      new Chart(ctxTendencia, {
+        type: 'line',
+        data: {
+          labels: {{ periodos_nombres|safe }},
+          datasets: [{
+            label: 'Ventas ($)',
+            data: {{ periodos_montos|safe }},
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2,
+            tension: 0.1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+      
+      // Gráfico de top productos
+      const ctxProductos = document.getElementById('topProductos').getContext('2d');
+      new Chart(ctxProductos, {
+        type: 'bar',
+        data: {
+          labels: {{ productos_nombres|safe }},
+          datasets: [{
+            label: 'Cantidad vendida',
+            data: {{ productos_cantidades|safe }},
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.2)',
+              'rgba(54, 162, 235, 0.2)',
+              'rgba(255, 206, 86, 0.2)',
+              'rgba(75, 192, 192, 0.2)',
+              'rgba(153, 102, 255, 0.2)',
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+      
+      // Gráfico de ventas por categoría
+      const ctxCategoria = document.getElementById('ventasPorCategoria').getContext('2d');
+      new Chart(ctxCategoria, {
+        type: 'pie',
+        data: {
+          labels: {{ categorias_nombres|safe }},
+          datasets: [{
+            label: 'Ventas por categoría',
+            data: {{ categorias_montos|safe }},
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.2)',
+              'rgba(54, 162, 235, 0.2)',
+              'rgba(255, 206, 86, 0.2)',
+              'rgba(75, 192, 192, 0.2)',
+              'rgba(153, 102, 255, 0.2)',
+              'rgba(255, 159, 64, 0.2)',
+              'rgba(201, 203, 207, 0.2)'
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)',
+              'rgba(201, 203, 207, 1)'
+            ],
+            borderWidth: 1
+          }]
+        }
+      });
+    });
+  </script>
+</div>
+{% endblock %}

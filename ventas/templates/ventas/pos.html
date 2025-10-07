@@ -1,0 +1,264 @@
+1/nueva_estructura/ventas/templates/ventas/pos.html -->
+{% extends 'ventas/base.html' %}
+{% load static %}
+
+{% block title %}Punto de Venta - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ventas/css/pos.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="pos-container">
+    <!-- Barra Superior -->
+    <div class="pos-header">
+        <div class="pos-header-left">
+            <div class="turno-info">
+                <i class="fas fa-cash-register me-2"></i>
+                <span>{{ estadisticas_turno.caja }}</span>
+                <small class="ms-2">
+                    <i class="fas fa-clock me-1"></i>{{ estadisticas_turno.inicio }}
+                </small>
+            </div>
+        </div>
+        <div class="pos-header-center">
+            <div class="search-box">
+                <input type="text" 
+                       id="buscar-producto" 
+                       class="form-control" 
+                       placeholder="Buscar producto (Ctrl + F)"
+                       autocomplete="off">
+                <i class="fas fa-search"></i>
+            </div>
+        </div>
+        <div class="pos-header-right">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary" id="btnNuevaVenta">
+                    <i class="fas fa-plus me-1"></i>Nueva
+                </button>
+                <button type="button" class="btn btn-outline-success" id="btnPagar" disabled>
+                    <i class="fas fa-check me-1"></i>Pagar
+                </button>
+                <button type="button" class="btn btn-outline-danger" id="btnCancelar" disabled>
+                    <i class="fas fa-times me-1"></i>Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="pos-content">
+        <!-- Panel Izquierdo - Lista de Productos -->
+        <div class="pos-products">
+            <!-- Favoritos -->
+            {% if productos_favoritos %}
+            <div class="productos-section mb-4">
+                <h6 class="section-title">
+                    <i class="fas fa-star me-2"></i>Más Vendidos
+                </h6>
+                <div class="producto-grid">
+                    {% for producto in productos_favoritos %}
+                    <div class="producto-card favorito" 
+                         data-id="{{ producto.id }}"
+                         data-nombre="{{ producto.nombre }}"
+                         data-precio="{{ producto.precio_venta }}"
+                         data-stock="{{ producto.cantidad }}">
+                        <div class="producto-content">
+                            {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                            {% else %}
+                            <i class="fas fa-box fa-2x"></i>
+                            {% endif %}
+                            <h6 class="producto-nombre">{{ producto.nombre }}</h6>
+                            <div class="producto-precio">${{ producto.precio_venta|floatformat:0 }}</div>
+                            <small class="producto-stock">Stock: {{ producto.cantidad }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Categorías y Productos -->
+            <div class="categorias-tabs">
+                <ul class="nav nav-pills" role="tablist">
+                    {% for categoria, productos in productos_por_categoria.items %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if forloop.first %}active{% endif %}"
+                                data-bs-toggle="tab"
+                                data-bs-target="#cat-{{ forloop.counter }}"
+                                type="button"
+                                role="tab">
+                            {{ categoria }}
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="tab-content">
+                {% for categoria, productos in productos_por_categoria.items %}
+                <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+                     id="cat-{{ forloop.counter }}"
+                     role="tabpanel">
+                    <div class="producto-grid">
+                        {% for producto in productos %}
+                        <div class="producto-card" 
+                             data-id="{{ producto.id }}"
+                             data-nombre="{{ producto.nombre }}"
+                             data-precio="{{ producto.precio_venta }}"
+                             data-stock="{{ producto.cantidad }}">
+                            <div class="producto-content">
+                                {% if producto.imagen %}
+                                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                                {% else %}
+                                <i class="fas fa-box fa-2x"></i>
+                                {% endif %}
+                                <h6 class="producto-nombre">{{ producto.nombre }}</h6>
+                                <div class="producto-precio">${{ producto.precio_venta|floatformat:0 }}</div>
+                                <small class="producto-stock">Stock: {{ producto.cantidad }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Panel Derecho - Carrito -->
+        <div class="pos-cart">
+            <!-- Encabezado del Carrito -->
+            <div class="cart-header">
+                <h5><i class="fas fa-shopping-cart me-2"></i>Carrito</h5>
+                <div class="cliente-selector">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnSeleccionarCliente">
+                        <i class="fas fa-user me-1"></i>
+                        <span id="clienteSeleccionado">Cliente General</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Items del Carrito -->
+            <div class="cart-items" id="itemsCarrito">
+                <!-- Los items se añadirán dinámicamente -->
+                <div class="cart-empty">
+                    <i class="fas fa-shopping-basket fa-3x mb-3"></i>
+                    <p>No hay productos agregados</p>
+                </div>
+            </div>
+
+            <!-- Totales -->
+            <div class="cart-totals">
+                <div class="totals-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">$0</span>
+                </div>
+                <div class="totals-row">
+                    <span>Descuento</span>
+                    <div class="descuento-control">
+                        <input type="number" id="descuento" class="form-control form-control-sm" value="0" min="0">
+                        <select id="tipoDescuento" class="form-select form-select-sm">
+                            <option value="porcentaje">%</option>
+                            <option value="monto">$</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="totals-row total-final">
+                    <span>Total</span>
+                    <span id="total">$0</span>
+                </div>
+            </div>
+
+            <!-- Métodos de Pago -->
+            <div class="payment-methods">
+                <h6>Método de Pago</h6>
+                <div class="metodos-grid">
+                    {% for metodo in metodos_pago %}
+                    <div class="metodo-card" data-id="{{ metodo.id }}">
+                        <i class="{{ metodo.icono }}"></i>
+                        <span>{{ metodo.nombre }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="cart-actions">
+                <button type="button" class="btn btn-lg btn-success w-100" id="btnFinalizarVenta" disabled>
+                    <i class="fas fa-check-circle me-2"></i>Finalizar Venta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Pago -->
+<div class="modal fade" id="modalPago" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Procesar Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Total a Pagar</label>
+                    <h3 id="modalTotalPagar" class="text-success">$0</h3>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Monto Recibido</label>
+                    <input type="number" class="form-control form-control-lg" id="montoRecibido">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Vuelto</label>
+                    <h4 id="modalVuelto" class="text-primary">$0</h4>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="btnConfirmarPago">
+                    <i class="fas fa-check me-2"></i>Confirmar Pago
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Cliente -->
+<div class="modal fade" id="modalCliente" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seleccionar Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <input type="text" 
+                           class="form-control" 
+                           id="buscarCliente" 
+                           placeholder="Buscar cliente...">
+                </div>
+                <div id="resultadosClientes" class="list-group">
+                    <!-- Los resultados se cargarán aquí -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'ventas/js/pos.js' %}"></script>
+<script>
+    // Configuración inicial
+    const CONFIG = {{ configuracion|json_script:"config" }};
+    const ATAJOS = {{ atajos_teclado|json_script:"atajos" }};
+    
+    // Inicializar el POS cuando el documento esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        initPOS(CONFIG, ATAJOS);
+    });
+</script>
+{% endblock %}

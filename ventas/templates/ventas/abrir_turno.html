@@ -1,0 +1,308 @@
+{% extends 'ventas/base.html' %}
+{% load static %}
+
+{% block title %}Abrir Turno - Cantina de Tita{% endblock %}
+
+{% block header_info %}
+<div class="d-flex justify-content-center align-items-center">
+    <div class="me-4">
+        <i class="fas fa-play me-2"></i>
+        <span>Abrir Nuevo Turno</span>
+    </div>
+    <div>
+        <i class="fas fa-clock me-2"></i>
+        <span id="fecha-hora"></span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient-primary text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="fas fa-cash-register fa-2x mb-3"></i><br>
+                        Abrir Nuevo Turno de Caja
+                    </h3>
+                </div>
+                
+                <div class="card-body p-5">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" id="form-abrir-turno">
+                        {% csrf_token %}
+                        
+                        <!-- Selección de Caja -->
+                        <div class="mb-4">
+                            <label class="form-label h6">
+                                <i class="fas fa-desktop me-2 text-primary"></i>Seleccionar Caja
+                            </label>
+                            <div class="row g-3">
+                                {% for caja in cajas_disponibles %}
+                                <div class="col-md-6">
+                                    <div class="caja-option" data-caja-id="{{ caja.id }}">
+                                        <input type="radio" 
+                                               class="btn-check" 
+                                               name="caja" 
+                                               id="caja{{ caja.id }}" 
+                                               value="{{ caja.id }}"
+                                               required>
+                                        <label class="btn btn-outline-primary w-100 p-3" for="caja{{ caja.id }}">
+                                            <div class="text-center">
+                                                <i class="fas fa-desktop fa-2x mb-2"></i>
+                                                <h6 class="mb-1">{{ caja.nombre }}</h6>
+                                                <small class="text-muted">{{ caja.ubicacion }}</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Monto Inicial -->
+                        <div class="mb-4">
+                            <label for="monto_inicial" class="form-label h6">
+                                <i class="fas fa-dollar-sign me-2 text-success"></i>Monto Inicial en Caja
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">$</span>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="monto_inicial" 
+                                       name="monto_inicial" 
+                                       value="0" 
+                                       min="0" 
+                                       step="1000"
+                                       required>
+                                <button class="btn btn-outline-secondary" 
+                                        type="button" 
+                                        id="btn-montos-rapidos"
+                                        data-bs-toggle="dropdown">
+                                    <i class="fas fa-calculator"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item monto-rapido" href="#" data-monto="0">$0</a></li>
+                                    <li><a class="dropdown-item monto-rapido" href="#" data-monto="10000">$10.000</a></li>
+                                    <li><a class="dropdown-item monto-rapido" href="#" data-monto="20000">$20.000</a></li>
+                                    <li><a class="dropdown-item monto-rapido" href="#" data-monto="50000">$50.000</a></li>
+                                    <li><a class="dropdown-item monto-rapido" href="#" data-monto="100000">$100.000</a></li>
+                                </ul>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Ingresa el monto en efectivo con el que inicias el turno
+                            </div>
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div class="mb-4">
+                            <label for="observaciones_apertura" class="form-label h6">
+                                <i class="fas fa-sticky-note me-2 text-info"></i>Observaciones (Opcional)
+                            </label>
+                            <textarea class="form-control" 
+                                      id="observaciones_apertura" 
+                                      name="observaciones_apertura" 
+                                      rows="3"
+                                      placeholder="Notas adicionales sobre la apertura del turno..."></textarea>
+                        </div>
+
+                        <!-- Resumen -->
+                        <div class="alert alert-light border" id="resumen-turno" style="display: none;">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-clipboard-list me-2"></i>Resumen del Turno
+                            </h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <strong>Caja:</strong> <span id="resumen-caja">-</span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Monto Inicial:</strong> <span id="resumen-monto">$0</span>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <strong>Cajero:</strong> {{ user.get_full_name|default:user.username }}
+                                </div>
+                                <div class="col-6">
+                                    <strong>Fecha:</strong> <span id="resumen-fecha"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'ventas:dashboard' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg" id="btn-abrir-turno">
+                                <i class="fas fa-play me-2"></i>Abrir Turno
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card mt-4 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-lightbulb me-2 text-warning"></i>Consejos para el Manejo de Caja
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>Verifica el monto inicial antes de comenzar las ventas</li>
+                        <li>Mantén billetes organizados por denominación</li>
+                        <li>Registra cualquier observación importante</li>
+                        <li>Asegúrate de tener cambio suficiente para las ventas</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--cantina-brown), var(--cantina-gold));
+    }
+
+    .caja-option {
+        transition: all 0.3s ease;
+    }
+
+    .caja-option:hover {
+        transform: translateY(-3px);
+    }
+
+    .btn-check:checked + .btn-outline-primary {
+        background: linear-gradient(45deg, var(--cantina-brown), var(--cantina-gold));
+        border-color: var(--cantina-brown);
+        color: white;
+    }
+
+    .btn-check:checked + .btn-outline-primary:hover {
+        background: linear-gradient(45deg, var(--cantina-gold), var(--cantina-brown));
+    }
+
+    .input-group-lg .input-group-text {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+
+    #resumen-turno {
+        border-left: 4px solid var(--cantina-gold) !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Montos rápidos
+    $('.monto-rapido').on('click', function(e) {
+        e.preventDefault();
+        const monto = $(this).data('monto');
+        $('#monto_inicial').val(monto);
+        actualizarResumen();
+    });
+
+    // Actualizar resumen cuando cambie la selección
+    $('input[name="caja"]').on('change', actualizarResumen);
+    $('#monto_inicial').on('input', actualizarResumen);
+
+    // Validación del formulario
+    $('#form-abrir-turno').on('submit', function(e) {
+        if (!validarFormulario()) {
+            e.preventDefault();
+            return false;
+        }
+
+        // Deshabilitar botón para evitar doble envío
+        $('#btn-abrir-turno').prop('disabled', true)
+            .html('<i class="fas fa-spinner fa-spin me-2"></i>Abriendo Turno...');
+    });
+
+    function actualizarResumen() {
+        const cajaSeleccionada = $('input[name="caja"]:checked');
+        const monto = $('#monto_inicial').val() || 0;
+
+        if (cajaSeleccionada.length > 0) {
+            const cajaNombre = cajaSeleccionada.next('label').find('h6').text();
+            $('#resumen-caja').text(cajaNombre);
+            $('#resumen-monto').text(formatearMoneda(monto));
+            $('#resumen-fecha').text(new Date().toLocaleDateString('es-CL'));
+            $('#resumen-turno').show();
+        } else {
+            $('#resumen-turno').hide();
+        }
+    }
+
+    function validarFormulario() {
+        const cajaSeleccionada = $('input[name="caja"]:checked').length > 0;
+        const montoValido = parseFloat($('#monto_inicial').val()) >= 0;
+
+        if (!cajaSeleccionada) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Selecciona una Caja',
+                text: 'Debes seleccionar una caja para abrir el turno'
+            });
+            return false;
+        }
+
+        if (!montoValido) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Monto Inválido',
+                text: 'El monto inicial debe ser mayor o igual a 0'
+            });
+            return false;
+        }
+
+        return true;
+    }
+
+    // Confirmación antes de abrir turno
+    $('#form-abrir-turno').on('submit', function(e) {
+        if (!$(this).data('confirmed')) {
+            e.preventDefault();
+            
+            const cajaNombre = $('input[name="caja"]:checked').next('label').find('h6').text();
+            const monto = $('#monto_inicial').val() || 0;
+            
+            Swal.fire({
+                title: '¿Confirmar Apertura de Turno?',
+                html: `
+                    <div class="text-start">
+                        <p><strong>Caja:</strong> ${cajaNombre}</p>
+                        <p><strong>Monto Inicial:</strong> ${formatearMoneda(monto)}</p>
+                        <p><strong>Fecha:</strong> ${new Date().toLocaleDateString('es-CL')}</p>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, Abrir Turno',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#28a745'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $(this).data('confirmed', true);
+                    $(this).submit();
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

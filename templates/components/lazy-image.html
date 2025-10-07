@@ -1,0 +1,54 @@
+{% load static %}
+{% comment %}
+Componente para imágenes con lazy loading
+Uso: {% include "components/lazy-image.html" with src="path/to/image.jpg" alt="Mi Imagen" %}
+{% endcomment %}
+
+<div class="relative {% if aspect_ratio %}aspect-w-{{ aspect_ratio.w }} aspect-h-{{ aspect_ratio.h }}{% endif %} {{ container_classes|default:'' }}">
+    <img src="{% static 'images/placeholder.png' %}"
+         data-src="{% if is_static %}{% static src %}{% else %}{{ src }}{% endif %}"
+         alt="{{ alt|default:'' }}"
+         class="lazy-load w-full h-full object-cover {% if rounded %}rounded-lg{% endif %} {{ image_classes|default:'' }}"
+         {% if width %}width="{{ width }}"{% endif %}
+         {% if height %}height="{{ height }}"{% endif %}
+         loading="lazy">
+         
+    <div class="lazy-load-placeholder absolute inset-0 bg-gray-200 animate-pulse"></div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var lazyLoadImages = function() {
+        var images = document.querySelectorAll("img.lazy-load");
+        var imageObserver = new IntersectionObserver(function(entries, observer) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    var img = entry.target;
+                    img.src = img.dataset.src;
+                    img.classList.remove("lazy-load");
+                    img.nextElementSibling?.remove(); // Remove placeholder
+                    observer.unobserve(img);
+                }
+            });
+        });
+
+        images.forEach(function(img) {
+            imageObserver.observe(img);
+        });
+    };
+
+    // Initialize lazy loading
+    if ("IntersectionObserver" in window) {
+        lazyLoadImages();
+    } else {
+        // Fallback for browsers that don't support IntersectionObserver
+        document.querySelectorAll("img.lazy-load").forEach(function(img) {
+            img.src = img.dataset.src;
+            img.classList.remove("lazy-load");
+            img.nextElementSibling?.remove();
+        });
+    }
+});
+</script>
+{% endblock %}

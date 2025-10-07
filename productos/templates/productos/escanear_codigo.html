@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Escanear Código de Barras{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-8">Escanear Código de Barras</h1>
+    
+    <div class="mb-8">
+        <div id="scanner-container" class="w-full max-w-lg mx-auto">
+            <video id="preview" class="w-full"></video>
+        </div>
+    </div>
+
+    <div id="result" class="hidden bg-white shadow-md rounded px-8 py-6 mb-4">
+        <h2 class="text-xl font-semibold mb-4">Producto Encontrado</h2>
+        <div id="product-info">
+            <!-- La información del producto se mostrará aquí -->
+        </div>
+    </div>
+
+    <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let scanner = new Instascan.Scanner({
+        video: document.getElementById('preview'),
+        scanPeriod: 5
+    });
+
+    scanner.addListener('scan', function(content) {
+        // Limpiar mensajes anteriores
+        document.getElementById('result').classList.add('hidden');
+        document.getElementById('error-message').classList.add('hidden');
+
+        // Enviar el código al servidor
+        fetch('{% url "productos:procesar_codigo" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: 'codigo=' + encodeURIComponent(content)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+            } else {
+                showProduct(data);
+            }
+        })
+        .catch(error => {
+            showError('Error al procesar el código: ' + error);
+        });
+    });
+
+    Instascan.Camera.getCameras().then(cameras => {
+        if (cameras.length > 0) {
+            scanner.start(cameras[0]);
+        } else {
+            showError('No se encontró ninguna cámara.');
+        }
+    });
+
+    function showProduct(product) {
+        const productInfo = document.getElementById('product-info');
+        productInfo.innerHTML = `
+            <p class="mb-2"><strong>Nombre:</strong> ${product.nombre}</p>
+            <p class="mb-2"><strong>Código:</strong> ${product.codigo}</p>
+            <p class="mb-2"><strong>Precio:</strong> $${product.precio_venta}</p>
+            <p class="mb-2"><strong>Stock:</strong> ${product.cantidad}</p>
+            <a href="${product.url}" class="text-blue-600 hover:text-blue-800">Ver detalles</a>
+        `;
+        document.getElementById('result').classList.remove('hidden');
+    }
+
+    function showError(message) {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+    }
+
+    function getCookie(name) {
+        let value = "; " + document.cookie;
+        let parts = value.split("; " + name + "=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+});
+</script>
+{% endblock %}

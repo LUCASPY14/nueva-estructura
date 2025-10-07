@@ -1,60 +1,37 @@
-{% extends "base.html" %}
-{% block title %}Ventas Registradas{% endblock %}
+{% extends "layout/list_view.html" %}
+
+{% block title %}[Título de la Sección]{% endblock %}
 
 {% block content %}
-{% if user.is_superuser %}
-  <a href="{% url 'usuarios:dashboard_admin' %}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded transition">
-      ← Volver al Panel Admin
-  </a>
-{% else %}
-  <a href="{% url 'usuarios:dashboard_cajero' %}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded transition">
-      ← Volver al Panel Cajero
-  </a>
-{% endif %}
+<!-- Botón de regreso -->
+<a href="[URL de regreso]" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver al Panel
+</a>
 
 <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-  <h2 class="text-2xl font-bold mb-6 text-green-600">Ventas Registradas</h2>
+  <h2 class="text-2xl font-bold mb-6 text-green-600">[Título de la Sección]</h2>
 
-  <a href="{% url 'ventas:crear_venta' %}" class="mb-6 block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition">
-    ➕ Nueva Venta
+  <!-- Botón de acción principal -->
+  <a href="[URL para crear]" class="mb-6 block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+    ➕ Nuevo [Elemento]
   </a>
 
+  <!-- Tabla de datos -->
   <div class="overflow-x-auto">
     <table class="min-w-full text-sm text-left border rounded-lg overflow-hidden divide-y divide-gray-200">
-      <thead class="bg-gray-100 text-gray-700">
-        <tr>
-          <th class="py-2 px-4">ID</th>
-          <th class="py-2 px-4">Fecha</th>
-          <th class="py-2 px-4">Alumno</th>
-          <th class="py-2 px-4">Total</th>
-          <th class="py-2 px-4 text-center">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for venta in ventas %}
-          <tr class="hover:bg-green-50 transition">
-            <td class="py-2 px-4">{{ venta.id }}</td>
-            <td class="py-2 px-4">{{ venta.fecha|date:"d/m/Y H:i" }}</td>
-            <td class="py-2 px-4">{{ venta.alumno }}</td>
-            <td class="py-2 px-4">{{ venta.total }} Gs.</td>
-            <td class="py-2 px-4 text-center">
-              <div class="flex justify-center gap-2">
-                <a href="{% url 'ventas:detalle_venta' venta.pk %}" class="bg-blue-100 hover:bg-blue-200 text-blue-800 py-1 px-3 rounded">
-                  👁️ Ver
-                </a>
-                <a href="{% url 'ventas:eliminar_venta' venta.pk %}" class="bg-red-100 hover:bg-red-200 text-red-800 py-1 px-3 rounded">
-                  🗑️ Eliminar
-                </a>
-              </div>
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="5" class="text-center py-6 text-gray-500">No hay ventas registradas.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
+      <!-- Contenido de la tabla -->
+      {% block row_content %}
+        <td class="px-4 py-3">{{ item.id }}</td>
+        <td class="px-4 py-3">{{ item.fecha|date:"d/m/Y H:i" }}</td>
+        <td class="px-4 py-3">{{ item.alumno }}</td>
+        <td class="px-4 py-3">${{ item.total|floatformat:2 }}</td>
+      {% endblock %}
     </table>
   </div>
 </div>
+{% endblock %}
+
+{% block row_actions %}
+  <a href="{% url 'ventas:detalle_venta' item.id %}" class="text-blue-600 hover:text-blue-800 mr-2">Ver</a>
+  <a href="{% url 'ventas:eliminar_venta' item.id %}" class="text-red-600 hover:text-red-800">Eliminar</a>
 {% endblock %}

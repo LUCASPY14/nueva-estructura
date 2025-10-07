@@ -1,0 +1,36 @@
+{% extends "layout/detail_view.html" %}
+
+{% block detail_content %}
+  <div>
+    <p class="text-sm text-gray-500">ID:</p>
+    <p class="font-medium">{{ producto.id }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Nombre:</p>
+    <p class="font-medium">{{ producto.nombre }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Categoría:</p>
+    <p class="font-medium">{{ producto.categoria.nombre|default:"-" }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Código:</p>
+    <p class="font-medium">{{ producto.codigo|default:"-" }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Cantidad:</p>
+    <p class="font-medium">{{ producto.cantidad }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Precio de venta:</p>
+    <p class="font-medium">${{ producto.precio_venta|floatformat:2 }}</p>
+  </div>
+  <div>
+    <p class="text-sm text-gray-500">Precio de costo:</p>
+    <p class="font-medium">${{ producto.precio_costo|floatformat:2 }}</p>
+  </div>
+  <div class="col-span-2">
+    <p class="text-sm text-gray-500">Descripción:</p>
+    <p class="font-medium">{{ producto.descripcion|default:"-" }}</p>
+  </div>
+{% endblock %}

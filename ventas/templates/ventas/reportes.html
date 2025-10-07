@@ -1,0 +1,806 @@
+{% extends 'ventas/base.html' %}
+{% load static %}
+
+{% block title %}Reportes de Ventas - Cantina de Tita{% endblock %}
+
+{% block header_info %}
+<div class="d-flex justify-content-center align-items-center flex-wrap">
+    <div class="me-4 mb-1">
+        <i class="fas fa-chart-bar me-2"></i>
+        <span>Reportes de Ventas</span>
+    </div>
+    <div class="me-4 mb-1">
+        <i class="fas fa-calendar me-2"></i>
+        <span id="fecha-hora"></span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Filtros de Reporte -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-filter me-2"></i>Filtros de Reporte
+            </h5>
+        </div>
+        <div class="card-body">
+            <form id="form-filtros" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Tipo de Reporte</label>
+                    <select class="form-select" id="tipo_reporte" name="tipo_reporte">
+                        <option value="ventas">Ventas</option>
+                        <option value="productos">Productos Vendidos</option>
+                        <option value="metodos_pago">Métodos de Pago</option>
+                        <option value="turnos">Turnos de Caja</option>
+                        <option value="clientes">Clientes</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">Período</label>
+                    <select class="form-select" id="periodo" name="periodo">
+                        <option value="hoy">Hoy</option>
+                        <option value="ayer">Ayer</option>
+                        <option value="esta_semana">Esta Semana</option>
+                        <option value="semana_pasada">Semana Pasada</option>
+                        <option value="este_mes">Este Mes</option>
+                        <option value="mes_pasado">Mes Pasado</option>
+                        <option value="personalizado">Personalizado</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-2" id="fecha-desde-container" style="display: none;">
+                    <label class="form-label">Desde</label>
+                    <input type="date" class="form-control" id="fecha_desde" name="fecha_desde">
+                </div>
+                
+                <div class="col-md-2" id="fecha-hasta-container" style="display: none;">
+                    <label class="form-label">Hasta</label>
+                    <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta">
+                </div>
+                
+                <div class="col-md-2">
+                    <label class="form-label">Caja</label>
+                    <select class="form-select" id="caja" name="caja">
+                        <option value="">Todas</option>
+                        {% for caja in cajas %}
+                        <option value="{{ caja.id }}">{{ caja.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen Ejecutivo -->
+    <div class="row mb-4" id="resumen-ejecutivo">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Ventas
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-ventas">
+                                -
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Monto Total
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="monto-total">
+                                -
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Promedio Venta
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="promedio-venta">
+                                -
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Productos Vendidos
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="productos-vendidos">
+                                -
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-boxes fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Gráficos -->
+        <div class="col-lg-8">
+            <!-- Gráfico Principal -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary" id="titulo-grafico">
+                        <i class="fas fa-chart-area me-2"></i>Ventas por Período
+                    </h6>
+                    <div class="dropdown no-arrow">
+                        <a class="dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right shadow">
+                            <a class="dropdown-item export-btn" href="#" data-format="pdf">
+                                <i class="fas fa-file-pdf me-2"></i>Exportar PDF
+                            </a>
+                            <a class="dropdown-item export-btn" href="#" data-format="excel">
+                                <i class="fas fa-file-excel me-2"></i>Exportar Excel
+                            </a>
+                            <a class="dropdown-item export-btn" href="#" data-format="imagen">
+                                <i class="fas fa-image me-2"></i>Guardar Imagen
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="grafico-principal" width="100%" height="40"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Datos -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-table me-2"></i>Detalle de Datos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" id="tabla-container">
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-bar fa-3x text-gray-300 mb-3"></i>
+                            <h5 class="text-gray-600">Selecciona los filtros para ver el reporte</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="col-lg-4">
+            <!-- Top Productos -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-trophy me-2"></i>Productos Más Vendidos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="top-productos">
+                        <div class="text-center py-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Cargando...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico de Métodos de Pago -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="fas fa-credit-card me-2"></i>Métodos de Pago
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4">
+                        <canvas id="grafico-metodos-pago"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small" id="leyenda-metodos-pago">
+                        <!-- Leyenda dinámica -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparativa Período Anterior -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="fas fa-balance-scale me-2"></i>Comparativa
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="comparativa-periodo">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                            <p>Comparativa con período anterior</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Vista Previa de Exportación -->
+<div class="modal fade" id="modalExportar" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-download me-2"></i>Exportar Reporte
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Configuración de Exportación</h6>
+                        <form id="form-exportar">
+                            <div class="mb-3">
+                                <label class="form-label">Formato</label>
+                                <select class="form-select" id="formato-exportacion">
+                                    <option value="pdf">PDF</option>
+                                    <option value="excel">Excel</option>
+                                    <option value="csv">CSV</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Incluir</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="incluir-graficos" checked>
+                                    <label class="form-check-label" for="incluir-graficos">
+                                        Gráficos
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="incluir-resumen" checked>
+                                    <label class="form-check-label" for="incluir-resumen">
+                                        Resumen ejecutivo
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="incluir-detalle" checked>
+                                    <label class="form-check-label" for="incluir-detalle">
+                                        Detalle de datos
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Orientación (PDF)</label>
+                                <select class="form-select" id="orientacion-pdf">
+                                    <option value="portrait">Vertical</option>
+                                    <option value="landscape">Horizontal</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Vista Previa</h6>
+                        <div class="border rounded p-3 bg-light">
+                            <div class="text-center">
+                                <i class="fas fa-file-alt fa-3x text-primary mb-2"></i>
+                                <h6>Reporte de Ventas</h6>
+                                <p class="small text-muted" id="preview-periodo">-</p>
+                                <p class="small" id="preview-contenido">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="btn-confirmar-exportacion">
+                    <i class="fas fa-download me-2"></i>Descargar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .border-left-primary {
+        border-left: 0.25rem solid var(--cantina-brown) !important;
+    }
+    .border-left-success {
+        border-left: 0.25rem solid var(--success-color) !important;
+    }
+    .border-left-info {
+        border-left: 0.25rem solid var(--secondary-color) !important;
+    }
+    .border-left-warning {
+        border-left: 0.25rem solid var(--warning-color) !important;
+    }
+
+    .chart-area {
+        position: relative;
+        height: 300px;
+    }
+
+    .chart-pie {
+        position: relative;
+        height: 200px;
+    }
+
+    .export-btn:hover {
+        background-color: var(--light-bg);
+        color: var(--cantina-brown);
+    }
+
+    .text-xs {
+        font-size: 0.75rem;
+    }
+
+    .top-producto-item {
+        border-left: 4px solid var(--cantina-gold);
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .top-producto-item:hover {
+        box-shadow: 0 4px 12px rgba(139, 69, 19, 0.1);
+        transform: translateX(5px);
+    }
+
+    #preview-contenido {
+        max-height: 100px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<script>
+let graficoPrincipal = null;
+let graficoMetodosPago = null;
+
+$(document).ready(function() {
+    initEventListeners();
+    configurarFechasDefault();
+    cargarReporteInicial();
+});
+
+function initEventListeners() {
+    // Cambio de período
+    $('#periodo').on('change', function() {
+        toggleFechasPersonalizadas();
+        if ($(this).val() !== 'personalizado') {
+            $('#form-filtros').submit();
+        }
+    });
+
+    // Envío del formulario de filtros
+    $('#form-filtros').on('submit', function(e) {
+        e.preventDefault();
+        cargarReporte();
+    });
+
+    // Exportación
+    $('.export-btn').on('click', function(e) {
+        e.preventDefault();
+        const formato = $(this).data('format');
+        abrirModalExportacion(formato);
+    });
+
+    $('#btn-confirmar-exportacion').on('click', ejecutarExportacion);
+
+    // Cambios en configuración de exportación
+    $('#formato-exportacion, #incluir-graficos, #incluir-resumen, #incluir-detalle, #orientacion-pdf')
+        .on('change', actualizarVistaPrevia);
+}
+
+function toggleFechasPersonalizadas() {
+    const periodo = $('#periodo').val();
+    const containers = ['#fecha-desde-container', '#fecha-hasta-container'];
+    
+    if (periodo === 'personalizado') {
+        containers.forEach(container => $(container).show());
+    } else {
+        containers.forEach(container => $(container).hide());
+    }
+}
+
+function configurarFechasDefault() {
+    const hoy = new Date();
+    const hace7dias = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    $('#fecha_desde').val(hace7dias.toISOString().split('T')[0]);
+    $('#fecha_hasta').val(hoy.toISOString().split('T')[0]);
+}
+
+function cargarReporteInicial() {
+    $('#periodo').val('hoy');
+    cargarReporte();
+}
+
+async function cargarReporte() {
+    mostrarLoading(true);
+    
+    try {
+        const formData = new FormData($('#form-filtros')[0]);
+        const params = new URLSearchParams(formData);
+        
+        const response = await fetch(`/ventas/api/reportes/?${params}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+            actualizarResumenEjecutivo(data.resumen);
+            actualizarGraficoPrincipal(data.grafico_principal);
+            actualizarTabla(data.tabla);
+            actualizarTopProductos(data.top_productos);
+            actualizarMetodosPago(data.metodos_pago);
+            actualizarComparativa(data.comparativa);
+        } else {
+            throw new Error(data.error || 'Error cargando reporte');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarNotificacion('error', 'Error', 'No se pudo cargar el reporte');
+    } finally {
+        mostrarLoading(false);
+    }
+}
+
+function actualizarResumenEjecutivo(resumen) {
+    $('#total-ventas').text(resumen.total_ventas);
+    $('#monto-total').text(formatearMoneda(resumen.monto_total));
+    $('#promedio-venta').text(formatearMoneda(resumen.promedio_venta));
+    $('#productos-vendidos').text(resumen.productos_vendidos);
+}
+
+function actualizarGraficoPrincipal(datos) {
+    const ctx = document.getElementById('grafico-principal').getContext('2d');
+    
+    // Destruir gráfico anterior si existe
+    if (graficoPrincipal) {
+        graficoPrincipal.destroy();
+    }
+    
+    const tipoReporte = $('#tipo_reporte').val();
+    let config = {
+        type: 'line',
+        data: {
+            labels: datos.labels,
+            datasets: [{
+                label: 'Ventas',
+                data: datos.data,
+                borderColor: '#8B4513',
+                backgroundColor: 'rgba(139, 69, 19, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    titleColor: 'white',
+                    bodyColor: 'white',
+                    borderColor: '#DAA520',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: {
+                        color: 'rgba(139, 69, 19, 0.1)'
+                    }
+                },
+                y: {
+                    display: true,
+                    grid: {
+                        color: 'rgba(139, 69, 19, 0.1)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return tipoReporte === 'ventas' ? value : formatearMoneda(value);
+                        }
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    };
+    
+    // Ajustar configuración según tipo de reporte
+    if (tipoReporte === 'productos') {
+        config.type = 'bar';
+        config.data.datasets[0].backgroundColor = '#DAA520';
+        config.data.datasets[0].borderColor = '#8B4513';
+    }
+    
+    graficoPrincipal = new Chart(ctx, config);
+}
+
+function actualizarTabla(datos) {
+    let html = `
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+    `;
+    
+    // Generar encabezados
+    if (datos.headers) {
+        datos.headers.forEach(header => {
+            html += `<th>${header}</th>`;
+        });
+    }
+    
+    html += `
+                </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    // Generar filas
+    if (datos.rows && datos.rows.length > 0) {
+        datos.rows.forEach(row => {
+            html += '<tr>';
+            row.forEach(cell => {
+                html += `<td>${cell}</td>`;
+            });
+            html += '</tr>';
+        });
+    } else {
+        html += `
+            <tr>
+                <td colspan="${datos.headers ? datos.headers.length : 1}" class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                    No hay datos para mostrar
+                </td>
+            </tr>
+        `;
+    }
+    
+    html += `
+            </tbody>
+        </table>
+    `;
+    
+    $('#tabla-container').html(html);
+}
+
+function actualizarTopProductos(productos) {
+    let html = '';
+    
+    if (productos && productos.length > 0) {
+        productos.forEach((producto, index) => {
+            const medalColor = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? '#CD7F32' : '#gray';
+            html += `
+                <div class="top-producto-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-medal me-2" style="color: ${medalColor}"></i>
+                                <strong>${producto.nombre}</strong>
+                            </div>
+                            <small class="text-muted">${producto.categoria || 'Sin categoría'}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">${producto.cantidad} unidades</div>
+                            <small class="text-success">${formatearMoneda(producto.total)}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        html = `
+            <div class="text-center text-muted py-3">
+                <i class="fas fa-box fa-2x mb-2"></i>
+                <p>No hay productos vendidos</p>
+            </div>
+        `;
+    }
+    
+    $('#top-productos').html(html);
+}
+
+function actualizarMetodosPago(metodos) {
+    const ctx = document.getElementById('grafico-metodos-pago').getContext('2d');
+    
+    // Destruir gráfico anterior si existe
+    if (graficoMetodosPago) {
+        graficoMetodosPago.destroy();
+    }
+    
+    if (metodos && metodos.length > 0) {
+        const colores = ['#8B4513', '#DAA520', '#CD853F', '#D2691E', '#FF8C00'];
+        
+        graficoMetodosPago = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: metodos.map(m => m.nombre),
+                datasets: [{
+                    data: metodos.map(m => m.total),
+                    backgroundColor: colores.slice(0, metodos.length),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const porcentaje = ((context.raw / total) * 100).toFixed(1);
+                                return `${context.label}: ${formatearMoneda(context.raw)} (${porcentaje}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+        
+        // Generar leyenda
+        let leyendaHtml = '';
+        metodos.forEach((metodo, index) => {
+            const color = colores[index % colores.length];
+            leyendaHtml += `
+                <span class="me-3">
+                    <i class="fas fa-circle" style="color: ${color}"></i> ${metodo.nombre}
+                </span>
+            `;
+        });
+        $('#leyenda-metodos-pago').html(leyendaHtml);
+    }
+}
+
+function actualizarComparativa(comparativa) {
+    if (comparativa) {
+        const cambio = comparativa.cambio_porcentual;
+        const iconClass = cambio >= 0 ? 'fa-arrow-up text-success' : 'fa-arrow-down text-danger';
+        const colorClass = cambio >= 0 ? 'text-success' : 'text-danger';
+        
+        const html = `
+            <div class="text-center">
+                <div class="mb-3">
+                    <i class="fas ${iconClass} fa-2x"></i>
+                </div>
+                <h5 class="${colorClass}">${Math.abs(cambio).toFixed(1)}%</h5>
+                <p class="small text-muted">
+                    ${cambio >= 0 ? 'Incremento' : 'Disminución'} respecto al período anterior
+                </p>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="small text-muted">Anterior</div>
+                        <div class="fw-bold">${formatearMoneda(comparativa.periodo_anterior)}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small text-muted">Actual</div>
+                        <div class="fw-bold">${formatearMoneda(comparativa.periodo_actual)}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('#comparativa-periodo').html(html);
+    }
+}
+
+function abrirModalExportacion(formato) {
+    $('#formato-exportacion').val(formato);
+    actualizarVistaPrevia();
+    $('#modalExportar').modal('show');
+}
+
+function actualizarVistaPrevia() {
+    const formato = $('#formato-exportacion').val();
+    const incluirGraficos = $('#incluir-graficos').is(':checked');
+    const incluirResumen = $('#incluir-resumen').is(':checked');
+    const incluirDetalle = $('#incluir-detalle').is(':checked');
+    
+    let contenido = [];
+    if (incluirResumen) contenido.push('Resumen ejecutivo');
+    if (incluirGraficos) contenido.push('Gráficos');
+    if (incluirDetalle) contenido.push('Detalle de datos');
+    
+    const periodo = $('#periodo option:selected').text();
+    const tipoReporte = $('#tipo_reporte option:selected').text();
+    
+    $('#preview-periodo').text(`${tipoReporte} - ${periodo}`);
+    $('#preview-contenido').text(contenido.join(', '));
+}
+
+function ejecutarExportacion() {
+    const config = {
+        formato: $('#formato-exportacion').val(),
+        incluir_graficos: $('#incluir-graficos').is(':checked'),
+        incluir_resumen: $('#incluir-resumen').is(':checked'),
+        incluir_detalle: $('#incluir-detalle').is(':checked'),
+        orientacion: $('#orientacion-pdf').val(),
+        filtros: Object.fromEntries(new FormData($('#form-filtros')[0]))
+    };
+    
+    $('#modalExportar').modal('hide');
+    mostrarLoading(true);
+    
+    // Simular descarga (en producción sería una llamada real al servidor)
+    setTimeout(() => {
+        mostrarLoading(false);
+        mostrarNotificacion('success', 'Exportación Completada', 
+            `El reporte ha sido generado en formato ${config.formato.toUpperCase()}`);
+    }, 2000);
+}
+</script>
+{% endblock %}

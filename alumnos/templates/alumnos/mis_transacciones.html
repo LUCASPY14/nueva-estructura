@@ -1,0 +1,91 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}Mis Transacciones{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto bg-white p-6 shadow rounded">
+  <h1 class="text-2xl font-bold mb-6">💸 Mis Transacciones</h1>
+  
+  <div class="flex flex-wrap items-center justify-between mb-6">
+    <form method="get" class="flex flex-wrap items-center gap-2 mb-3 sm:mb-0">
+      <label for="alumno" class="text-gray-700">Filtrar por alumno:</label>
+      <select name="alumno" id="alumno" class="border rounded px-3 py-2">
+        <option value="">Todos los alumnos</option>
+        {% for alumno in alumnos %}
+        <option value="{{ alumno.id }}" {% if request.GET.alumno == alumno.id|stringformat:"s" %}selected{% endif %}>
+          {{ alumno.nombre }} {{ alumno.apellido }}
+        </option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">
+        <i class="fas fa-filter mr-1"></i> Filtrar
+      </button>
+      {% if request.GET.alumno %}
+      <a href="{% url 'alumnos:mis_transacciones' %}" class="text-blue-600 hover:underline ml-2">
+        <i class="fas fa-times"></i> Limpiar
+      </a>
+      {% endif %}
+    </form>
+    
+    <a href="{% url 'alumnos:solicitar_carga_saldo' %}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+      <i class="fas fa-plus mr-1"></i> Solicitar Carga
+    </a>
+  </div>
+  
+  <div class="overflow-x-auto">
+    <table class="w-full border-collapse">
+      <thead>
+        <tr class="bg-gray-50">
+          <th class="border px-4 py-2 text-left">Alumno</th>
+          <th class="border px-4 py-2 text-left">Monto</th>
+          <th class="border px-4 py-2 text-left">Método</th>
+          <th class="border px-4 py-2 text-left">Estado</th>
+          <th class="border px-4 py-2 text-left">Fecha</th>
+          <th class="border px-4 py-2 text-center">Comprobante</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transacciones %}
+        <tr class="{% if t.estado == 'PENDIENTE' %}bg-yellow-50{% endif %}">
+          <td class="border px-4 py-2">{{ t.alumno.nombre }} {{ t.alumno.apellido }}</td>
+          <td class="border px-4 py-2">{{ t.monto|floatformat:0 }} Gs.</td>
+          <td class="border px-4 py-2">{{ t.get_metodo_pago_display }}</td>
+          <td class="border px-4 py-2">
+            {% if t.estado == 'COMPLETADA' %}
+            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+              {{ t.get_estado_display }}
+            </span>
+            {% elif t.estado == 'PENDIENTE' %}
+            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+              {{ t.get_estado_display }}
+            </span>
+            {% elif t.estado == 'RECHAZADA' %}
+            <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+              {{ t.get_estado_display }}
+            </span>
+            {% else %}
+            <span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
+              {{ t.get_estado_display }}
+            </span>
+            {% endif %}
+          </td>
+          <td class="border px-4 py-2">{{ t.fecha_hora|date:"d/m/Y H:i" }}</td>
+          <td class="border px-4 py-2 text-center">
+            {% if t.comprobante %}
+            <a href="{{ t.comprobante.url }}" target="_blank" class="text-blue-600 hover:text-blue-800">
+              <i class="fas fa-file-image"></i> Ver
+            </a>
+            {% else %}
+            <span class="text-gray-400">No adjunto</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="border px-4 py-4 text-center text-gray-500">No hay transacciones registradas</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,29 +1,46 @@
-{% load static %}
-{% load roles_tags %}
-
+{% load static tailwind_tags compress %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}LGservice{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
+    <title>{% block title %}LGservice{% endblock %}</title>
+    
+    {# Fonts preload for performance #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    {% compress css %}
+    {% tailwind_css %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+    {% endcompress %}
+    
+    {# Preload critical assets #}
+    <link rel="preload" href="{% static 'images/logo.png' %}" as="image">
 </head>
-<body class="min-h-screen flex flex-col bg-gray-50 text-gray-800 font-sans overflow-x-hidden">
-
-    <!-- HEADER -->
-    {% include "partials/header.html" %}
-
-    <!-- NAVBAR -->
-    {% include "partials/navbar.html" %}
-
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-grow p-6">
+<body class="bg-gray-100 min-h-screen font-sans antialiased">
+    {% include 'partials/header.html' %}
+    {% include 'partials/navbar.html' %}
+    
+    <main class="container mx-auto px-4 py-6">
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="p-4 mb-2 {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %} rounded">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
         {% block content %}{% endblock %}
     </main>
-
-    <!-- FOOTER -->
-    {% include "partials/footer.html" %}
-
+    
+    <footer class="py-4 text-center text-gray-600 text-sm">
+        <p>&copy; {% now "Y" %} LGservice. Todos los derechos reservados.</p>
+    </footer>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

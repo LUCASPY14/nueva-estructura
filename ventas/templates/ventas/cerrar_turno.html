@@ -1,0 +1,463 @@
+{% extends 'ventas/base.html' %}
+{% load static %}
+
+{% block title %}Cerrar Turno - Cantina de Tita{% endblock %}
+
+{% block header_info %}
+<div class="d-flex justify-content-center align-items-center">
+    <div class="me-4">
+        <i class="fas fa-stop me-2"></i>
+        <span>Cerrar Turno</span>
+    </div>
+    <div>
+        <i class="fas fa-clock me-2"></i>
+        <span id="fecha-hora"></span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient-warning text-white text-center py-4">
+                    <h3 class="mb-0">
+                        <i class="fas fa-cash-register fa-2x mb-3"></i><br>
+                        Cerrar Turno de Caja
+                    </h3>
+                </div>
+                
+                <div class="card-body p-5">
+                    <!-- Información del Turno -->
+                    <div class="row mb-5">
+                        <div class="col-md-6">
+                            <div class="card bg-light h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title text-primary">
+                                        <i class="fas fa-info-circle me-2"></i>Información del Turno
+                                    </h5>
+                                    <table class="table table-borderless mb-0">
+                                        <tr>
+                                            <td><strong>Caja:</strong></td>
+                                            <td>{{ turno.caja.nombre }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Cajero:</strong></td>
+                                            <td>{{ turno.cajero.get_full_name|default:turno.cajero.username }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Inicio:</strong></td>
+                                            <td>{{ turno.fecha_inicio|date:"d/m/Y H:i" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Duración:</strong></td>
+                                            <td id="duracion-turno">-</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card bg-light h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title text-success">
+                                        <i class="fas fa-chart-line me-2"></i>Resumen de Ventas
+                                    </h5>
+                                    <table class="table table-borderless mb-0">
+                                        <tr>
+                                            <td><strong>Cantidad de Ventas:</strong></td>
+                                            <td class="text-end">{{ turno.cantidad_ventas }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Total Vendido:</strong></td>
+                                            <td class="text-end text-success">
+                                                <strong>${{ turno.total_ventas|floatformat:0 }}</strong>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Monto Inicial:</strong></td>
+                                            <td class="text-end">${{ turno.monto_inicial|floatformat:0 }}</td>
+                                        </tr>
+                                        <tr class="border-top">
+                                            <td><strong>Debería Haber:</strong></td>
+                                            <td class="text-end">
+                                                <strong id="deberia-haber">
+                                                    ${{ turno.monto_inicial|add:turno.total_ventas|floatformat:0 }}
+                                                </strong>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Cierre -->
+                    <form method="post" id="form-cerrar-turno">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Conteo de Efectivo -->
+                            <div class="col-md-8">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-calculator me-2"></i>Conteo de Efectivo
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <h6 class="text-primary">Billetes</h6>
+                                                <div class="denominacion-group">
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><label>$20.000</label></div>
+                                                        <div class="col-4">
+                                                            <input type="number" class="form-control denominacion" 
+                                                                   data-valor="20000" min="0" value="0">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <span class="subtotal">$0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><label>$10.000</label></div>
+                                                        <div class="col-4">
+                                                            <input type="number" class="form-control denominacion" 
+                                                                   data-valor="10000" min="0" value="0">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <span class="subtotal">$0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><label>$5.000</label></div>
+                                                        <div class="col-4">
+                                                            <input type="number" class="form-control denominacion" 
+                                                                   data-valor="5000" min="0" value="0">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <span class="subtotal">$0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><label>$2.000</label></div>
+                                                        <div class="col-4">
+                                                            <input type="number" class="form-control denominacion" 
+                                                                   data-valor="2000" min="0" value="0">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <span class="subtotal">$0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><label>$1.000</label></div>
+                                                        <div class="col-4">
+                                                            <input type="number" class="form-control denominacion" 
+                                                                   data-valor="1000" min="0" value="0">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <span class="subtotal">$0</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <h6 class="text-primary">Monedas</h6>
+                                                <div class="denominacion-group">
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><label>$500</label></div>
+                                                        <div class="col-4">
+                                                            <input type="number" class="form-control denominacion" 
+                                                                   data-valor="500" min="0" value="0">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <span class="subtotal">$0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><label>$100</label></div>
+                                                        <div class="col-4">
+                                                            <input type="number" class="form-control denominacion" 
+                                                                   data-valor="100" min="0" value="0">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <span class="subtotal">$0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><label>$50</label></div>
+                                                        <div class="col-4">
+                                                            <input type="number" class="form-control denominacion" 
+                                                                   data-valor="50" min="0" value="0">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <span class="subtotal">$0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row mb-2">
+                                                        <div class="col-4"><label>$10</label></div>
+                                                        <div class="col-4">
+                                                            <input type="number" class="form-control denominacion" 
+                                                                   data-valor="10" min="0" value="0">
+                                                        </div>
+                                                        <div class="col-4">
+                                                            <span class="subtotal">$0</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <hr>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label class="form-label">O Ingrese Total Manualmente:</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" 
+                                                           class="form-control" 
+                                                           id="monto_final_manual" 
+                                                           name="monto_final" 
+                                                           min="0" 
+                                                           step="50">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 d-flex align-items-end">
+                                                <button type="button" class="btn btn-outline-secondary" id="btn-usar-calculado">
+                                                    Usar Monto Calculado
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Resumen del Cierre -->
+                            <div class="col-md-4">
+                                <div class="card border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-clipboard-check me-2"></i>Resumen
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between">
+                                                <span>Total Calculado:</span>
+                                                <strong id="total-calculado">$0</strong>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between">
+                                                <span>Debería Haber:</span>
+                                                <strong>${{ turno.monto_inicial|add:turno.total_ventas|floatformat:0 }}</strong>
+                                            </div>
+                                        </div>
+                                        
+                                        <hr>
+                                        
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between">
+                                                <span>Diferencia:</span>
+                                                <strong id="diferencia" class="text-muted">$0</strong>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="alert alert-info d-none" id="alerta-diferencia"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Observaciones -->
+                                <div class="mt-3">
+                                    <label for="observaciones" class="form-label">Observaciones del Cierre:</label>
+                                    <textarea class="form-control" 
+                                              id="observaciones" 
+                                              name="observaciones" 
+                                              rows="4"
+                                              placeholder="Notas sobre el cierre del turno..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botones -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{% url 'ventas:dashboard' %}" class="btn btn-secondary btn-lg">
+                                        <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-warning btn-lg" id="btn-cerrar-turno">
+                                        <i class="fas fa-stop me-2"></i>Cerrar Turno
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, var(--warning-color), #FFB347);
+    }
+
+    .denominacion {
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .subtotal {
+        font-weight: bold;
+        color: var(--success-color);
+    }
+
+    .diferencia-positiva {
+        color: var(--success-color) !important;
+    }
+
+    .diferencia-negativa {
+        color: var(--danger-color) !important;
+    }
+
+    .card-header h5 {
+        font-weight: 600;
+    }
+
+    .denominacion-group .row {
+        align-items: center;
+    }
+
+    .denominacion-group label {
+        font-weight: bold;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const montoInicial = {{ turno.monto_inicial }};
+    const totalVentas = {{ turno.total_ventas }};
+    const deberiaHaber = montoInicial + totalVentas;
+    
+    // Calcular duración del turno
+    calcularDuracionTurno();
+    
+    // Event listeners
+    $('.denominacion').on('input', calcularTotal);
+    $('#monto_final_manual').on('input', actualizarDiferencia);
+    $('#btn-usar-calculado').on('click', usarMontoCalculado);
+    
+    // Validación del formulario
+    $('#form-cerrar-turno').on('submit', validarCierre);
+    
+    function calcularDuracionTurno() {
+        const inicio = new Date('{{ turno.fecha_inicio|date:"c" }}');
+        const ahora = new Date();
+        const diff = ahora - inicio;
+        
+        const horas = Math.floor(diff / (1000 * 60 * 60));
+        const minutos = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        $('#duracion-turno').text(`${horas}h ${minutos}m`);
+    }
+    
+    function calcularTotal() {
+        let total = 0;
+        
+        $('.denominacion').each(function() {
+            const cantidad = parseInt($(this).val()) || 0;
+            const valor = parseInt($(this).data('valor'));
+            const subtotal = cantidad * valor;
+            
+            $(this).closest('.row').find('.subtotal').text(formatearMoneda(subtotal));
+            total += subtotal;
+        });
+        
+        $('#total-calculado').text(formatearMoneda(total));
+        $('#monto_final_manual').val(total);
+        actualizarDiferencia();
+    }
+    
+    function actualizarDiferencia() {
+        const montoFinal = parseFloat($('#monto_final_manual').val()) || 0;
+        const diferencia = montoFinal - deberiaHaber;
+        
+        $('#diferencia').text(formatearMoneda(Math.abs(diferencia)));
+        
+        if (diferencia > 0) {
+            $('#diferencia').removeClass('diferencia-negativa').addClass('diferencia-positiva');
+            $('#alerta-diferencia').removeClass('d-none alert-danger').addClass('alert-success')
+                .html('<strong>Sobrante:</strong> ' + formatearMoneda(diferencia));
+        } else if (diferencia < 0) {
+            $('#diferencia').removeClass('diferencia-positiva').addClass('diferencia-negativa');
+            $('#alerta-diferencia').removeClass('d-none alert-success').addClass('alert-danger')
+                .html('<strong>Faltante:</strong> ' + formatearMoneda(Math.abs(diferencia)));
+        } else {
+            $('#diferencia').removeClass('diferencia-positiva diferencia-negativa');
+            $('#alerta-diferencia').addClass('d-none');
+        }
+    }
+    
+    function usarMontoCalculado() {
+        let total = 0;
+        $('.denominacion').each(function() {
+            const cantidad = parseInt($(this).val()) || 0;
+            const valor = parseInt($(this).data('valor'));
+            total += cantidad * valor;
+        });
+        
+        $('#monto_final_manual').val(total);
+        actualizarDiferencia();
+    }
+    
+    function validarCierre(e) {
+        e.preventDefault();
+        
+        const montoFinal = parseFloat($('#monto_final_manual').val()) || 0;
+        const diferencia = montoFinal - deberiaHaber;
+        
+        let confirmText = '¿Confirmar el cierre del turno?';
+        let alertType = 'question';
+        
+        if (Math.abs(diferencia) > 1000) {
+            if (diferencia > 0) {
+                confirmText = `Hay un sobrante de ${formatearMoneda(diferencia)}. ¿Confirmar cierre?`;
+                alertType = 'warning';
+            } else {
+                confirmText = `Hay un faltante de ${formatearMoneda(Math.abs(diferencia))}. ¿Confirmar cierre?`;
+                alertType = 'error';
+            }
+        }
+        
+        Swal.fire({
+            title: 'Cerrar Turno',
+            text: confirmText,
+            icon: alertType,
+            showCancelButton: true,
+            confirmButtonText: 'Sí, Cerrar Turno',
+            cancelButtonText: 'Revisar',
+            confirmButtonColor: alertType === 'error' ? '#dc3545' : '#ffc107'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#btn-cerrar-turno').prop('disabled', true)
+                    .html('<i class="fas fa-spinner fa-spin me-2"></i>Cerrando Turno...');
+                $('#form-cerrar-turno')[0].submit();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

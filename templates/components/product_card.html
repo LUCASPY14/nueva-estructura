@@ -1,0 +1,72 @@
+{% load static %}
+
+{% comment %}
+Componente reutilizable para mostrar tarjetas de productos
+Parámetros esperados:
+- producto: Instancia del modelo Producto
+- show_actions: Boolean para mostrar/ocultar botones de acción
+- show_stock: Boolean para mostrar/ocultar información de stock
+{% endcomment %}
+
+<div class="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-200 hover:shadow-lg hover:scale-102">
+    {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" 
+             alt="{{ producto.nombre }}"
+             class="w-full h-48 object-cover object-center">
+    {% else %}
+        <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+            <span class="text-gray-400">Sin imagen</span>
+        </div>
+    {% endif %}
+    
+    <div class="p-4">
+        <div class="flex items-center justify-between mb-2">
+            <h3 class="text-lg font-semibold text-gray-800 truncate">
+                {{ producto.nombre }}
+            </h3>
+            <span class="px-2 py-1 text-sm rounded-full 
+                       {% if producto.estado == 'activo' %}bg-green-100 text-green-800
+                       {% elif producto.estado == 'agotado' %}bg-red-100 text-red-800
+                       {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ producto.get_estado_display }}
+            </span>
+        </div>
+        
+        <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+            {{ producto.descripcion|default:"Sin descripción" }}
+        </p>
+        
+        {% if show_stock %}
+        <div class="flex justify-between items-center mb-3">
+            <span class="text-sm text-gray-600">Stock:</span>
+            <span class="font-medium {% if producto.cantidad <= producto.cantidad_minima %}text-red-600{% else %}text-green-600{% endif %}">
+                {{ producto.cantidad }} unidades
+            </span>
+        </div>
+        {% endif %}
+        
+        <div class="flex justify-between items-center mb-4">
+            <span class="text-lg font-bold text-gray-900">${{ producto.precio_venta }}</span>
+            {% if producto.margen_ganancia %}
+            <span class="text-sm text-gray-500">
+                Margen: {{ producto.margen_ganancia|floatformat:1 }}%
+            </span>
+            {% endif %}
+        </div>
+        
+        {% if show_actions %}
+        <div class="flex space-x-2">
+            <a href="{% url 'productos:detalle' producto.id %}" 
+               class="flex-1 px-4 py-2 text-sm font-medium text-center text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Ver detalles
+            </a>
+            {% if perms.productos.change_producto %}
+            <a href="{% url 'productos:editar' producto.id %}"
+               class="px-4 py-2 text-sm font-medium text-center text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Editar
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>

@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "dashboard_base.html" %}
 {% block title %}{{ titulo }}{% endblock %}
 {% block content %}
 
-<a href="{% url 'compras:compras_lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
+<a href="{% url 'compras:lista' %}" class="inline-block mb-4 bg-blue-100 hover:bg-blue-200 text-blue-900 font-semibold py-2 px-4 rounded transition">
     ← Volver al listado
 </a>
 

@@ -1,20 +1,62 @@
 {% load static %}
 {% load roles_tags %}
 {% if user.is_authenticated %}
-<nav class="bg-green-600 text-white text-sm shadow">
-    <div class="max-w-7xl mx-auto px-6 py-3 flex flex-wrap gap-4 items-center">
-        {% if user.is_superuser or user|en_grupo:"Administradores" %}
-            <a href="{% url 'usuarios:dashboard_admin' %}" class="hover:underline">Dashboard Admin</a>
-            <a href="{% url 'usuarios:usuarios_lista' %}" class="hover:underline">Usuarios</a>
-            <a href="{% url 'productos:listar_productos' %}" class="hover:underline">Productos</a>
-            <a href="{% url 'reportes:reporte_stock' %}" class="hover:underline">Reporte Stock</a>
-        {% elif user|en_grupo:"Cajeros" or user.tipo == "CAJERO" %}
-            <a href="{% url 'usuarios:dashboard_cajero' %}" class="hover:underline">Dashboard Cajero</a>
-            <a href="{% url 'ventas:crear_venta' %}" class="hover:underline">Registrar Venta</a>
-        {% elif user|en_grupo:"Padres" or user.tipo == "PADRE" %}
-            <a href="{% url 'usuarios:dashboard_padre' %}" class="hover:underline">Dashboard Padre</a>
+<nav class="bg-white shadow-md">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between">
+            <div class="flex space-x-1">
+                <a href="{% url 'usuarios:dashboard_admin' %}" class="py-4 px-3 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition">
+                    Dashboard
+                </a>
+                {% if user.is_superuser or 'Administradores' in user_groups %}
+                <a href="{% url 'productos:lista' %}" class="py-4 px-3 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition">
+                    Productos
+                </a>
+                <a href="{% url 'alumnos:lista' %}" class="py-4 px-3 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition">
+                    Alumnos
+                </a>
+                <a href="{% url 'admin:index' %}" class="py-4 px-3 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition">
+                    Reportes
+                </a>
+                {% endif %}
+                {% if user.is_superuser or 'Cajeros' in user_groups %}
+                <a href="{% url 'ventas:dashboard' %}" class="py-4 px-3 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition">
+                    Ventas
+                </a>
+                {% endif %}
+            </div>
+            <div class="md:hidden flex items-center">
+                <button class="mobile-menu-button p-3 focus:outline-none">
+                    <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div class="mobile-menu hidden md:hidden">
+        <a href="{% url 'usuarios:dashboard_admin' %}" class="block py-2 px-4 text-sm hover:bg-green-50">Dashboard</a>
+        {% if user.is_superuser or 'Administradores' in user_groups %}
+        <a href="{% url 'productos:lista' %}" class="block py-2 px-4 text-sm hover:bg-green-50">Productos</a>
+        <a href="{% url 'alumnos:lista' %}" class="block py-2 px-4 text-sm hover:bg-green-50">Alumnos</a>
+        <a href="{% url 'admin:index' %}" class="block py-2 px-4 text-sm hover:bg-green-50">Reportes</a>
         {% endif %}
-        <a href="{% url 'usuarios:logout_view' %}" class="ml-auto text-red-100 hover:underline">Cerrar sesión</a>
+        {% if user.is_superuser or 'Cajeros' in user_groups %}
+        <a href="{% url 'ventas:dashboard' %}" class="block py-2 px-4 text-sm hover:bg-green-50">Ventas</a>
+        {% endif %}
     </div>
 </nav>
+
+<script>
+    // Grab elements
+    const mobileMenuButton = document.querySelector('.mobile-menu-button');
+    const mobileMenu = document.querySelector('.mobile-menu');
+    
+    // Toggle mobile menu
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+</script>
 {% endif %}

@@ -1,0 +1,73 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Editar: {{ categoria.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Editar Categoría: {{ categoria.nombre }}</h1>
+    </div>
+
+    <div class="bg-white rounded-lg shadow overflow-hidden p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="bg-red-50 p-4 rounded-lg mb-4">
+                <div class="text-red-600 font-medium">Por favor corrige los siguientes errores:</div>
+                {{ form.errors }}
+            </div>
+            {% endif %}
+            
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label for="{{ form.nombre.id_for_label }}" class="block text-sm font-medium text-gray-700">Nombre</label>
+                    {{ form.nombre }}
+                    {% if form.nombre.errors %}
+                        <p class="text-red-500 text-sm">{{ form.nombre.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="space-y-2">
+                    <label for="{{ form.descripcion.id_for_label }}" class="block text-sm font-medium text-gray-700">Descripción</label>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                        <p class="text-red-500 text-sm">{{ form.descripcion.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                {% if form.estado %}
+                <div class="space-y-2">
+                    <label for="{{ form.estado.id_for_label }}" class="block text-sm font-medium text-gray-700">Estado</label>
+                    {{ form.estado }}
+                    {% if form.estado.errors %}
+                        <p class="text-red-500 text-sm">{{ form.estado.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Estadísticas de la categoría -->
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Información de la Categoría</h3>
+                <div class="text-sm text-gray-600">
+                    <p><strong>Productos asociados:</strong> {{ categoria.productos_count|default:"0" }}</p>
+                    <p><strong>Fecha de creación:</strong> {{ categoria.fecha_creacion|date:"d/m/Y" }}</p>
+                    <p><strong>Última actualización:</strong> {{ categoria.fecha_actualizacion|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="flex justify-end space-x-4 pt-6">
+                <a href="{% url 'productos:lista_categorias' %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md shadow-sm">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,18 +1,31 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from ventas.models import Venta
-from facturacion.models import Factura
+from .models import Factura
 
 @receiver(post_save, sender=Venta)
 def crear_factura_automatica(sender, instance, created, **kwargs):
-    if created and not hasattr(instance, 'factura'):
-        # Generar número único (ejemplo básico)
-        numero_factura = f"F{instance.id:06d}"
+    """
+    Crea automáticamente una factura cuando se guarda una venta.
+    """
+    if created and instance.estado == 'completada' and instance.cliente:
+        cliente = instance.cliente
+        
+        # Determinar la razón social
+        if hasattr(cliente, 'padre') and cliente.padre:
+            razon_social = cliente.padre.nombre
+            ruc = getattr(cliente.padre, 'ruc', '')
+        else:
+            razon_social = f"{cliente.nombre} {cliente.apellido}"
+            ruc = ""
+        
         Factura.objects.create(
             venta=instance,
-            numero=numero_factura,
+            numero_factura=f"F{instance.numero_venta}",
+            fecha=instance.fecha,
+            razon_social=razon_social,
+            ruc=ruc,
+            subtotal=instance.subtotal,
             total=instance.total,
-            razon_social=instance.alumno.padre.nombre if hasattr(instance.alumno, 'padre') else instance.alumno.nombre,
-            ruc='Sin RUC',
-            direccion='Sin dirección',
+            estado='emitida'
         )

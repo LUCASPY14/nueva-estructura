@@ -1,0 +1,42 @@
+{% comment %}
+Componente reutilizable para mostrar estadísticas
+Parámetros esperados:
+- stats: Diccionario con estadísticas
+- title: Título de la sección (opcional)
+{% endcomment %}
+
+<div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    {% if title %}
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ title }}</h2>
+    {% endif %}
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% if stats.total_productos %}
+        <div class="bg-blue-50 rounded-lg p-4">
+            <p class="text-sm text-blue-600 mb-1">Total Productos</p>
+            <p class="text-2xl font-bold text-blue-700">{{ stats.total_productos }}</p>
+        </div>
+        {% endif %}
+        
+        {% if stats.productos_bajo_stock %}
+        <div class="bg-yellow-50 rounded-lg p-4">
+            <p class="text-sm text-yellow-600 mb-1">Bajo Stock</p>
+            <p class="text-2xl font-bold text-yellow-700">{{ stats.productos_bajo_stock }}</p>
+        </div>
+        {% endif %}
+        
+        {% if stats.productos_activos %}
+        <div class="bg-green-50 rounded-lg p-4">
+            <p class="text-sm text-green-600 mb-1">Productos Activos</p>
+            <p class="text-2xl font-bold text-green-700">{{ stats.productos_activos }}</p>
+        </div>
+        {% endif %}
+        
+        {% if stats.valor_total_inventario %}
+        <div class="bg-purple-50 rounded-lg p-4">
+            <p class="text-sm text-purple-600 mb-1">Valor Total</p>
+            <p class="text-2xl font-bold text-purple-700">${{ stats.valor_total_inventario|floatformat:2 }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>

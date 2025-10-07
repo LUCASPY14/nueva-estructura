@@ -1,0 +1,204 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
+
+{% block title %}Detalle: {{ producto.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Detalle del Producto</h1>
+        <div class="flex space-x-2">
+            <a href="{% url 'productos:lista' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-arrow-left mr-1"></i> Volver
+            </a>
+            <a href="{% url 'productos:editar_producto' producto.id %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <i class="fas fa-edit mr-1"></i> Editar
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Información principal -->
+        <div class="md:col-span-2">
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">{{ producto.nombre }}</h2>
+                        <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full 
+                            {% if producto.estado == 'activo' %}bg-green-100 text-green-800
+                            {% elif producto.estado == 'agotado' %}bg-red-100 text-red-800
+                            {% elif producto.estado == 'inactivo' %}bg-gray-100 text-gray-800
+                            {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                            {{ producto.get_estado_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <p class="text-sm text-gray-600">Código:</p>
+                            <p class="font-medium">{{ producto.codigo }}</p>
+                        </div>
+                        {% if producto.codigo_barras %}
+                        <div>
+                            <p class="text-sm text-gray-600">Código de barras:</p>
+                            <p class="font-medium">{{ producto.codigo_barras }}</p>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <p class="text-sm text-gray-600">Categoría:</p>
+                            <p class="font-medium">{{ producto.categoria.nombre|default:"Sin categoría" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Proveedor:</p>
+                            <p class="font-medium">{{ producto.proveedor.nombre|default:"Sin proveedor" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 class="text-sm text-gray-600 mb-2">Descripción:</h3>
+                        <p class="text-gray-800">{{ producto.descripcion|default:"Sin descripción" }}</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-xs text-gray-500">Precio de costo</p>
+                            <p class="text-lg font-semibold">${{ producto.precio_costo }}</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-xs text-gray-500">Precio de venta</p>
+                            <p class="text-lg font-semibold">${{ producto.precio_venta }}</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-xs text-gray-500">Margen</p>
+                            <p class="text-lg font-semibold">{{ producto.margen_ganancia|floatformat:2 }}%</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-xs text-gray-500">Stock actual</p>
+                            <p class="text-lg font-semibold {% if producto.necesita_reposicion %}text-red-600{% endif %}">
+                                {{ producto.cantidad }}
+                                {% if producto.necesita_reposicion %}
+                                    <i class="fas fa-exclamation-triangle ml-1 text-sm"></i>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600">Fecha de creación:</p>
+                            <p class="font-medium">{{ producto.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Última actualización:</p>
+                            <p class="font-medium">{{ producto.fecha_actualizacion|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        {% if producto.fecha_ultimo_pedido %}
+                        <div>
+                            <p class="text-sm text-gray-600">Último pedido:</p>
+                            <p class="font-medium">{{ producto.fecha_ultimo_pedido|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Imagen y acciones rápidas -->
+        <div>
+            <div class="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-3">Imagen</h3>
+                    <div class="aspect-w-1 aspect-h-1 w-full bg-gray-100 rounded-lg overflow-hidden">
+                        {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" class="w-full h-full object-center object-contain">
+                        {% else %}
+                            <div class="flex items-center justify-center h-full">
+                                <i class="fas fa-image text-gray-300 text-5xl"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-3">Acciones</h3>
+                    <div class="space-y-2">
+                        <a href="{% url 'productos:registrar_movimiento' %}?producto={{ producto.id }}" class="flex items-center justify-between p-3 bg-green-50 hover:bg-green-100 rounded-lg group transition duration-200">
+                            <span class="font-medium text-green-700 group-hover:text-green-800">Entrada de stock</span>
+                            <i class="fas fa-plus text-green-600"></i>
+                        </a>
+                        <a href="{% url 'productos:registrar_movimiento' %}?producto={{ producto.id }}&tipo=salida" class="flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-lg group transition duration-200">
+                            <span class="font-medium text-blue-700 group-hover:text-blue-800">Salida de stock</span>
+                            <i class="fas fa-minus text-blue-600"></i>
+                        </a>
+                        <a href="{% url 'productos:eliminar_producto' producto.id %}" class="flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-lg group transition duration-200">
+                            <span class="font-medium text-red-700 group-hover:text-red-800">Eliminar producto</span>
+                            <i class="fas fa-trash text-red-600"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Historial de movimientos -->
+    <div class="mt-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Historial de movimientos</h2>
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            {% if movimientos %}
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nota</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for movimiento in movimientos %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ movimiento.fecha|date:"d/m/Y H:i" }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if movimiento.tipo_movimiento == 'entrada' %}bg-green-100 text-green-800
+                                            {% elif movimiento.tipo_movimiento == 'salida' %}bg-blue-100 text-blue-800
+                                            {% elif movimiento.tipo_movimiento == 'ajuste' %}bg-purple-100 text-purple-800
+                                            {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                            {{ movimiento.get_tipo_movimiento_display }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium
+                                        {% if movimiento.cantidad > 0 %}text-green-600
+                                        {% elif movimiento.cantidad < 0 %}text-red-600
+                                        {% else %}text-gray-600{% endif %}">
+                                        {{ movimiento.cantidad }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ movimiento.usuario.get_full_name|default:movimiento.usuario }}
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">
+                                        {{ movimiento.nota|default:"-" }}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="p-4 text-right border-t">
+                    <a href="{% url 'productos:historial_movimientos' %}?producto={{ producto.id }}" class="text-sm text-purple-600 hover:text-purple-800">Ver historial completo →</a>
+                </div>
+            {% else %}
+                <div class="p-6 text-center">
+                    <p class="text-gray-500">No hay movimientos registrados para este producto.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

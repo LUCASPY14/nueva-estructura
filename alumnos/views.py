@@ -1,153 +1,1049 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.urls import reverse
+from django.db.models import Sum, Count, Q, Avg
+from django.utils import timezone
+from django.http import JsonResponse
+from django.core.paginator import Paginator
+from datetime import datetime, timedelta
+from decimal import Decimal
+from django.conf import settings
 from django.db import transaction
-from django.http import HttpResponseForbidden
-from .models import Padre, Alumno, Restriccion
-from .forms import AlumnoForm, PadreForm, CargarSaldoForm, RestriccionForm
+from django.db import transaction
+from django.db import transaction
+
+# Importar modelos correctos
+from .models import (
+    Alumno,
+    Curso,
+    Padre,
+    SolicitudRecarga,
+    Transaccion,
+    TransaccionTarjeta
+)
+
+# Importar formularios correctos - VERIFICAR QUE EXISTAN
+from .forms import (
+    AlumnoForm,
+    PadreForm,
+    BusquedaAlumnoForm,
+    SolicitudRecargaForm,
+    TransaccionForm,
+    CargaSaldoForm,
+    ConsultaSaldoForm,
+    ProcesarSolicitudForm
+)
+
+# Alias para compatibilidad
+
+TransaccionSaldo = Transaccion
+
+# Funciones de verificación de roles
+def es_padre(user):
+    """Verifica si el usuario es padre"""
+    return user.groups.filter(name='PADRE').exists() or user.is_superuser
 
 def es_admin(user):
-    return user.is_superuser or user.groups.filter(name='Administradores').exists()
+    """Verifica si el usuario es administrador"""
+    return user.groups.filter(name='ADMIN').exists() or user.is_superuser
+
+def es_cajero(user):
+    """Verifica si el usuario es cajero"""
+    return user.groups.filter(name='CAJERO').exists() or user.is_superuser
+
+
+@login_required
+@user_passes_test(es_padre)
+def dashboard_padre(request):
+    """Dashboard para padres de familia"""
+    
+    # Obtener hijos del padre actual
+    hijos = Alumno.objects.filter(
+        padres=request.user,
+        estado='activo'
+    ).select_related().prefetch_related('transacciones')
+    
+    # Estadísticas generales
+    total_hijos = hijos.count()
+    saldo_total = hijos.aggregate(
+        total=Sum('saldo_tarjeta')
+    )['total'] or Decimal('0')
+    
+    # Promedio de saldo
+    saldo_promedio = hijos.aggregate(
+        promedio=Avg('saldo_tarjeta')
+    )['promedio'] or Decimal('0')
+    
+    # Solicitudes pendientes
+    solicitudes_pendientes = SolicitudRecarga.objects.filter(
+        padre_solicitante=request.user,
+        estado__in=['pendiente', 'aprobada']
+    ).count()
+    
+    # Transacciones recientes (últimos 7 días)
+    fecha_limite = timezone.now() - timedelta(days=7)
+    transacciones_recientes = Transaccion.objects.filter(
+        alumno__in=hijos,
+        fecha__gte=fecha_limite
+    ).select_related('alumno').order_by('-fecha')[:15]
+    
+    # Alertas de saldo bajo
+    limite_saldo_bajo = Decimal('20000')  # $20.000
+    alertas_saldo = hijos.filter(
+        saldo_tarjeta__lt=limite_saldo_bajo
+    )
+    
+    # Estadísticas del mes actual
+    primer_dia_mes = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    stats_mes = {
+        'total_gastado': Transaccion.objects.filter(
+            alumno__in=hijos,
+            tipo='consumo',
+            fecha__gte=primer_dia_mes
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0'),
+        
+        'total_recargado': Transaccion.objects.filter(
+            alumno__in=hijos,
+            tipo='recarga',
+            fecha__gte=primer_dia_mes
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0'),
+        
+        'transacciones_count': Transaccion.objects.filter(
+            alumno__in=hijos,
+            fecha__gte=primer_dia_mes
+        ).count()
+    }
+    
+    # Hijo con más actividad
+    hijo_mas_activo = None
+    if hijos.exists():
+        hijo_mas_activo = hijos.annotate(
+            transacciones_mes=Count(
+                'transacciones',
+                filter=Q(transacciones__fecha__gte=primer_dia_mes)
+            )
+        ).order_by('-transacciones_mes').first()
+    
+    context = {
+        'hijos': hijos,
+        'total_hijos': total_hijos,
+        'saldo_total': saldo_total,
+        'saldo_promedio': saldo_promedio,
+        'solicitudes_pendientes': solicitudes_pendientes,
+        'transacciones_recientes': transacciones_recientes,
+        'alertas_saldo': alertas_saldo,
+        'limite_saldo_bajo': limite_saldo_bajo,
+        'stats_mes': stats_mes,
+        'hijo_mas_activo': hijo_mas_activo,
+        'fecha_actual': timezone.now(),
+        'mes_actual': timezone.now().strftime('%B %Y'),
+    }
+    
+    return render(request, 'alumnos/dashboard_padre.html', context)
+
+
+@login_required
+@user_passes_test(es_admin)
+def dashboard_admin(request):
+    """Dashboard para administradores"""
+    
+    # Estadísticas generales del sistema
+    total_alumnos = Alumno.objects.filter(estado='activo').count()
+    total_alumnos_inactivos = Alumno.objects.filter(estado='inactivo').count()
+    
+    saldo_total_sistema = Alumno.objects.filter(
+        estado='activo'
+    ).aggregate(
+        total=Sum('saldo_tarjeta')
+    )['total'] or Decimal('0')
+    
+    saldo_promedio_sistema = Alumno.objects.filter(
+        estado='activo'
+    ).aggregate(
+        promedio=Avg('saldo_tarjeta')
+    )['promedio'] or Decimal('0')
+    
+    # Solicitudes pendientes de aprobación
+    solicitudes_pendientes = SolicitudRecarga.objects.filter(
+        estado='pendiente'
+    ).select_related('alumno', 'padre_solicitante').order_by('-fecha_solicitud')[:10]
+    
+    total_solicitudes_pendientes = SolicitudRecarga.objects.filter(
+        estado='pendiente'
+    ).count()
+    
+    # Transacciones del día
+    hoy = timezone.now().date()
+    transacciones_hoy = Transaccion.objects.filter(
+        fecha__date=hoy
+    ).select_related('alumno').order_by('-fecha')[:15]
+    
+    # Estadísticas de transacciones del mes
+    primer_dia_mes = hoy.replace(day=1)
+    transacciones_mes = Transaccion.objects.filter(
+        fecha__date__gte=primer_dia_mes
+    )
+    
+    stats_mes = {
+        'total_transacciones': transacciones_mes.count(),
+        'total_recargas': transacciones_mes.filter(tipo='recarga').aggregate(
+            total=Sum('monto')
+        )['total'] or Decimal('0'),
+        'total_consumos': transacciones_mes.filter(tipo='consumo').aggregate(
+            total=Sum('monto')
+        )['total'] or Decimal('0'),
+        'total_ajustes': transacciones_mes.filter(tipo='ajuste').aggregate(
+            total=Sum('monto')
+        )['total'] or Decimal('0'),
+    }
+    
+    # Estadísticas diarias
+    stats_hoy = {
+        'transacciones': transacciones_hoy.count(),
+        'recargas': Transaccion.objects.filter(
+            fecha__date=hoy, tipo='recarga'
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0'),
+        'consumos': Transaccion.objects.filter(
+            fecha__date=hoy, tipo='consumo'
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0'),
+    }
+    
+    # Alumnos con saldo bajo
+    limite_saldo_critico = Decimal('15000')  # $15.000
+    alumnos_saldo_bajo = Alumno.objects.filter(
+        estado='activo',
+        saldo_tarjeta__lt=limite_saldo_critico
+    ).order_by('saldo_tarjeta')[:10]
+    
+    # Top 5 alumnos con más consumo del mes
+    top_consumidores = Alumno.objects.filter(
+        estado='activo',
+        transacciones__tipo='consumo',
+        transacciones__fecha__date__gte=primer_dia_mes
+    ).annotate(
+        consumo_mes=Sum('transacciones__monto')
+    ).exclude(
+        consumo_mes__isnull=True
+    ).order_by('-consumo_mes')[:5]
+    
+    # Actividad por día de la semana (últimos 7 días)
+    actividad_semanal = []
+    for i in range(7):
+        fecha = hoy - timedelta(days=i)
+        count = Transaccion.objects.filter(fecha__date=fecha).count()
+        actividad_semanal.append({
+            'fecha': fecha,
+            'transacciones': count
+        })
+    actividad_semanal.reverse()
+    
+    context = {
+        'total_alumnos': total_alumnos,
+        'total_alumnos_inactivos': total_alumnos_inactivos,
+        'saldo_total_sistema': saldo_total_sistema,
+        'saldo_promedio_sistema': saldo_promedio_sistema,
+        'solicitudes_pendientes': solicitudes_pendientes,
+        'total_solicitudes_pendientes': total_solicitudes_pendientes,
+        'transacciones_hoy': transacciones_hoy,
+        'stats_mes': stats_mes,
+        'stats_hoy': stats_hoy,
+        'alumnos_saldo_bajo': alumnos_saldo_bajo,
+        'limite_saldo_critico': limite_saldo_critico,
+        'top_consumidores': top_consumidores,
+        'actividad_semanal': actividad_semanal,
+        'fecha_actual': timezone.now(),
+        'mes_actual': timezone.now().strftime('%B %Y'),
+    }
+    
+    return render(request, 'alumnos/dashboard_admin.html', context)
+
+
+@login_required
+@user_passes_test(es_cajero)
+def dashboard_cajero(request):
+    """Dashboard para cajeros"""
+    
+    # Transacciones del día actual del cajero
+    hoy = timezone.now().date()
+    mis_transacciones_hoy = Transaccion.objects.filter(
+        fecha__date=hoy,
+        usuario_responsable=request.user
+    ).select_related('alumno').order_by('-fecha')
+    
+    # Todas las transacciones del día (para referencia)
+    todas_transacciones_hoy = Transaccion.objects.filter(
+        fecha__date=hoy
+    ).select_related('alumno').order_by('-fecha')[:20]
+    
+    # Estadísticas personales del día
+    mis_stats_dia = {
+        'total_transacciones': mis_transacciones_hoy.count(),
+        'total_ventas': mis_transacciones_hoy.filter(tipo='consumo').aggregate(
+            total=Sum('monto')
+        )['total'] or Decimal('0'),
+        'total_recargas': mis_transacciones_hoy.filter(tipo='recarga').aggregate(
+            total=Sum('monto')
+        )['total'] or Decimal('0'),
+        'promedio_venta': mis_transacciones_hoy.filter(tipo='consumo').aggregate(
+            promedio=Avg('monto')
+        )['promedio'] or Decimal('0'),
+    }
+    
+    # Estadísticas generales del día
+    stats_dia_general = {
+        'total_transacciones': todas_transacciones_hoy.count(),
+        'total_ventas': Transaccion.objects.filter(
+            fecha__date=hoy, tipo='consumo'
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0'),
+        'total_recargas': Transaccion.objects.filter(
+            fecha__date=hoy, tipo='recarga'
+        ).aggregate(total=Sum('monto'))['total'] or Decimal('0'),
+    }
+    
+    # Alumnos atendidos hoy por este cajero
+    alumnos_atendidos = mis_transacciones_hoy.values(
+        'alumno__id', 'alumno__nombre', 'alumno__apellido'
+    ).annotate(
+        total_compras=Count('id'),
+        total_gastado=Sum('monto', filter=Q(tipo='consumo'))
+    ).order_by('-total_compras')[:10]
+    
+    # Productos más vendidos (si existe relación con ventas)
+    productos_populares = []
+    try:
+        from ventas.models import DetalleVenta
+        # Obtener productos más vendidos del día
+        productos_populares = DetalleVenta.objects.filter(
+            venta__fecha__date=hoy,
+            venta__cajero=request.user
+        ).values(
+            'producto__nombre'
+        ).annotate(
+            cantidad_vendida=Sum('cantidad'),
+            total_vendido=Sum('subtotal')
+        ).order_by('-cantidad_vendida')[:5]
+    except ImportError:
+        pass
+    
+    # Horario de mayor actividad
+    actividad_por_hora = []
+    for hora in range(24):
+        count = mis_transacciones_hoy.filter(
+            fecha__hour=hora
+        ).count()
+        if count > 0:
+            actividad_por_hora.append({
+                'hora': f"{hora:02d}:00",
+                'transacciones': count
+            })
+    
+    # Alertas para el cajero
+    alertas = []
+    
+    # Alumnos con saldo bajo que han comprado hoy
+    alumnos_saldo_bajo = Alumno.objects.filter(
+        transacciones__fecha__date=hoy,
+        transacciones__usuario_responsable=request.user,
+        saldo_tarjeta__lt=10000  # Menos de $10.000
+    ).distinct()
+    
+    if alumnos_saldo_bajo.exists():
+        alertas.append({
+            'tipo': 'warning',
+            'mensaje': f'{alumnos_saldo_bajo.count()} alumnos atendidos tienen saldo bajo'
+        })
+    
+    # Verificar si hay solicitudes de recarga pendientes
+    solicitudes_pendientes = SolicitudRecarga.objects.filter(
+        estado='pendiente'
+    ).count()
+    
+    if solicitudes_pendientes > 0:
+        alertas.append({
+            'tipo': 'info',
+            'mensaje': f'Hay {solicitudes_pendientes} solicitudes de recarga pendientes'
+        })
+    
+    context = {
+        'mis_transacciones_hoy': mis_transacciones_hoy[:15],  # Últimas 15
+        'todas_transacciones_hoy': todas_transacciones_hoy,
+        'mis_stats_dia': mis_stats_dia,
+        'stats_dia_general': stats_dia_general,
+        'alumnos_atendidos': alumnos_atendidos,
+        'productos_populares': productos_populares,
+        'actividad_por_hora': actividad_por_hora,
+        'alertas': alertas,
+        'fecha_actual': timezone.now(),
+        'cajero_nombre': request.user.get_full_name() or request.user.username,
+        'hora_actual': timezone.now().strftime('%H:%M'),
+    }
+    
+    return render(request, 'alumnos/dashboard_cajero.html', context)
+
+# =====================================
+# FUNCIONES AUXILIARES Y DECORADORES
+# =====================================
+
+def es_admin(user):
+    """Verifica si el usuario es administrador"""
+    return user.is_authenticated and user.is_admin()
+
+def es_cajero_o_admin(user):
+    """Verifica si el usuario es cajero o administrador"""
+    return user.is_authenticated and (user.is_cajero() or user.is_admin())
 
 def es_padre(user):
-    return hasattr(user, 'padre_profile')
+    """Verifica si el usuario es padre"""
+    return user.is_authenticated and user.is_padre()
 
-# --- ADMINISTRADOR ---
+# =====================================
+# VISTAS EXISTENTES (MANTENIDAS)
+# =====================================
 
-@login_required(login_url='usuarios:login_simple')
-@user_passes_test(es_admin, login_url='usuarios:login_simple')
-def alumnos_lista(request):
-    alumnos = Alumno.objects.select_related('padre').all()
-    return render(request, 'alumnos/alumnos_lista.html', {'alumnos': alumnos})
+@login_required
+def lista_alumnos(request):
+    """Vista para listar todos los alumnos con búsqueda mejorada"""
+    form = BusquedaAlumnoForm(request.GET)
+    alumnos = Alumno.objects.all().select_related('curso').prefetch_related('padres')
+    
+    if form.is_valid():
+        busqueda = form.cleaned_data.get('busqueda')
+        curso = form.cleaned_data.get('curso')
+        estado = form.cleaned_data.get('estado')
+        
+        if busqueda:
+            alumnos = alumnos.filter(
+                Q(nombre__icontains=busqueda) |
+                Q(apellido__icontains=busqueda) |
+                Q(numero_matricula__icontains=busqueda) |
+                Q(numero_tarjeta__icontains=busqueda)
+            )
+        
+        if curso:
+            alumnos = alumnos.filter(curso=curso)
+            
+        if estado:
+            alumnos = alumnos.filter(estado=estado)
+    
+    alumnos = alumnos.order_by('apellido', 'nombre')
+    
+    # Paginación
+    paginator = Paginator(alumnos, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'form': form,
+        'page_obj': page_obj,
+        'alumnos': page_obj,
+        'titulo': 'Listado de Alumnos'
+    }
+    return render(request, 'alumnos/lista_alumnos.html', context)
 
-@login_required(login_url='usuarios:login_simple')
-@user_passes_test(es_admin, login_url='usuarios:login_simple')
+@login_required
 def crear_alumno(request):
+    """Vista para crear un nuevo alumno"""
+    alumno_form = AlumnoForm()
+    padre_form = PadreForm()
+    
     if request.method == 'POST':
-        form = AlumnoForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Alumno creado correctamente.")
-            return redirect('alumnos:alumnos_lista')
-    else:
-        form = AlumnoForm()
-    return render(request, 'alumnos/alumno_form.html', {'form': form})
+        alumno_form = AlumnoForm(request.POST, request.FILES)
+        crear_padre = request.POST.get('crear_padre', 'off')
+        
+        if alumno_form.is_valid():
+            # Guardar el alumno
+            alumno = alumno_form.save()
+            
+            # Añadir padres existentes seleccionados
+            padres_existentes = request.POST.getlist('padres_existentes')
+            if padres_existentes:
+                alumno.padres.set(padres_existentes)
+            
+            # Si se quiere crear un nuevo padre
+            if crear_padre == 'on':
+                padre_form = PadreForm(request.POST)
+                if padre_form.is_valid():
+                    nuevo_padre = padre_form.save()
+                    alumno.padres.add(nuevo_padre)
+                    messages.success(request, f'Se ha registrado al padre {nuevo_padre.get_nombre_completo()}')
+            
+            messages.success(request, f'Alumno {alumno.get_nombre_completo()} creado correctamente.')
+            return redirect('alumnos:lista')
+        else:
+            messages.error(request, 'Por favor corrige los errores en el formulario.')
+    
+    context = {
+        'alumno_form': alumno_form,
+        'padre_form': padre_form,
+        'padres': Padre.objects.all().order_by('apellido', 'nombre'),
+        'titulo': 'Registrar Nuevo Alumno'
+    }
+    return render(request, 'alumnos/crear_alumno.html', context)
 
-@login_required(login_url='usuarios:login_simple')
-@user_passes_test(es_admin, login_url='usuarios:login_simple')
-def editar_alumno(request, pk):
-    alumno = get_object_or_404(Alumno, pk=pk)
-    if request.method == 'POST':
-        form = AlumnoForm(request.POST, instance=alumno)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Alumno actualizado correctamente.")
-            return redirect('alumnos:alumnos_lista')
-    else:
-        form = AlumnoForm(instance=alumno)
-    return render(request, 'alumnos/alumno_form.html', {'form': form})
-
-@login_required(login_url='usuarios:login_simple')
-@user_passes_test(es_admin, login_url='usuarios:login_simple')
-def eliminar_alumno(request, pk):
-    alumno = get_object_or_404(Alumno, pk=pk)
-    if request.method == 'POST':
-        alumno.delete()
-        messages.success(request, "Alumno eliminado correctamente.")
-        return redirect('alumnos:alumnos_lista')
-    return render(request, 'alumnos/alumno_confirm_delete.html', {'alumno': alumno})
-
-@login_required(login_url='usuarios:login_simple')
-@user_passes_test(es_admin, login_url='usuarios:login_simple')
-def listar_restricciones(request):
-    restricciones = Restriccion.objects.select_related('alumno', 'producto').all()
-    return render(request, 'alumnos/restricciones_lista.html', {'restricciones': restricciones})
-
-# --- PADRE ---
-
-@login_required(login_url='usuarios:login_simple')
-@user_passes_test(es_padre, login_url='usuarios:login_simple')
-def mis_hijos(request):
-    hijos = request.user.padre_profile.alumnos.all()
-    return render(request, 'alumnos/mis_hijos.html', {'hijos': hijos})
-
-@login_required(login_url='usuarios:login_simple')
+@login_required
 def detalle_alumno(request, pk):
+    """Vista para ver detalles de un alumno con historial completo"""
     alumno = get_object_or_404(Alumno, pk=pk)
-    if es_admin(request.user) or (es_padre(request.user) and alumno.padre.usuario == request.user):
-        return render(request, 'alumnos/detalle_alumno.html', {'alumno': alumno})
-    else:
-        messages.error(request, "No tienes permiso para ver este alumno.")
-        return redirect('alumnos:mis_hijos')
+    
+    # Obtener transacciones recientes (últimas 5)
+    transacciones_recientes = Transaccion.objects.filter(
+        alumno=alumno
+    ).order_by('-fecha')[:5]
+    
+    context = {
+        'alumno': alumno,
+        'transacciones_recientes': transacciones_recientes,
+        'titulo': f'Detalle de {alumno.get_nombre_completo()}'
+    }
+    # Cambiar de 'alumnos/detalle.html' a 'alumnos/alumno_detalle.html'
+    return render(request, 'alumnos/alumno_detalle.html', context)
 
-@login_required(login_url='usuarios:login_simple')
-@user_passes_test(es_admin, login_url='usuarios:login_simple')
-@transaction.atomic
-def cargar_saldo(request):
+@login_required
+def editar_alumno(request, pk):
+    """Vista para editar un alumno existente"""
+    alumno = get_object_or_404(Alumno, pk=pk)
+    alumno_form = AlumnoForm(instance=alumno)
+    padre_form = PadreForm()
+    
     if request.method == 'POST':
-        form = CargarSaldoForm(request.POST)
+        alumno_form = AlumnoForm(request.POST, request.FILES, instance=alumno)
+        crear_padre = request.POST.get('crear_padre', 'off')
+        
+        if alumno_form.is_valid():
+            # Guardar cambios del alumno
+            alumno = alumno_form.save()
+            
+            # Actualizar padres existentes seleccionados
+            padres_existentes = request.POST.getlist('padres_existentes')
+            alumno.padres.set(padres_existentes)
+            
+            # Si se quiere crear un nuevo padre
+            if crear_padre == 'on':
+                padre_form = PadreForm(request.POST)
+                if padre_form.is_valid():
+                    nuevo_padre = padre_form.save()
+                    alumno.padres.add(nuevo_padre)
+                    messages.success(request, f'Se ha registrado al padre {nuevo_padre.get_nombre_completo()}')
+            
+            messages.success(request, f'Alumno {alumno.get_nombre_completo()} actualizado correctamente.')
+            return redirect('alumnos:lista')
+        else:
+            messages.error(request, 'Por favor corrige los errores en el formulario.')
+    
+    context = {
+        'alumno': alumno,
+        'alumno_form': alumno_form,
+        'padre_form': padre_form,
+        'padres': Padre.objects.all().order_by('apellido', 'nombre'),
+        'titulo': f'Editar Alumno: {alumno.get_nombre_completo()}'
+    }
+    return render(request, 'alumnos/editar_alumno.html', context)
+
+@login_required
+def eliminar_alumno(request, pk):
+    """Vista para eliminar un alumno"""
+    alumno = get_object_or_404(Alumno, pk=pk)
+    
+    if request.method == 'POST':
+        nombre = alumno.get_nombre_completo()
+        alumno.delete()
+        messages.success(request, f'Alumno {nombre} eliminado correctamente.')
+        return redirect('alumnos:lista')
+    
+    context = {
+        'alumno': alumno,
+        'titulo': f'Eliminar Alumno: {alumno.get_nombre_completo()}'
+    }
+    return render(request, 'alumnos/eliminar_alumno.html', context)
+
+@login_required
+def cargar_saldo_tarjeta(request, alumno_id):
+    """Vista para cargar saldo a una tarjeta (mantenida por compatibilidad)"""
+    alumno = get_object_or_404(Alumno, pk=alumno_id)
+    
+    if request.method == 'POST':
+        form = CargaSaldoForm(request.POST)
         if form.is_valid():
-            alumno = form.cleaned_data['alumno']
             monto = form.cleaned_data['monto']
-            if monto <= 0:
-                messages.error(request, "El monto debe ser mayor a cero.")
-            else:
+            
+            with transaction.atomic():
+                # Guardar saldo anterior
+                saldo_anterior = alumno.saldo_tarjeta
+                
+                # Actualizar saldo
                 alumno.saldo_tarjeta += monto
                 alumno.save()
-                messages.success(request, f"Saldo cargado correctamente a {alumno.nombre}.")
-                return redirect('alumnos:alumnos_lista')
+                
+                # Registrar transacción antigua (compatibilidad)
+                TransaccionTarjeta.objects.create(
+                    alumno=alumno,
+                    monto=monto,
+                    tipo='recarga',
+                    descripcion=f'Carga manual por {request.user.get_full_name() or request.user.username}'
+                )
+                
+                # Registrar nueva transacción de saldo
+                Transaccion.objects.create(
+                    alumno=alumno,
+                    tipo='recarga',  # CORREGIDO
+                    monto=monto,
+                    saldo_anterior=saldo_anterior,
+                    saldo_posterior=alumno.saldo_tarjeta,
+                    usuario_responsable=request.user,  # CORREGIDO
+                    descripcion=f'Carga manual de saldo'
+                )
+            
+            messages.success(request, f"Se han cargado ${monto:,.0f} a la tarjeta de {alumno.get_nombre_completo()}")
+            return redirect('alumnos:detalle', pk=alumno_id)
     else:
-        form = CargarSaldoForm()
-    return render(request, 'alumnos/cargar_saldo.html', {'form': form})
+        form = CargaSaldoForm()
+    
+    context = {
+        'form': form,
+        'alumno': alumno,
+        'titulo': f'Cargar Saldo a {alumno.get_nombre_completo()}'
+    }
+    return render(request, 'alumnos/cargar_saldo.html', context)
 
-@login_required(login_url='usuarios:login_simple')
-@user_passes_test(es_padre, login_url='usuarios:login_simple')
-def editar_perfil_padre(request):
+@login_required
+def historial_transacciones(request, alumno_id):
+    """Vista para visualizar el historial de transacciones"""
+    alumno = get_object_or_404(Alumno, pk=alumno_id)
+    transacciones_saldo = Transaccion.objects.filter(alumno=alumno).order_by('-fecha')  # CORREGIDO
+    transacciones_tarjeta = TransaccionTarjeta.objects.filter(alumno=alumno).order_by('-fecha')
+    
+    # Paginación
+    paginator = Paginator(transacciones_saldo, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'alumno': alumno,
+        'page_obj': page_obj,
+        'transacciones_tarjeta': transacciones_tarjeta[:10],  # Últimas 10 del sistema anterior
+        'titulo': f'Historial de Transacciones - {alumno.get_nombre_completo()}'
+    }
+    return render(request, 'alumnos/historial_transacciones.html', context)
+
+@login_required
+def lista_padres(request):
+    """Vista para listar todos los padres"""
+    padres = Padre.objects.all().prefetch_related('alumnos').order_by('apellido', 'nombre')
+    
+    context = {
+        'padres': padres,
+        'titulo': 'Listado de Padres'
+    }
+    return render(request, 'alumnos/padres/lista_padres.html', context)
+
+@login_required
+def crear_padre(request):
+    """Vista para crear un nuevo padre"""
+    form = PadreForm()
+    
+    if request.method == 'POST':
+        form = PadreForm(request.POST)
+        if form.is_valid():
+            padre = form.save()
+            messages.success(request, f'Padre {padre.get_nombre_completo()} creado correctamente.')
+            return redirect('alumnos:lista_padres')
+    
+    context = {
+        'form': form,
+        'titulo': 'Registrar Nuevo Padre'
+    }
+    return render(request, 'alumnos/padres/crear_padre.html', context)
+
+# =====================================
+# NUEVAS VISTAS PARA SISTEMA DE SALDO
+# =====================================
+
+@login_required
+@user_passes_test(es_padre)
+def solicitar_recarga(request):
+    """Vista para que padres soliciten recarga de saldo"""
+    form = SolicitudRecargaForm(user=request.user)
+    
+    if request.method == 'POST':
+        form = SolicitudRecargaForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            solicitud = form.save(commit=False)
+            solicitud.padre_solicitante = request.user
+            solicitud.save()
+            
+            # Crear notificación para el padre
+            crear_notificacion_padre(
+                padre=request.user,
+                alumno=solicitud.alumno,
+                tipo='solicitud_recibida',
+                titulo='Solicitud de Recarga Enviada',
+                mensaje=f'Su solicitud de recarga por ${solicitud.monto_solicitado:,.0f} ha sido enviada y está pendiente de aprobación.',
+                solicitud=solicitud
+            )
+            
+            messages.success(request, 'Su solicitud de recarga ha sido enviada correctamente.')
+            return redirect('alumnos:mis_solicitudes')
+    
+    context = {
+        'form': form,
+        'titulo': 'Solicitar Recarga de Saldo'
+    }
+    return render(request, 'alumnos/saldo/solicitar_recarga.html', context)
+
+@login_required
+@user_passes_test(es_padre)
+def mis_solicitudes(request):
+    """Vista para que padres vean sus solicitudes"""
+    solicitudes = SolicitudRecarga.objects.filter(
+        padre_solicitante=request.user
+    ).order_by('-fecha_solicitud')
+    
+    # Paginación
+    paginator = Paginator(solicitudes, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'titulo': 'Mis Solicitudes de Recarga'
+    }
+    return render(request, 'alumnos/saldo/mis_solicitudes.html', context)
+
+@login_required
+@user_passes_test(es_padre)
+def mis_hijos(request):
+    """Vista para que padres vean información de sus hijos"""
+    # Obtener alumnos relacionados con este padre
+    padres = Padre.objects.filter(email=request.user.email)
+    alumnos = []
+    
+    if padres.exists():
+        for padre in padres:
+            alumnos.extend(padre.alumnos.all())
+    
+    context = {
+        'alumnos': alumnos,
+        'titulo': 'Mis Hijos'
+    }
+    return render(request, 'alumnos/saldo/mis_hijos.html', context)
+
+@login_required
+@user_passes_test(es_admin)
+def solicitudes_pendientes(request):
+    """Vista para administradores vean solicitudes pendientes"""
+    solicitudes = SolicitudRecarga.objects.filter(
+        estado='pendiente'
+    ).select_related('alumno', 'padre_solicitante').order_by('-fecha_solicitud')
+    
+    context = {
+        'solicitudes': solicitudes,
+        'titulo': 'Solicitudes Pendientes de Aprobación'
+    }
+    return render(request, 'alumnos/admin/solicitudes_pendientes.html', context)
+
+@login_required
+@user_passes_test(es_admin)
+def procesar_solicitud(request, solicitud_id):
+    """Vista para procesar (aprobar/rechazar) solicitudes"""
+    solicitud = get_object_or_404(SolicitudRecarga, pk=solicitud_id)
+    
+    if solicitud.estado != 'pendiente':
+        messages.warning(request, 'Esta solicitud ya ha sido procesada.')
+        return redirect('alumnos:solicitudes_pendientes')
+    
+    if request.method == 'POST':
+        form = ProcesarSolicitudForm(request.POST, instance=solicitud)
+        if form.is_valid():
+            with transaction.atomic():
+                solicitud = form.save(commit=False)
+                solicitud.procesada_por = request.user
+                solicitud.fecha_procesamiento = timezone.now()
+                
+                if solicitud.estado == 'aprobada':
+                    # Crear transacción de saldo
+                    monto_aprobado = solicitud.monto_aprobado
+                    saldo_anterior = solicitud.alumno.saldo_tarjeta
+                    
+                    # Actualizar saldo del alumno
+                    solicitud.alumno.saldo_tarjeta += monto_aprobado
+                    solicitud.alumno.save()
+                    
+                    # Registrar transacción
+                    Transaccion.objects.create(
+                        alumno=solicitud.alumno,
+                        solicitud_recarga=solicitud,
+                        tipo='recarga',
+                        monto=monto_aprobado,
+                        saldo_anterior=saldo_anterior,
+                        saldo_posterior=solicitud.alumno.saldo_tarjeta,
+                        usuario_responsable=request.user,
+                        descripcion=f'Recarga aprobada - {solicitud.get_metodo_pago_display()}',
+                        referencia_externa=solicitud.referencia_pago
+                    )
+                    
+                    solicitud.estado = 'procesada'
+                    
+                    # Notificar al padre
+                    crear_notificacion_padre(
+                        padre=solicitud.padre_solicitante,
+                        alumno=solicitud.alumno,
+                        tipo='solicitud_aprobada',
+                        titulo='Solicitud Aprobada',
+                        mensaje=f'Su solicitud de recarga por ${monto_aprobado:,.0f} ha sido aprobada y el saldo ya está disponible.',
+                        solicitud=solicitud
+                    )
+                    
+                    messages.success(request, f'Solicitud aprobada. Se cargaron ${monto_aprobado:,.0f} al alumno {solicitud.alumno.get_nombre_completo()}.')
+                    
+                else:  # rechazada
+                    # Notificar al padre
+                    crear_notificacion_padre(
+                        padre=solicitud.padre_solicitante,
+                        alumno=solicitud.alumno,
+                        tipo='solicitud_rechazada',
+                        titulo='Solicitud Rechazada',
+                        mensaje=f'Su solicitud de recarga por ${solicitud.monto_solicitado:,.0f} ha sido rechazada. Motivo: {solicitud.observaciones_admin}',
+                        solicitud=solicitud
+                    )
+                    
+                    messages.info(request, f'Solicitud rechazada.')
+                
+                solicitud.save()
+                return redirect('alumnos:solicitudes_pendientes')
+    else:
+        form = ProcesarSolicitudForm(instance=solicitud)
+    
+    context = {
+        'form': form,
+        'solicitud': solicitud,
+        'titulo': f'Procesar Solicitud de {solicitud.alumno.get_nombre_completo()}'
+    }
+    return render(request, 'alumnos/admin/procesar_solicitud.html', context)
+
+@login_required
+@user_passes_test(es_cajero_o_admin)
+def consulta_saldo(request):
+    """Vista para consulta rápida de saldo por número de tarjeta"""
+    form = ConsultaSaldoForm()
+    alumno = None
+    
+    if request.method == 'POST':
+        form = ConsultaSaldoForm(request.POST)
+        if form.is_valid():
+            numero_tarjeta = form.cleaned_data['numero_tarjeta']
+            try:
+                alumno = Alumno.objects.get(
+                    numero_tarjeta=numero_tarjeta,
+                    estado='activo'
+                )
+            except Alumno.DoesNotExist:
+                messages.error(request, 'No se encontró un alumno activo con este número de tarjeta.')
+    
+    context = {
+        'form': form,
+        'alumno': alumno,
+        'titulo': 'Consulta de Saldo por Tarjeta'
+    }
+    return render(request, 'alumnos/saldo/consulta_saldo.html', context)
+
+@login_required
+@user_passes_test(es_admin)
+def dashboard_saldo(request):
+    """Dashboard con estadísticas del sistema de saldo"""
+    # Estadísticas generales
+    total_alumnos = Alumno.objects.filter(estado='activo').count()
+    solicitudes_pendientes = SolicitudRecarga.objects.filter(estado='pendiente').count()
+    
+    # Transacciones del día
+    hoy = timezone.now().date()
+    transacciones_hoy = Transaccion.objects.filter(fecha__date=hoy)
+    recargas_hoy = transacciones_hoy.filter(tipo='recarga').aggregate(total=Sum('monto'))['total'] or 0
+    consumos_hoy = transacciones_hoy.filter(tipo='consumo').aggregate(total=Sum('monto'))['total'] or 0
+    
+    # Saldo total en el sistema
+    saldo_total = Alumno.objects.filter(estado='activo').aggregate(total=Sum('saldo_tarjeta'))['total'] or 0
+    
+    # Alumnos con saldo bajo (menos de 5000)
+    alumnos_saldo_bajo = Alumno.objects.filter(
+        estado='activo',
+        saldo_tarjeta__lt=5000
+    ).count()
+    
+    context = {
+        'total_alumnos': total_alumnos,
+        'solicitudes_pendientes': solicitudes_pendientes,
+        'recargas_hoy': recargas_hoy,
+        'consumos_hoy': abs(consumos_hoy),
+        'saldo_total': saldo_total,
+        'alumnos_saldo_bajo': alumnos_saldo_bajo,
+        'titulo': 'Dashboard del Sistema de Saldo'
+    }
+    return render(request, 'alumnos/admin/dashboard_saldo.html', context)
+
+# =====================================
+# VISTAS API PARA AJAX
+# =====================================
+
+@login_required
+def api_consulta_saldo(request):
+    """API para consulta rápida de saldo (AJAX)"""
+    if request.method == 'GET':
+        numero_tarjeta = request.GET.get('numero_tarjeta')
+        
+        if numero_tarjeta:
+            try:
+                alumno = Alumno.objects.get(
+                    numero_tarjeta=numero_tarjeta,
+                    estado='activo'
+                )
+                return JsonResponse({
+                    'success': True,
+                    'alumno': {
+                        'id': alumno.id,
+                        'nombre_completo': alumno.get_nombre_completo(),
+                        'curso': str(alumno.curso) if alumno.curso else 'Sin curso',
+                        'saldo': float(alumno.saldo_tarjeta),
+                        'saldo_formateado': alumno.get_saldo_formateado(),
+                        'limite_consumo': float(alumno.limite_consumo),
+                        'consumo_diario': float(alumno.consumo_diario),
+                    }
+                })
+            except Alumno.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'No se encontró un alumno activo con este número de tarjeta.'
+                })
+        
+        return JsonResponse({
+            'success': False,
+            'error': 'Número de tarjeta requerido.'
+        })
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido.'})
+
+def crear_notificacion_padre(padre, alumno, tipo, titulo, mensaje, solicitud=None):
+    """Crea una notificación para un padre"""
+    # TODO: Implementar cuando se cree el modelo NotificacionPadre
+    pass
+
+# =============================================
+# VISTAS ADICIONALES PARA TEMPLATES EXISTENTES
+# =============================================
+
+@login_required
+def mis_transacciones(request):
+    """
+    Vista para que padres vean transacciones de sus hijos
+    """
+    # Verificar si el usuario es padre
+    if not hasattr(request.user, 'padre_profile'):
+        messages.error(request, 'No tienes permisos para acceder a esta sección.')
+        return redirect('/')
+    
     padre = request.user.padre_profile
+    alumnos_del_padre = padre.alumnos.filter(estado='activo')
+    
+    # Filtro por formulario
+    form = MisTransaccionesFilterForm(request.GET, user=request.user)
+    transacciones = Transaccion.objects.filter(alumno__in=alumnos_del_padre).order_by('-fecha')
+    
+    if form.is_valid():
+        # Aplicar filtros
+        if form.cleaned_data.get('alumno'):
+            transacciones = transacciones.filter(alumno=form.cleaned_data['alumno'])
+        
+        if form.cleaned_data.get('tipo_transaccion'):
+            transacciones = transacciones.filter(tipo=form.cleaned_data['tipo_transaccion'])
+        
+        if form.cleaned_data.get('fecha_desde'):
+            transacciones = transacciones.filter(fecha__gte=form.cleaned_data['fecha_desde'])
+        
+        if form.cleaned_data.get('fecha_hasta'):
+            transacciones = transacciones.filter(fecha__lte=form.cleaned_data['fecha_hasta'])
+    
+    # Paginación
+    paginator = Paginator(transacciones, 20)
+    page = request.GET.get('page')
+    transacciones_paginadas = paginator.get_page(page)
+    
+    context = {
+        'transacciones': transacciones_paginadas,
+        'form': form,
+        'alumnos': alumnos_del_padre,
+        'total_transacciones': transacciones.count(),
+        'titulo': 'Mis Transacciones'
+    }
+    
+    return render(request, 'alumnos/mis_transacciones.html', context)
+
+@login_required
+def solicitar_carga_saldo(request):
+    """
+    Vista para que padres soliciten carga de saldo
+    """
+    if not hasattr(request.user, 'padre_profile'):
+        messages.error(request, 'No tienes permisos para solicitar carga de saldo.')
+        return redirect('/')
+    
     if request.method == 'POST':
-        form = PadreForm(request.POST, instance=padre)
+        form = SolicitudCargaSaldoForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Perfil actualizado correctamente.")
-            return redirect('alumnos:mis_hijos')
+            solicitud = form.save(commit=False)
+            solicitud.padre_solicitante = request.user.padre_profile
+            solicitud.estado = 'pendiente'
+            solicitud.save()
+            
+            messages.success(request, 'Solicitud de carga de saldo enviada correctamente. Te notificaremos cuando sea procesada.')
+            return redirect('alumnos:mis_solicitudes')
     else:
-        form = PadreForm(instance=padre)
-    return render(request, 'alumnos/editar_perfil_padre.html', {'form': form})
+        form = SolicitudCargaSaldoForm(user=request.user)
+    
+    context = {
+        'form': form,
+        'titulo': 'Solicitar Carga de Saldo'
+    }
+    
+    return render(request, 'alumnos/solicitar_carga_saldo.html', context)
 
-# --- RESTRICCIONES ---
-
-@login_required(login_url='usuarios:login_simple')
-def crear_restriccion(request):
-    if not (es_admin(request.user) or es_padre(request.user)):
-        messages.error(request, "No tienes permiso para crear restricciones.")
-        return redirect('alumnos:mis_hijos')
-    if request.method == 'POST':
-        form = RestriccionForm(request.POST)
-        if form.is_valid():
-            restriccion = form.save(commit=False)
-            if es_padre(request.user) and restriccion.alumno.padre.usuario != request.user:
-                messages.error(request, "Solo puedes crear restricciones para tus hijos.")
-                return redirect('alumnos:mis_hijos')
-            restriccion.save()
-            messages.success(request, "Restricción creada correctamente.")
-            return redirect('alumnos:listar_restricciones')
-    else:
-        form = RestriccionForm()
-    return render(request, 'alumnos/restriccion_form.html', {'form': form})
-
-@login_required(login_url='usuarios:login_simple')
-def eliminar_restriccion(request, pk):
-    restriccion = get_object_or_404(Restriccion, pk=pk)
-    user = request.user
-    puede_eliminar = es_admin(user) or (es_padre(user) and restriccion.alumno.padre.usuario == user)
-
-    if not puede_eliminar:
-        return HttpResponseForbidden("No tienes permiso para eliminar esta restricción.")
-
-    if request.method == 'POST':
-        restriccion.delete()
-        messages.success(request, "Restricción eliminada correctamente.")
-        return redirect('alumnos:listar_restricciones')
-
-    return render(request, 'alumnos/restriccion_confirm_delete.html', {'restriccion': restriccion})
+@login_required
+def filtrar_transacciones(request):
+    """
+    Vista AJAX para filtrar transacciones dinámicamente
+    """
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        alumno_id = request.GET.get('alumno_id')
+        tipo = request.GET.get('tipo')
+        fecha_desde = request.GET.get('fecha_desde')
+        fecha_hasta = request.GET.get('fecha_hasta')
+        
+        # Filtrar transacciones
+        transacciones = Transaccion.objects.all()
+        
+        if alumno_id:
+            transacciones = transacciones.filter(alumno_id=alumno_id)
+        
+        if tipo:
+            transacciones = transacciones.filter(tipo=tipo)
+        
+        if fecha_desde:
+            transacciones = transacciones.filter(fecha__gte=fecha_desde)
+        
+        if fecha_hasta:
+            transacciones = transacciones.filter(fecha__lte=fecha_hasta)
+        
+        transacciones = transacciones.order_by('-fecha')[:50]  # Limitar a 50 resultados
+        
+        # Serializar datos
+        data = []
+        for t in transacciones:
+            data.append({
+                'fecha': t.fecha.strftime('%d/%m/%Y %H:%M'),
+                'alumno': t.alumno.get_nombre_completo(),
+                'tipo': t.get_tipo_display(),
+                'monto': float(t.monto),
+                'descripcion': t.descripcion or 'Sin descripción'
+            })
+        
+        return JsonResponse({'transacciones': data})
+    
+    return JsonResponse({'error': 'Solicitud no válida'}, status=400)

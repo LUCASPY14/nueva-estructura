@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "dashboard_base.html" %}
 {% block title %}Nueva Venta{% endblock %}
 
 {% block content %}
-<a href="{% url 'ventas:ventas_lista' %}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-800 font-semibold py-2 px-4 rounded transition">
+<a href="{% url 'ventas:dashboard' %}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-800 font-semibold py-2 px-4 rounded transition">
     ← Volver al listado de ventas
 </a>
 

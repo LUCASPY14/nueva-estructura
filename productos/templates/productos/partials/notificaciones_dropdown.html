@@ -1,0 +1,24 @@
+{% for notificacion in notificaciones %}
+<a href="{% url 'productos:detalle_producto' notificacion.producto.pk %}" 
+   class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600">
+    <div class="text-sm">
+        <p class="font-medium text-gray-900 dark:text-white truncate">
+            {{ notificacion.mensaje|truncatechars:100 }}
+        </p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {{ notificacion.fecha_creacion|timesince }}
+        </p>
+    </div>
+</a>
+{% empty %}
+<div class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+    No hay notificaciones nuevas
+</div>
+{% endfor %}
+
+{% if notificaciones %}
+<a href="{% url 'productos:lista_notificaciones' %}" 
+   class="block text-center text-sm font-medium text-blue-600 dark:text-blue-500 hover:underline px-4 py-2 border-t border-gray-200 dark:border-gray-600">
+    Ver todas las notificaciones
+</a>
+{% endif %}

@@ -1,0 +1,33 @@
+{% extends "dashboard_base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<!-- Botón de regreso -->
+<a href="{{ back_url }}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded transition">
+    ← Volver
+</a>
+
+<div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+  <h2 class="text-2xl font-bold mb-6 text-green-600">{{ page_title }}</h2>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% block detail_content %}{% endblock %}
+  </div>
+  
+  <div class="mt-8 flex flex-wrap gap-4">
+    {% if edit_url %}
+    <a href="{{ edit_url }}" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+      ✏️ Editar
+    </a>
+    {% endif %}
+    
+    {% if delete_url %}
+    <a href="{{ delete_url }}" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+      🗑️ Eliminar
+    </a>
+    {% endif %}
+    
+    {% block extra_actions %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'dashboard_base.html' %}
 {% block title %}Editar Usuario | LGservice{% endblock %}
 
 {% block content %}
@@ -23,7 +23,7 @@
         {% endfor %}
 
         <div class="flex justify-between items-center mt-6">
-            <a href="{% url 'usuarios:usuarios_lista' %}" class="text-gray-600 hover:underline">← Volver al listado</a>
+            <a href="{% url 'usuarios:lista' %}" class="text-gray-600 hover:underline">← Volver al listado</a>
             <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
                 Actualizar
             </button>

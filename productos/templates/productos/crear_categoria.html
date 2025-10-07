@@ -1,0 +1,58 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">{{ title }}</h1>
+        <a href="{% url 'productos:lista_categorias' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+            <i class="fas fa-arrow-left mr-1"></i> Volver
+        </a>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <label for="{{ form.nombre.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ form.nombre.label }}{% if form.nombre.field.required %} <span class="text-red-500">*</span>{% endif %}
+                </label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}
+                    <div class="mt-1 text-sm text-red-600">
+                        {% for error in form.nombre.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="{{ form.descripcion.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ form.descripcion.label }}
+                </label>
+                {{ form.descripcion }}
+            </div>
+            
+            <div class="mb-4">
+                <div class="flex items-center">
+                    {{ form.activa }}
+                    <label for="{{ form.activa.id_for_label }}" class="ml-2 block text-sm text-gray-900">
+                        Categoría activa
+                    </label>
+                </div>
+                <p class="mt-1 text-xs text-gray-500">Las categorías inactivas no se mostrarán en los menús de selección</p>
+            </div>
+            
+            <div class="pt-4">
+                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                    <i class="fas fa-save mr-2"></i> Guardar Categoría
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "dashboard_base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<!-- Botón de regreso -->
+<a href="{{ back_url }}" class="inline-block mb-4 bg-green-100 hover:bg-green-200 text-green-900 font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+    Volver al Panel
+</a>
+
+<div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold text-green-600 mb-4 sm:mb-0">{{ page_title }}</h2>
+    
+    <!-- Filtros (opcional) -->
+    {% if show_filters %}
+    <div class="flex flex-wrap gap-2">
+      <input type="text" placeholder="Buscar..." class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+      <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm transition-colors duration-200">
+        Filtrar
+      </button>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Botón de acción principal -->
+  {% if create_url %}
+  <a href="{{ create_url }}" class="mb-6 block w-full sm:w-auto sm:inline-block text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    Nuevo {{ entity_name }}
+  </a>
+  {% endif %}
+
+  <!-- Tabla de datos -->
+  <div class="overflow-x-auto mt-4 rounded-lg shadow border border-gray-200">
+    <table class="min-w-full text-sm text-left divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          {% for header in headers %}
+            <th class="px-4 py-3 font-medium text-gray-700 uppercase tracking-wider">{{ header }}</th>
+          {% endfor %}
+          <th class="px-4 py-3 font-medium text-gray-700 uppercase tracking-wider text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        {% for item in items %}
+          <tr class="hover:bg-gray-50 transition-colors duration-150">
+            {% block row_content %}{% endblock %}
+            <td class="px-4 py-3 text-right">
+              {% block row_actions %}{% endblock %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="{{ headers|length|add:1 }}" class="px-4 py-3 text-center text-gray-500">No hay registros para mostrar.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Paginación (opcional) -->
+  {% if items.has_other_pages %}
+  <div class="mt-6 flex justify-center">
+    <div class="flex space-x-1">
+      {% if items.has_previous %}
+      <a href="?page={{ items.previous_page_number }}" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200">
+        Anterior
+      </a>
+      {% endif %}
+      
+      {% for num in items.paginator.page_range %}
+        {% if items.number == num %}
+        <span class="px-3 py-1 bg-green-600 text-white rounded-md">{{ num }}</span>
+        {% else %}
+        <a href="?page={{ num }}" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200">
+          {{ num }}
+        </a>
+        {% endif %}
+      {% endfor %}
+      
+      {% if items.has_next %}
+      <a href="?page={{ items.next_page_number }}" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200">
+        Siguiente
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

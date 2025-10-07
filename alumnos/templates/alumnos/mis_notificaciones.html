@@ -1,0 +1,91 @@
+{% extends 'dashboard_base.html' %}
+{% block title %}Mis Notificaciones{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white p-6 shadow rounded">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold">🔔 Mis Notificaciones</h1>
+    {% if notificaciones %}
+    <a href="?marcar_leidas=1" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
+      Marcar todas como leídas
+    </a>
+    {% endif %}
+  </div>
+  
+  {% if notificaciones %}
+  <div class="space-y-4">
+    {% for notif in notificaciones %}
+    <div class="p-4 rounded border {% if not notif.leida %}bg-blue-50 border-blue-200{% else %}bg-gray-50 border-gray-200{% endif %} notification-item" data-id="{{ notif.id }}">
+      <div class="flex items-start">
+        <div class="flex-1">
+          <div class="flex items-center mb-1">
+            <span class="font-semibold">{{ notif.alumno.nombre }} {{ notif.alumno.apellido }}</span>
+            <span class="text-xs text-gray-500 ml-2">{{ notif.fecha_hora|date:"d/m/Y H:i" }}</span>
+            {% if not notif.leida %}
+            <span class="ml-2 inline-block px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded-full">
+              Nueva
+            </span>
+            {% endif %}
+          </div>
+          <p class="text-gray-800">{{ notif.mensaje }}</p>
+          
+          {% if notif.venta %}
+          <div class="mt-2">
+            <a href="#" class="text-blue-600 hover:underline text-sm">Ver detalle de compra</a>
+          </div>
+          {% endif %}
+        </div>
+        
+        {% if not notif.leida %}
+        <button class="text-gray-400 hover:text-gray-600 mark-read" data-id="{{ notif.id }}">
+          <i class="fas fa-check"></i>
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-8">
+    <div class="text-gray-400 mb-3">
+      <i class="fas fa-bell-slash fa-3x"></i>
+    </div>
+    <p class="text-gray-500">No tienes notificaciones</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const markReadButtons = document.querySelectorAll('.mark-read');
+    
+    markReadButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const notificationId = this.getAttribute('data-id');
+        
+        fetch(`/alumnos/notificacion/${notificationId}/leer/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Actualizar la UI
+            const notification = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
+            notification.classList.remove('bg-blue-50', 'border-blue-200');
+            notification.classList.add('bg-gray-50', 'border-gray-200');
+            
+            // Ocultar el botón y la etiqueta de nueva
+            button.style.display = 'none';
+            const newTag = notification.querySelector('.bg-blue-100');
+            if (newTag) newTag.style.display = 'none';
+          }
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}
