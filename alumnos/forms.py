@@ -5,7 +5,7 @@ from .models import (
     Alumno, Padre, SolicitudRecarga, Transaccion,
     Curso, 
 )
-from usuarios.models import UsuarioLG
+from usuarios.models import CustomUser
 from decimal import Decimal
 
 class AlumnoForm(forms.ModelForm):

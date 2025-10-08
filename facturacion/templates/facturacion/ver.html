@@ -1,0 +1,287 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Factura {{ factura.numero }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header con breadcrumb -->
+    <div class="mb-6">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Factura {{ factura.numero }}</h1>
+                <nav class="flex mt-2" aria-label="Breadcrumb">
+                    <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                        <li><a href="{% url 'facturacion:lista' %}" class="text-blue-600 hover:text-blue-800">Facturas</a></li>
+                        <li><span class="text-gray-500"> / </span></li>
+                        <li class="text-gray-500">{{ factura.numero }}</li>
+                    </ol>
+                </nav>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="flex space-x-2">
+                <button onclick="imprimirFactura()" 
+                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                    <svg class="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
+                    </svg>
+                    Imprimir
+                </button>
+                
+                <button onclick="enviarEmail()" 
+                        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    <svg class="-ml-1 mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                    </svg>
+                    Enviar Email
+                </button>
+                
+                <a href="{% url 'facturacion:lista' %}" 
+                   class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                    Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Factura en formato imprimible -->
+    <div class="bg-white shadow-lg rounded-lg p-8" id="factura-content">
+        <!-- Header de la empresa -->
+        <div class="border-b border-gray-200 pb-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Logo y datos de la empresa -->
+                <div>
+                    <div class="flex items-center mb-4">
+                        <img src="{% static 'images/cantina-logo.png' %}" alt="Cantina de Tita" class="h-12 w-12 rounded-full mr-3">
+                        <div>
+                            <h2 class="text-xl font-bold text-purple-800">Cantina de Tita</h2>
+                            <p class="text-sm text-gray-600">Sistema de Facturación</p>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-1">
+                        <p>Dirección: Calle Principal #123</p>
+                        <p>Teléfono: +56 9 1234 5678</p>
+                        <p>Email: contacto@cantinadetita.cl</p>
+                        <p>RUT: 12.345.678-9</p>
+                    </div>
+                </div>
+                
+                <!-- Información de la factura -->
+                <div class="text-right">
+                    <div class="bg-purple-50 p-4 rounded-lg inline-block">
+                        <h3 class="text-lg font-bold text-purple-800 mb-2">FACTURA</h3>
+                        <div class="text-sm space-y-1">
+                            <p><strong>N°:</strong> {{ factura.numero }}</p>
+                            <p><strong>Fecha:</strong> {{ factura.fecha|date:"d/m/Y" }}</p>
+                            <p><strong>Vencimiento:</strong> {{ factura.fecha_vencimiento|date:"d/m/Y"|default:"N/A" }}</p>
+                            <p><strong>Estado:</strong> 
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                             {% if factura.estado == 'pagada' %}bg-green-100 text-green-800
+                                             {% elif factura.estado == 'pendiente' %}bg-yellow-100 text-yellow-800
+                                             {% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ factura.get_estado_display|default:factura.estado|title }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Información del cliente -->
+        <div class="mb-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-3">Facturar a:</h3>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="font-semibold">{{ factura.cliente_nombre|default:'Cliente General' }}</p>
+                {% if factura.cliente_email %}
+                <p class="text-sm text-gray-600">Email: {{ factura.cliente_email }}</p>
+                {% endif %}
+                {% if factura.cliente_telefono %}
+                <p class="text-sm text-gray-600">Teléfono: {{ factura.cliente_telefono }}</p>
+                {% endif %}
+                {% if factura.cliente_direccion %}
+                <p class="text-sm text-gray-600">Dirección: {{ factura.cliente_direccion }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Detalle de productos/servicios -->
+        <div class="mb-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-3">Detalle:</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full border border-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Descripción</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Cantidad</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Precio Unit.</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in factura.items.all %}
+                        <tr>
+                            <td class="px-4 py-3 text-sm">{{ item.descripcion }}</td>
+                            <td class="px-4 py-3 text-sm text-center">{{ item.cantidad }}</td>
+                            <td class="px-4 py-3 text-sm text-right">${{ item.precio_unitario|floatformat:2 }}</td>
+                            <td class="px-4 py-3 text-sm text-right font-medium">${{ item.subtotal|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-4 py-3 text-center text-gray-500">No hay items registrados</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Totales -->
+        <div class="flex justify-end mb-6">
+            <div class="w-full md:w-1/2 lg:w-1/3">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Subtotal:</span>
+                            <span>${{ factura.subtotal|floatformat:2|default:'0.00' }}</span>
+                        </div>
+                        {% if factura.impuesto %}
+                        <div class="flex justify-between">
+                            <span>Impuesto (19%):</span>
+                            <span>${{ factura.impuesto|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+                        {% if factura.descuento %}
+                        <div class="flex justify-between text-red-600">
+                            <span>Descuento:</span>
+                            <span>-${{ factura.descuento|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="border-t border-gray-300 pt-2">
+                            <div class="flex justify-between text-lg font-bold">
+                                <span>Total:</span>
+                                <span class="text-purple-600">${{ factura.total|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notas adicionales -->
+        {% if factura.notas %}
+        <div class="mb-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-3">Notas:</h3>
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p class="text-sm text-gray-700">{{ factura.notas }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Footer -->
+        <div class="border-t border-gray-200 pt-6 text-center">
+            <p class="text-xs text-gray-500">
+                Esta es una factura generada por el Sistema Cantina de Tita.
+                Para consultas, contacte a: contacto@cantinadetita.cl
+            </p>
+            <p class="text-xs text-gray-400 mt-2">
+                Generada el {{ "now"|date:"d/m/Y H:i" }}
+            </p>
+        </div>
+    </div>
+    
+    <!-- Información adicional (no se imprime) -->
+    <div class="mt-6 print:hidden">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 class="text-lg font-bold text-blue-800 mb-2">Información de Pago</h3>
+            {% if factura.estado == 'pagada' %}
+            <p class="text-sm text-blue-700">
+                <strong>✅ Factura pagada</strong> el {{ factura.fecha_pago|date:"d/m/Y H:i"|default:'N/A' }}
+            </p>
+            {% elif factura.estado == 'pendiente' %}
+            <p class="text-sm text-blue-700">
+                <strong>⏳ Pago pendiente</strong> - Vencimiento: {{ factura.fecha_vencimiento|date:"d/m/Y"|default:'Sin fecha' }}
+            </p>
+            {% else %}
+            <p class="text-sm text-blue-700">
+                <strong>❌ Factura cancelada</strong>
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function imprimirFactura() {
+    // Crear una nueva ventana para imprimir solo el contenido de la factura
+    const contenido = document.getElementById('factura-content').outerHTML;
+    const ventana = window.open('', '_blank');
+    
+    ventana.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Factura {{ factura.numero }}</title>
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+            <style>
+                @media print {
+                    .print\\:hidden { display: none !important; }
+                    body { margin: 0; }
+                    .shadow-lg { box-shadow: none !important; }
+                }
+            </style>
+        </head>
+        <body class="bg-white">
+            ${contenido}
+        </body>
+        </html>
+    `);
+    
+    ventana.document.close();
+    ventana.focus();
+    ventana.print();
+}
+
+function enviarEmail() {
+    if (confirm('¿Enviar esta factura por email al cliente?')) {
+        // Aquí iría la lógica para enviar email
+        fetch(`/facturacion/{{ factura.id }}/enviar-email/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Email enviado exitosamente');
+            } else {
+                alert('Error al enviar email: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error al enviar email');
+            console.error('Error:', error);
+        });
+    }
+}
+</script>
+
+<style>
+@media print {
+    .print\:hidden {
+        display: none !important;
+    }
+    body {
+        margin: 0;
+        background: white;
+    }
+    .shadow-lg {
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}

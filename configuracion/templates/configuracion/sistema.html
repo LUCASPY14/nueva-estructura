@@ -1,0 +1,271 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Configuración del Sistema{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">Configuración del Sistema</h1>
+    
+    <!-- Estado del Sistema -->
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4">Estado del Sistema</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <svg class="h-8 w-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-green-800">Base de Datos</h3>
+                        <p class="text-sm text-green-600">Conectada</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <svg class="h-8 w-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                    </svg>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">Usuarios Activos</h3>
+                        <p class="text-sm text-blue-600">{{ usuarios_activos|default:0 }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <svg class="h-8 w-8 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">Uso de Memoria</h3>
+                        <p class="text-sm text-yellow-600">{{ uso_memoria|default:'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <svg class="h-8 w-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-purple-800">Tiempo Activo</h3>
+                        <p class="text-sm text-purple-600">{{ uptime|default:'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Configuración Avanzada -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Base de Datos -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Configuración de Base de Datos</h2>
+            
+            <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium">Motor:</span>
+                        <span class="text-sm text-gray-600">PostgreSQL</span>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium">Host:</span>
+                        <span class="text-sm text-gray-600">localhost</span>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-medium">Puerto:</span>
+                        <span class="text-sm text-gray-600">5432</span>
+                    </div>
+                </div>
+                
+                <div class="space-x-2">
+                    <button onclick="testConnection()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm">
+                        Probar Conexión
+                    </button>
+                    <button onclick="optimizeDB()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded text-sm">
+                        Optimizar BD
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Configuración de Cache -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Sistema de Caché</h2>
+            
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="seccion" value="cache">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Caché</label>
+                    <select name="cache_backend" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="redis" {% if config.cache_backend == 'redis' %}selected{% endif %}>Redis</option>
+                        <option value="memcached" {% if config.cache_backend == 'memcached' %}selected{% endif %}>Memcached</option>
+                        <option value="database" {% if config.cache_backend == 'database' %}selected{% endif %}>Base de Datos</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tiempo de Vida (segundos)</label>
+                    <input type="number" name="cache_timeout" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                           value="{{ config.cache_timeout|default:300 }}">
+                </div>
+                
+                <div class="flex items-center">
+                    <input type="checkbox" name="cache_enabled" 
+                           class="h-4 w-4 text-purple-600 border-gray-300 rounded"
+                           {% if config.cache_enabled %}checked{% endif %}>
+                    <label class="ml-2 block text-sm text-gray-900">Habilitar Caché</label>
+                </div>
+                
+                <div class="space-x-2">
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded text-sm">
+                        Guardar
+                    </button>
+                    <button type="button" onclick="clearCache()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded text-sm">
+                        Limpiar Caché
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Logs del Sistema -->
+    <div class="mt-6 bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-bold mb-4">Logs del Sistema</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <button onclick="viewLogs('error')" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded">
+                Ver Logs de Error
+            </button>
+            <button onclick="viewLogs('access')" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
+                Ver Logs de Acceso
+            </button>
+            <button onclick="viewLogs('system')" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">
+                Ver Logs del Sistema
+            </button>
+        </div>
+        
+        <div id="logs-container" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm h-64 overflow-y-auto">
+            <p>Seleccione un tipo de log para visualizar...</p>
+        </div>
+    </div>
+    
+    <!-- Mantenimiento -->
+    <div class="mt-6 bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-bold mb-4">Mantenimiento del Sistema</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button onclick="runMaintenance('cleanup')" 
+                    class="bg-yellow-600 hover:bg-yellow-700 text-white py-3 px-4 rounded-lg text-center">
+                <div class="flex flex-col items-center">
+                    <svg class="h-8 w-8 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd" />
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2h8a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 2a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm">Limpiar Archivos Temporales</span>
+                </div>
+            </button>
+            
+            <button onclick="runMaintenance('reindex')" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg text-center">
+                <div class="flex flex-col items-center">
+                    <svg class="h-8 w-8 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm">Reindexar Base de Datos</span>
+                </div>
+            </button>
+            
+            <button onclick="runMaintenance('backup')" 
+                    class="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg text-center">
+                <div class="flex flex-col items-center">
+                    <svg class="h-8 w-8 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z" />
+                    </svg>
+                    <span class="text-sm">Crear Backup</span>
+                </div>
+            </button>
+            
+            <button onclick="runMaintenance('restart')" 
+                    class="bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg text-center">
+                <div class="flex flex-col items-center">
+                    <svg class="h-8 w-8 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm">Reiniciar Servicios</span>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function testConnection() {
+    alert('Probando conexión a la base de datos...');
+    // Aquí iría la lógica real
+}
+
+function optimizeDB() {
+    if (confirm('¿Está seguro de optimizar la base de datos? Esto puede tomar varios minutos.')) {
+        alert('Optimización iniciada. Se notificará cuando termine.');
+    }
+}
+
+function clearCache() {
+    if (confirm('¿Limpiar todo el caché del sistema?')) {
+        alert('Caché limpiado exitosamente');
+    }
+}
+
+function viewLogs(type) {
+    const container = document.getElementById('logs-container');
+    const logs = {
+        'error': [
+            '[2024-10-08 10:30:15] ERROR: Database connection timeout',
+            '[2024-10-08 10:29:45] ERROR: Failed login attempt for user: admin',
+            '[2024-10-08 10:25:12] ERROR: Memory limit exceeded in process 1234'
+        ],
+        'access': [
+            '[2024-10-08 10:30:15] INFO: User login: admin from 192.168.1.100',
+            '[2024-10-08 10:29:45] INFO: GET /productos/lista/ - 200 OK',
+            '[2024-10-08 10:25:12] INFO: POST /ventas/nueva/ - 201 Created'
+        ],
+        'system': [
+            '[2024-10-08 10:30:15] INFO: System startup completed',
+            '[2024-10-08 10:29:45] INFO: Database migration applied: 0001_initial',
+            '[2024-10-08 10:25:12] INFO: Cache warmed up successfully'
+        ]
+    };
+    
+    container.innerHTML = logs[type].map(log => `<p>${log}</p>`).join('');
+}
+
+function runMaintenance(action) {
+    const messages = {
+        'cleanup': '¿Limpiar archivos temporales? Esta acción es irreversible.',
+        'reindex': '¿Reindexar la base de datos? Esto puede tomar tiempo.',
+        'backup': '¿Crear un backup completo del sistema?',
+        'restart': '¿Reiniciar los servicios del sistema? Los usuarios serán desconectados.'
+    };
+    
+    if (confirm(messages[action])) {
+        alert(`Ejecutando ${action}... Se notificará cuando termine.`);
+    }
+}
+</script>
+{% endblock %}

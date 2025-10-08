@@ -1,0 +1,210 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Centro de Ayuda{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">Centro de Ayuda - Cantina de Tita</h1>
+    
+    <!-- Búsqueda de ayuda -->
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <div class="max-w-md mx-auto">
+            <div class="relative">
+                <input type="text" placeholder="¿En qué podemos ayudarte?" 
+                       class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <svg class="absolute left-3 top-3.5 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Categorías de ayuda -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center mb-4">
+                <svg class="h-8 w-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+                </svg>
+                <h3 class="text-lg font-bold ml-3">Gestión de Usuarios</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Aprende a crear y gestionar usuarios, roles y permisos.</p>
+            <ul class="space-y-2 text-sm">
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Crear nuevo usuario</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Asignar roles</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Restablecer contraseñas</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Gestionar permisos</a></li>
+            </ul>
+        </div>
+        
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center mb-4">
+                <svg class="h-8 w-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zm2 5V6a2 2 0 10-4 0v1h4zm-6 3a1 1 0 112 0 1 1 0 01-2 0zm7-1a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd" />
+                </svg>
+                <h3 class="text-lg font-bold ml-3">Ventas y POS</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Todo sobre el sistema de punto de venta y gestión de transacciones.</p>
+            <ul class="space-y-2 text-sm">
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Realizar una venta</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Procesar pagos</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Generar reportes</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Cerrar turno</a></li>
+            </ul>
+        </div>
+        
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center mb-4">
+                <svg class="h-8 w-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                </svg>
+                <h3 class="text-lg font-bold ml-3">Inventario</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Gestión de productos, stock y movimientos de inventario.</p>
+            <ul class="space-y-2 text-sm">
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Agregar productos</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Control de stock</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Alertas de stock bajo</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Categorías</a></li>
+            </ul>
+        </div>
+        
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center mb-4">
+                <svg class="h-8 w-8 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd" />
+                </svg>
+                <h3 class="text-lg font-bold ml-3">Saldos y Pagos</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Gestión de saldos de alumnos y métodos de pago.</p>
+            <ul class="space-y-2 text-sm">
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Cargar saldo</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Historial de transacciones</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Métodos de pago</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Reportes de saldo</a></li>
+            </ul>
+        </div>
+        
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center mb-4">
+                <svg class="h-8 w-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+                <h3 class="text-lg font-bold ml-3">Problemas Técnicos</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Soluciones a problemas comunes del sistema.</p>
+            <ul class="space-y-2 text-sm">
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• No puedo iniciar sesión</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Errores de conexión</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Problemas de impresión</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Recuperar datos</a></li>
+            </ul>
+        </div>
+        
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-center mb-4">
+                <svg class="h-8 w-8 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                </svg>
+                <h3 class="text-lg font-bold ml-3">Configuración</h3>
+            </div>
+            <p class="text-gray-600 mb-4">Personaliza el sistema según tus necesidades.</p>
+            <ul class="space-y-2 text-sm">
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Configuración general</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Notificaciones</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Backups</a></li>
+                <li><a href="#" class="text-blue-600 hover:text-blue-800">• Configuración de red</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Preguntas frecuentes -->
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4">Preguntas Frecuentes</h2>
+        
+        <div class="space-y-4">
+            <div class="border-b border-gray-200 pb-4">
+                <button class="flex justify-between items-center w-full text-left" onclick="toggleFAQ(1)">
+                    <span class="font-medium">¿Cómo restablezco mi contraseña?</span>
+                    <svg class="h-5 w-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div id="faq-1" class="mt-3 text-gray-600 hidden">
+                    Para restablecer tu contraseña, contacta al administrador del sistema o utiliza la opción "Olvidé mi contraseña" en la pantalla de login. El administrador puede generar una nueva contraseña temporal.
+                </div>
+            </div>
+            
+            <div class="border-b border-gray-200 pb-4">
+                <button class="flex justify-between items-center w-full text-left" onclick="toggleFAQ(2)">
+                    <span class="font-medium">¿Cómo agrego saldo a un alumno?</span>
+                    <svg class="h-5 w-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div id="faq-2" class="mt-3 text-gray-600 hidden">
+                    Ve a "Alumnos" → "Lista de Alumnos" → selecciona el alumno → "Gestionar Saldo" → ingresa el monto y confirma la transacción. El saldo se actualiza inmediatamente.
+                </div>
+            </div>
+            
+            <div class="border-b border-gray-200 pb-4">
+                <button class="flex justify-between items-center w-full text-left" onclick="toggleFAQ(3)">
+                    <span class="font-medium">¿Qué hago si el sistema está lento?</span>
+                    <svg class="h-5 w-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div id="faq-3" class="mt-3 text-gray-600 hidden">
+                    Primero, verifica tu conexión a internet. Si el problema persiste, cierra y abre el navegador. Para problemas persistentes, contacta al soporte técnico.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contacto -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">¿Necesitas más ayuda?</h2>
+            <p class="text-gray-600 mb-4">Si no encuentras la respuesta que buscas, no dudes en contactarnos.</p>
+            <a href="{% url 'ayuda:contacto' %}" 
+               class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded inline-block">
+                Contactar Soporte
+            </a>
+        </div>
+        
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Información de Contacto</h2>
+            <div class="space-y-2 text-sm">
+                <p class="flex items-center">
+                    <svg class="h-4 w-4 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                    </svg>
+                    soporte@cantinadetita.cl
+                </p>
+                <p class="flex items-center">
+                    <svg class="h-4 w-4 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                    </svg>
+                    +56 9 1234 5678
+                </p>
+                <p class="flex items-center">
+                    <svg class="h-4 w-4 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    Lun - Vie: 8:00 - 18:00
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFAQ(id) {
+    const element = document.getElementById(`faq-${id}`);
+    element.classList.toggle('hidden');
+}
+</script>
+{% endblock %}

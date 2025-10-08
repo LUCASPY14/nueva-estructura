@@ -8,6 +8,13 @@ from .models import (
     Caja, TurnoCajero, AuthorizationCode, ReporteCaja
 )
 
+@admin.register(MetodoPago)
+class MetodoPagoAdmin(admin.ModelAdmin):
+    list_display = ['nombre', 'es_tarjeta_cantina', 'requiere_referencia', 'activo']
+    list_filter = ['es_tarjeta_cantina', 'requiere_referencia', 'activo']
+    search_fields = ['nombre', 'descripcion']
+    ordering = ['es_tarjeta_cantina', 'nombre']
+
 class DetalleVentaInline(admin.TabularInline):
     model = DetalleVenta
     extra = 1
@@ -25,13 +32,15 @@ class VentaAdmin(admin.ModelAdmin):
         'fecha', 
         'usuario', 
         'alumno', 
-        'total', 
-        'estado',
-        'tipo_pago'
+        'total',
+        'monto_tarjeta_cantina',
+        'monto_otros_medios',
+        'tipo_comprobante', 
+        'estado'
     ]
     list_filter = [
         'estado', 
-        'tipo_pago',  # Corregido: quitamos campos inexistentes
+        'tipo_comprobante',
         'fecha',
         'usuario'
     ]
@@ -48,7 +57,7 @@ class VentaAdmin(admin.ModelAdmin):
             'fields': ('subtotal', 'descuento', 'total')
         }),
         ('Estado', {
-            'fields': ('estado', 'tipo_pago', 'notas')
+            'fields': ('estado', 'tipo_comprobante', 'notas')
         }),
         ('Fechas', {
             'fields': ('fecha_actualizacion',),
@@ -62,12 +71,6 @@ class DetalleVentaAdmin(admin.ModelAdmin):
     list_filter = ['venta__fecha', 'producto__categoria']
     search_fields = ['venta__numero_venta', 'producto__nombre']
     readonly_fields = ['subtotal']
-
-@admin.register(MetodoPago)
-class MetodoPagoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'activo', 'requiere_referencia')
-    list_filter = ('activo', 'requiere_referencia')
-    search_fields = ('nombre',)
 
 @admin.register(Caja)
 class CajaAdmin(admin.ModelAdmin):

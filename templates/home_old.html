@@ -1,0 +1,29 @@
+<!-- templates/home.html -->
+<!-- filepath: templates/home.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .btn { display: inline-block; padding: 10px 20px; margin: 10px; 
+               background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏫 LGService</h1>
+        <p>Sistema de Gestión de Cantina Escolar</p>
+        
+        <div>
+            <a href="/admin/" class="btn">Panel Administrativo</a>
+            <a href="/alumnos/" class="btn">Gestión de Alumnos</a>
+            <a href="/productos/" class="btn">Productos</a>
+            <a href="/ventas/" class="btn">Ventas</a>
+        </div>
+    </div>
+</body>
+</html>

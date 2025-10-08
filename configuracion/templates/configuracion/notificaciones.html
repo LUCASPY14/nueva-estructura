@@ -1,0 +1,177 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Configuración de Notificaciones{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">Configuración de Notificaciones</h1>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Email -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Notificaciones por Email</h2>
+            
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="tipo" value="email">
+                
+                <div class="flex items-center mb-4">
+                    <input type="checkbox" name="email_enabled" 
+                           class="h-4 w-4 text-purple-600 border-gray-300 rounded"
+                           {% if config.email_enabled %}checked{% endif %}>
+                    <label class="ml-2 block text-sm font-medium text-gray-900">Habilitar notificaciones por email</label>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Servidor SMTP</label>
+                    <input type="text" name="smtp_host" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                           value="{{ config.smtp_host|default:'smtp.gmail.com' }}">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Puerto</label>
+                        <input type="number" name="smtp_port" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                               value="{{ config.smtp_port|default:587 }}">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Encriptación</label>
+                        <select name="smtp_encryption" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="tls" {% if config.smtp_encryption == 'tls' %}selected{% endif %}>TLS</option>
+                            <option value="ssl" {% if config.smtp_encryption == 'ssl' %}selected{% endif %}>SSL</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <h3 class="text-lg font-medium mt-6 mb-3">Tipos de Notificaciones</h3>
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <input type="checkbox" name="notify_new_user" class="h-4 w-4 text-purple-600 border-gray-300 rounded" {% if config.notify_new_user %}checked{% endif %}>
+                        <label class="ml-2 block text-sm text-gray-900">Nuevos usuarios registrados</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" name="notify_low_stock" class="h-4 w-4 text-purple-600 border-gray-300 rounded" {% if config.notify_low_stock %}checked{% endif %}>
+                        <label class="ml-2 block text-sm text-gray-900">Stock bajo de productos</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" name="notify_system_errors" class="h-4 w-4 text-purple-600 border-gray-300 rounded" {% if config.notify_system_errors %}checked{% endif %}>
+                        <label class="ml-2 block text-sm text-gray-900">Errores del sistema</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded">
+                    Guardar Configuración de Email
+                </button>
+            </form>
+        </div>
+        
+        <!-- SMS -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Notificaciones por SMS</h2>
+            
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="tipo" value="sms">
+                
+                <div class="flex items-center mb-4">
+                    <input type="checkbox" name="sms_enabled" 
+                           class="h-4 w-4 text-purple-600 border-gray-300 rounded"
+                           {% if config.sms_enabled %}checked{% endif %}>
+                    <label class="ml-2 block text-sm font-medium text-gray-900">Habilitar notificaciones por SMS</label>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Proveedor SMS</label>
+                    <select name="sms_provider" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="twilio" {% if config.sms_provider == 'twilio' %}selected{% endif %}>Twilio</option>
+                        <option value="nexmo" {% if config.sms_provider == 'nexmo' %}selected{% endif %}>Nexmo</option>
+                        <option value="local" {% if config.sms_provider == 'local' %}selected{% endif %}>Proveedor Local</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                    <input type="password" name="sms_api_key" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                           placeholder="Ingrese su API Key">
+                </div>
+                
+                <h3 class="text-lg font-medium mt-6 mb-3">Tipos de Notificaciones SMS</h3>
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <input type="checkbox" name="sms_alerts" class="h-4 w-4 text-purple-600 border-gray-300 rounded" {% if config.sms_alerts %}checked{% endif %}>
+                        <label class="ml-2 block text-sm text-gray-900">Alertas críticas</label>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" name="sms_security" class="h-4 w-4 text-purple-600 border-gray-300 rounded" {% if config.sms_security %}checked{% endif %}>
+                        <label class="ml-2 block text-sm text-gray-900">Alertas de seguridad</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">
+                    Guardar Configuración de SMS
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Centro de Notificaciones -->
+    <div class="mt-6 bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-bold mb-4">Centro de Notificaciones</h2>
+        
+        <div class="space-y-4">
+            {% for notificacion in notificaciones_recientes %}
+            <div class="flex items-start p-4 bg-gray-50 rounded-lg">
+                <div class="flex-shrink-0">
+                    {% if notificacion.tipo == 'error' %}
+                        <svg class="h-6 w-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    {% elif notificacion.tipo == 'warning' %}
+                        <svg class="h-6 w-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    {% else %}
+                        <svg class="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                        </svg>
+                    {% endif %}
+                </div>
+                <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium text-gray-900">{{ notificacion.titulo }}</p>
+                    <p class="text-sm text-gray-600">{{ notificacion.mensaje }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ notificacion.fecha|date:"d/m/Y H:i" }}</p>
+                </div>
+                <button class="ml-2 text-gray-400 hover:text-gray-600">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            {% empty %}
+            <div class="text-center py-8 text-gray-500">
+                <p>No hay notificaciones recientes</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="mt-4 text-center">
+            <button onclick="limpiarNotificaciones()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded text-sm">
+                Limpiar Todas las Notificaciones
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function limpiarNotificaciones() {
+    if (confirm('¿Está seguro de limpiar todas las notificaciones?')) {
+        alert('Notificaciones limpiadas');
+        location.reload();
+    }
+}
+</script>
+{% endblock %}

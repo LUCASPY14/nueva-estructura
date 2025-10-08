@@ -1,0 +1,181 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Nueva Venta{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">Nueva Venta</h1>
+    
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="alumno" class="block text-sm font-medium text-gray-700 mb-1">
+                        Alumno *
+                    </label>
+                    <select id="alumno" name="alumno" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="">Selecciona un alumno</option>
+                        {% for alumno in alumnos %}
+                        <option value="{{ alumno.id }}" data-saldo="{{ alumno.saldo }}">
+                            {{ alumno.nombre }} {{ alumno.apellido }} - Saldo: ${{ alumno.saldo|floatformat:0 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="metodo_pago" class="block text-sm font-medium text-gray-700 mb-1">
+                        Método de Pago
+                    </label>
+                    <select id="metodo_pago" name="metodo_pago"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="saldo">Saldo</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="tarjeta">Tarjeta</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Productos -->
+            <div class="border-t pt-4">
+                <h3 class="text-lg font-medium mb-4">Productos</h3>
+                
+                <div id="productos-container">
+                    <div class="producto-item grid grid-cols-1 md:grid-cols-4 gap-4 items-end mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Producto</label>
+                            <select name="producto[]" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 producto-select">
+                                <option value="">Selecciona producto</option>
+                                {% for producto in productos %}
+                                <option value="{{ producto.id }}" data-precio="{{ producto.precio }}" data-stock="{{ producto.stock }}">
+                                    {{ producto.nombre }} - ${{ producto.precio|floatformat:0 }} (Stock: {{ producto.stock }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                            <input type="number" name="cantidad[]" min="1" value="1" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 cantidad-input">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Subtotal</label>
+                            <input type="text" readonly
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 subtotal-display">
+                        </div>
+                        
+                        <div>
+                            <button type="button" onclick="removeProducto(this)" 
+                                    class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="button" onclick="addProducto()" 
+                        class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded mb-4">
+                    Agregar Producto
+                </button>
+            </div>
+            
+            <!-- Resumen -->
+            <div class="border-t pt-4 bg-gray-50 p-4 rounded-md">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div>
+                        <span class="text-sm text-gray-600">Subtotal</span>
+                        <div class="text-xl font-bold" id="subtotal-total">$0</div>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">IVA (19%)</span>
+                        <div class="text-xl font-bold" id="iva-total">$0</div>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-600">Total</span>
+                        <div class="text-2xl font-bold text-purple-600" id="final-total">$0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <a href="{% url 'ventas:lista' %}" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-6 rounded">
+                    Procesar Venta
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function addProducto() {
+    const container = document.getElementById('productos-container');
+    const template = container.querySelector('.producto-item').cloneNode(true);
+    
+    // Limpiar valores
+    template.querySelectorAll('select, input').forEach(input => {
+        if (input.type !== 'number') input.value = '';
+        else input.value = '1';
+    });
+    
+    container.appendChild(template);
+    updateCalculations();
+}
+
+function removeProducto(button) {
+    const container = document.getElementById('productos-container');
+    if (container.children.length > 1) {
+        button.closest('.producto-item').remove();
+        updateCalculations();
+    }
+}
+
+function updateCalculations() {
+    let subtotal = 0;
+    
+    document.querySelectorAll('.producto-item').forEach(item => {
+        const select = item.querySelector('.producto-select');
+        const cantidad = parseInt(item.querySelector('.cantidad-input').value) || 0;
+        const subtotalDisplay = item.querySelector('.subtotal-display');
+        
+        if (select.value && cantidad > 0) {
+            const precio = parseFloat(select.options[select.selectedIndex].dataset.precio) || 0;
+            const itemSubtotal = precio * cantidad;
+            subtotal += itemSubtotal;
+            subtotalDisplay.value = '$' + itemSubtotal.toLocaleString('es-CL');
+        } else {
+            subtotalDisplay.value = '$0';
+        }
+    });
+    
+    const iva = subtotal * 0.19;
+    const total = subtotal + iva;
+    
+    document.getElementById('subtotal-total').textContent = '$' + subtotal.toLocaleString('es-CL');
+    document.getElementById('iva-total').textContent = '$' + iva.toLocaleString('es-CL');
+    document.getElementById('final-total').textContent = '$' + total.toLocaleString('es-CL');
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('producto-select') || e.target.classList.contains('cantidad-input')) {
+            updateCalculations();
+        }
+    });
+    
+    updateCalculations();
+});
+</script>
+{% endblock %}

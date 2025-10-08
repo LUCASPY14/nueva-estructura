@@ -12,7 +12,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lgservice.settings')
 django.setup()
 
 from django.db import transaction
-from usuarios.models import UsuarioLG
+from usuarios.models import CustomUser
 from alumnos.models import Curso, Alumno, Transaccion
 
 def main():
@@ -22,7 +22,7 @@ def main():
         try:
             # 1. Crear usuario administrador
             print("\n👨‍💼 Creando usuario administrador...")
-            admin_user, created = UsuarioLG.objects.get_or_create(
+            admin_user, created = CustomUser.objects.get_or_create(
                 username='admin',
                 defaults={
                     'email': 'admin@colegio.com',
@@ -88,7 +88,7 @@ def main():
             
             # 5. Mostrar resumen final
             print("\n📋 RESUMEN FINAL:")
-            print(f"   👨‍💼 Usuarios: {UsuarioLG.objects.count()}")
+            print(f"   👨‍💼 Usuarios: {CustomUser.objects.count()}")
             print(f"   📚 Cursos: {Curso.objects.count()}")
             print(f"   🎓 Alumnos: {Alumno.objects.count()}")
             print(f"   💰 Transacciones: {Transaccion.objects.count()}")

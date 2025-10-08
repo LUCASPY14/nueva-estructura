@@ -1,0 +1,257 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Crear Factura{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Crear Nueva Factura</h1>
+        <a href="{% url 'facturacion:lista' %}" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded">
+            Volver a Lista
+        </a>
+    </div>
+    
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <form method="post" class="space-y-6" id="facturaForm">
+            {% csrf_token %}
+            
+            <!-- Información del cliente -->
+            <div class="border-b border-gray-200 pb-6">
+                <h2 class="text-lg font-medium mb-4">Información del Cliente</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="id_cliente_nombre" class="block text-sm font-medium text-gray-700 mb-2">Nombre del Cliente</label>
+                        <input type="text" name="cliente_nombre" id="id_cliente_nombre" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                               value="{{ form.cliente_nombre.value|default:'' }}" required>
+                        {% if form.cliente_nombre.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.cliente_nombre.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="id_cliente_email" class="block text-sm font-medium text-gray-700 mb-2">Email (opcional)</label>
+                        <input type="email" name="cliente_email" id="id_cliente_email" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                               value="{{ form.cliente_email.value|default:'' }}">
+                        {% if form.cliente_email.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.cliente_email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="id_cliente_telefono" class="block text-sm font-medium text-gray-700 mb-2">Teléfono (opcional)</label>
+                        <input type="tel" name="cliente_telefono" id="id_cliente_telefono" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                               value="{{ form.cliente_telefono.value|default:'' }}">
+                        {% if form.cliente_telefono.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.cliente_telefono.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="id_fecha" class="block text-sm font-medium text-gray-700 mb-2">Fecha de Factura</label>
+                        <input type="date" name="fecha" id="id_fecha" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                               value="{{ form.fecha.value|default:today }}" required>
+                        {% if form.fecha.errors %}
+                            <p class="text-red-500 text-sm mt-1">{{ form.fecha.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Productos/Servicios -->
+            <div class="border-b border-gray-200 pb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-medium">Productos/Servicios</h2>
+                    <button type="button" onclick="agregarItem()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm">
+                        Agregar Item
+                    </button>
+                </div>
+                
+                <div id="items-container">
+                    <!-- Template de item (será clonado por JavaScript) -->
+                    <div class="item-row border border-gray-200 rounded-lg p-4 mb-4" style="display: none;" id="item-template">
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                                <input type="text" name="item_descripcion[]" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                       placeholder="Descripción del producto/servicio">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cantidad</label>
+                                <input type="number" name="item_cantidad[]" min="1" value="1"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                       onchange="calcularSubtotal(this)">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Precio Unitario</label>
+                                <input type="number" name="item_precio[]" step="0.01" min="0"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                       onchange="calcularSubtotal(this)">
+                            </div>
+                            <div class="flex items-end">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Subtotal</label>
+                                    <input type="text" class="subtotal w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" 
+                                           readonly value="$0.00">
+                                </div>
+                                <button type="button" onclick="eliminarItem(this)" 
+                                        class="ml-2 bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Primer item visible -->
+                    <div class="item-row border border-gray-200 rounded-lg p-4 mb-4">
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
+                                <input type="text" name="item_descripcion[]" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                       placeholder="Descripción del producto/servicio" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cantidad</label>
+                                <input type="number" name="item_cantidad[]" min="1" value="1"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                       onchange="calcularSubtotal(this)" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Precio Unitario</label>
+                                <input type="number" name="item_precio[]" step="0.01" min="0"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                       onchange="calcularSubtotal(this)" required>
+                            </div>
+                            <div class="flex items-end">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Subtotal</label>
+                                    <input type="text" class="subtotal w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50" 
+                                           readonly value="$0.00">
+                                </div>
+                                <button type="button" onclick="eliminarItem(this)" 
+                                        class="ml-2 bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Totales -->
+            <div class="flex justify-end">
+                <div class="w-full md:w-1/3">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-sm font-medium">Subtotal:</span>
+                                <span id="subtotal-total" class="text-sm">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm font-medium">Impuesto (19%):</span>
+                                <span id="impuesto-total" class="text-sm">$0.00</span>
+                            </div>
+                            <div class="border-t border-gray-300 pt-2">
+                                <div class="flex justify-between">
+                                    <span class="text-lg font-bold">Total:</span>
+                                    <span id="total-general" class="text-lg font-bold text-purple-600">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notas adicionales -->
+            <div>
+                <label for="id_notas" class="block text-sm font-medium text-gray-700 mb-2">Notas Adicionales</label>
+                <textarea name="notas" id="id_notas" rows="3"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="Notas o comentarios adicionales...">{{ form.notas.value|default:'' }}</textarea>
+            </div>
+            
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'facturacion:lista' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">
+                    Cancelar
+                </a>
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded">
+                    Crear Factura
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let itemCounter = 1;
+
+function agregarItem() {
+    const template = document.getElementById('item-template');
+    const clone = template.cloneNode(true);
+    clone.id = 'item-' + itemCounter++;
+    clone.style.display = 'block';
+    
+    const container = document.getElementById('items-container');
+    container.appendChild(clone);
+    
+    // Enfocar el primer input del nuevo item
+    clone.querySelector('input[name="item_descripcion[]"]').focus();
+}
+
+function eliminarItem(button) {
+    const itemRow = button.closest('.item-row');
+    const container = document.getElementById('items-container');
+    
+    // No permitir eliminar si es el único item visible
+    const visibleItems = container.querySelectorAll('.item-row:not(#item-template)');
+    if (visibleItems.length > 1) {
+        itemRow.remove();
+        calcularTotales();
+    } else {
+        alert('Debe mantener al menos un item en la factura.');
+    }
+}
+
+function calcularSubtotal(input) {
+    const itemRow = input.closest('.item-row');
+    const cantidad = itemRow.querySelector('input[name="item_cantidad[]"]').value || 0;
+    const precio = itemRow.querySelector('input[name="item_precio[]"]').value || 0;
+    const subtotal = cantidad * precio;
+    
+    itemRow.querySelector('.subtotal').value = '$' + subtotal.toFixed(2);
+    calcularTotales();
+}
+
+function calcularTotales() {
+    const container = document.getElementById('items-container');
+    const items = container.querySelectorAll('.item-row:not(#item-template)');
+    
+    let subtotalGeneral = 0;
+    
+    items.forEach(item => {
+        const cantidad = item.querySelector('input[name="item_cantidad[]"]').value || 0;
+        const precio = item.querySelector('input[name="item_precio[]"]').value || 0;
+        subtotalGeneral += cantidad * precio;
+    });
+    
+    const impuesto = subtotalGeneral * 0.19; // 19% de impuesto
+    const totalGeneral = subtotalGeneral + impuesto;
+    
+    document.getElementById('subtotal-total').textContent = '$' + subtotalGeneral.toFixed(2);
+    document.getElementById('impuesto-total').textContent = '$' + impuesto.toFixed(2);
+    document.getElementById('total-general').textContent = '$' + totalGeneral.toFixed(2);
+}
+
+// Calcular totales al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    calcularTotales();
+});
+</script>
+{% endblock %}

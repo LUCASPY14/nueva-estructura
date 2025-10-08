@@ -14,9 +14,9 @@ class DetalleCompraInline(admin.TabularInline):
 
 @admin.register(Compra)
 class CompraAdmin(admin.ModelAdmin):
-    list_display = ('id', 'proveedor', 'fecha', 'total')
+    list_display = ('id', 'proveedor', 'fecha_compra', 'total')
     search_fields = ('proveedor__nombre',)
-    list_filter = ('proveedor', 'fecha')
+    list_filter = ('proveedor', 'fecha_compra')
     inlines = [DetalleCompraInline]
 
     def save_model(self, request, obj, form, change):

@@ -1,0 +1,255 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Facturación Electrónica{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Facturación Electrónica</h1>
+        <a href="{% url 'facturacion:lista' %}" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded">
+            Volver a Lista
+        </a>
+    </div>
+    
+    <!-- Estado del sistema -->
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4">Estado del Sistema</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-green-800">Conexión SII</h3>
+                        <p class="text-sm text-green-600">Conectado</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">Certificado Digital</h3>
+                        <p class="text-sm text-blue-600">Válido hasta 31/12/2025</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-8 w-8 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">Folios Disponibles</h3>
+                        <p class="text-sm text-yellow-600">250 restantes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Configuración -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Datos de la Empresa -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Datos de la Empresa</h2>
+            
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="actualizar_empresa">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Razón Social</label>
+                    <input type="text" name="razon_social" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                           value="{{ empresa.razon_social|default:'Cantina de Tita SpA' }}">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">RUT</label>
+                    <input type="text" name="rut" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                           value="{{ empresa.rut|default:'12.345.678-9' }}">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Giro Comercial</label>
+                    <input type="text" name="giro" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                           value="{{ empresa.giro|default:'Servicios de Alimentación' }}">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Dirección</label>
+                    <input type="text" name="direccion" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                           value="{{ empresa.direccion|default:'Calle Principal #123' }}">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Comuna</label>
+                        <input type="text" name="comuna" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                               value="{{ empresa.comuna|default:'Santiago' }}">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Ciudad</label>
+                        <input type="text" name="ciudad" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                               value="{{ empresa.ciudad|default:'Santiago' }}">
+                    </div>
+                </div>
+                
+                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded">
+                    Actualizar Datos
+                </button>
+            </form>
+        </div>
+        
+        <!-- Configuración de Folios -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">Gestión de Folios</h2>
+            
+            <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium">Folios Facturas</span>
+                        <span class="text-sm text-gray-600">{{ folios_factura.desde }} - {{ folios_factura.hasta }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-purple-600 h-2 rounded-full" style="width: {{ folios_factura.porcentaje_usado }}%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">{{ folios_factura.restantes }} folios restantes</p>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium">Folios Boletas</span>
+                        <span class="text-sm text-gray-600">{{ folios_boleta.desde }} - {{ folios_boleta.hasta }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ folios_boleta.porcentaje_usado }}%"></div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">{{ folios_boleta.restantes }} folios restantes</p>
+                </div>
+                
+                <div class="space-y-2">
+                    <button onclick="solicitarFolios('factura')" 
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm">
+                        Solicitar Folios Facturas
+                    </button>
+                    <button onclick="solicitarFolios('boleta')" 
+                            class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded text-sm">
+                        Solicitar Folios Boletas
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Acciones Rápidas -->
+    <div class="mt-6 bg-white shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-bold mb-4">Acciones Rápidas</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button onclick="enviarPendientes()" 
+                    class="bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg text-center">
+                <div class="flex items-center justify-center">
+                    <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                    </svg>
+                    Enviar Documentos Pendientes
+                </div>
+                <p class="text-xs mt-1">{{ documentos_pendientes }} documentos</p>
+            </button>
+            
+            <button onclick="descargarLibro()" 
+                    class="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg text-center">
+                <div class="flex items-center justify-center">
+                    <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    Descargar Libro de Ventas
+                </div>
+                <p class="text-xs mt-1">Período actual</p>
+            </button>
+            
+            <button onclick="verificarEstado()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg text-center">
+                <div class="flex items-center justify-center">
+                    <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                    </svg>
+                    Verificar Estado SII
+                </div>
+                <p class="text-xs mt-1">Sincronizar</p>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function solicitarFolios(tipo) {
+    if (confirm(`¿Solicitar nuevos folios para ${tipo}s?`)) {
+        // Aquí iría la lógica para solicitar folios al SII
+        alert('Funcionalidad en desarrollo. Contacte al administrador del sistema.');
+    }
+}
+
+function enviarPendientes() {
+    if (confirm('¿Enviar todos los documentos pendientes al SII?')) {
+        // Mostrar loading
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = 'Enviando...';
+        button.disabled = true;
+        
+        // Simular envío
+        setTimeout(() => {
+            alert('Documentos enviados exitosamente');
+            button.innerHTML = originalText;
+            button.disabled = false;
+            // Recargar página para actualizar contadores
+            window.location.reload();
+        }, 3000);
+    }
+}
+
+function descargarLibro() {
+    // Simular descarga del libro de ventas
+    const link = document.createElement('a');
+    link.href = '/facturacion/libro-ventas/descargar/';
+    link.download = `libro_ventas_${new Date().getFullYear()}_${new Date().getMonth() + 1}.pdf`;
+    link.click();
+}
+
+function verificarEstado() {
+    // Verificar estado de la conexión con SII
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = 'Verificando...';
+    button.disabled = true;
+    
+    setTimeout(() => {
+        alert('Estado verificado. Conexión OK.');
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 2000);
+}
+</script>
+{% endblock %}

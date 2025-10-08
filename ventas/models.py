@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from decimal import Decimal
-from usuarios.models import UsuarioLG
+from usuarios.models import CustomUser
 from alumnos.models import Alumno
 from productos.models import Producto
 import uuid
@@ -33,6 +33,8 @@ class MetodoPago(models.Model):
     descripcion = models.TextField(blank=True, null=True)
     activo = models.BooleanField(default=True)
     requiere_referencia = models.BooleanField(default=False, help_text="Indica si requiere número de referencia")
+    es_tarjeta_cantina = models.BooleanField(default=False, help_text="Si es tarjeta de cantina (genera recibo interno)")
+    orden = models.PositiveIntegerField(default=0, help_text="Orden de aparición en interfaces")
     
     def __str__(self):
         return self.nombre
@@ -40,13 +42,28 @@ class MetodoPago(models.Model):
     class Meta:
         verbose_name = "Método de Pago"
         verbose_name_plural = "Métodos de Pago"
-        ordering = ['nombre']
+        ordering = ['orden', 'nombre']
+        
+    @classmethod
+    def get_metodos_facturables(cls):
+        """Retorna métodos de pago que generan factura legal (no tarjetas de cantina)"""
+        return cls.objects.filter(activo=True, es_tarjeta_cantina=False)
+    
+    @classmethod
+    def get_tarjetas_cantina(cls):
+        """Retorna métodos de pago que son tarjetas de cantina"""
+        return cls.objects.filter(activo=True, es_tarjeta_cantina=True)
+    
+    @classmethod
+    def get_tarjeta_cantina(cls):
+        """Retorna el método de pago de tarjeta exclusiva de cantina"""
+        return cls.objects.filter(codigo='tarjeta_cantina', activo=True).first()
 
 class TurnoCajero(models.Model):
     """
     Control de turnos de cajeros. Cada cajero debe abrir/cerrar su turno.
     """
-    cajero = models.ForeignKey('usuarios.UsuarioLG', on_delete=models.PROTECT, related_name='turnos')
+    cajero = models.ForeignKey('usuarios.CustomUser', on_delete=models.PROTECT, related_name='turnos')
     caja = models.ForeignKey(Caja, on_delete=models.PROTECT, related_name='turnos')
     fecha_inicio = models.DateTimeField(default=timezone.now)
     fecha_fin = models.DateTimeField(null=True, blank=True)
@@ -111,24 +128,26 @@ class TurnoCajero(models.Model):
         ordering = ['-fecha_inicio']
 
 class Venta(models.Model):
-    """Modelo para registrar ventas"""
+    """Modelo para registrar ventas con lógica de facturación diferenciada"""
     ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
         ('completada', 'Completada'),
         ('cancelada', 'Cancelada'),
     ]
     
-    TIPO_PAGO_CHOICES = [
-        ('efectivo', 'Efectivo'),
-        ('tarjeta', 'Tarjeta'),
-        ('saldo', 'Saldo Estudiantil'),
+    TIPO_COMPROBANTE_CHOICES = [
+        ('factura', 'Factura Legal'),
+        ('comprobante_interno', 'Comprobante Interno'),
+        ('sin_comprobante', 'Sin Comprobante'),
+        ('factura_parcial', 'Factura por Diferencia'), # Para pagos mixtos
     ]
     
     # Campos básicos
     numero_venta = models.CharField(max_length=20, unique=True)
     fecha = models.DateTimeField(auto_now_add=True)
-    usuario = models.ForeignKey('usuarios.UsuarioLG', on_delete=models.PROTECT, related_name='ventas')
+    usuario = models.ForeignKey('usuarios.CustomUser', on_delete=models.PROTECT, related_name='ventas')
     alumno = models.ForeignKey('alumnos.Alumno', on_delete=models.PROTECT, related_name='compras', null=True, blank=True)
+    turno_cajero = models.ForeignKey(TurnoCajero, on_delete=models.PROTECT, related_name='ventas', null=True, blank=True)
     
     # Totales
     subtotal = models.DecimalField(
@@ -150,9 +169,27 @@ class Venta(models.Model):
         default=Decimal('0.00')
     )
     
-    # Estado y tipo de pago
+    # Pagos y facturación
+    monto_tarjeta_cantina = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+        default=Decimal('0.00'),
+        help_text="Monto pagado con tarjeta exclusiva de cantina"
+    )
+    monto_otros_medios = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+        default=Decimal('0.00'),
+        help_text="Monto pagado con otros medios (efectivo, tarjetas, etc.)"
+    )
+    
+    # Estado y comprobantes
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
-    tipo_pago = models.CharField(max_length=20, choices=TIPO_PAGO_CHOICES, default='efectivo')
+    tipo_comprobante = models.CharField(max_length=20, choices=TIPO_COMPROBANTE_CHOICES, null=True, blank=True)
+    numero_factura = models.CharField(max_length=30, null=True, blank=True, help_text="Número de factura legal")
+    numero_comprobante_interno = models.CharField(max_length=30, null=True, blank=True)
     
     # Campos adicionales
     notas = models.TextField(blank=True, null=True)
@@ -167,11 +204,60 @@ class Venta(models.Model):
             models.Index(fields=['fecha']),
             models.Index(fields=['estado']),
             models.Index(fields=['usuario']),
-            models.Index(fields=['tipo_pago']),
         ]
 
     def __str__(self):
         return f"Venta {self.numero_venta} - {self.fecha.strftime('%d/%m/%Y')}"
+    
+    @property
+    def es_pago_mixto(self):
+        """Determina si es un pago mixto (tarjeta cantina + otros medios)"""
+        return self.monto_tarjeta_cantina > 0 and self.monto_otros_medios > 0
+    
+    @property
+    def es_solo_tarjeta_cantina(self):
+        """Determina si el pago es únicamente con tarjeta de cantina"""
+        return self.monto_tarjeta_cantina > 0 and self.monto_otros_medios == 0
+    
+    @property
+    def requiere_factura_legal(self):
+        """Determina si requiere factura legal según el tipo de pago"""
+        if self.es_solo_tarjeta_cantina:
+            return False  # Solo comprobante interno
+        elif self.es_pago_mixto:
+            return True   # Factura por la diferencia (monto_otros_medios)
+        else:
+            return True   # Factura completa para otros medios de pago
+    
+    @property
+    def monto_factura(self):
+        """Calcula el monto que debe facturarse legalmente"""
+        if self.es_solo_tarjeta_cantina:
+            return Decimal('0.00')  # No se factura
+        elif self.es_pago_mixto:
+            return self.monto_otros_medios  # Solo la diferencia
+        else:
+            return self.total  # Monto completo
+    
+    def determinar_tipo_comprobante(self):
+        """Determina el tipo de comprobante según la lógica de negocio"""
+        if self.es_solo_tarjeta_cantina:
+            return 'comprobante_interno'
+        elif self.es_pago_mixto:
+            return 'factura_parcial'
+        else:
+            return 'factura'
+    
+    def clean(self):
+        """Validaciones del modelo"""
+        super().clean()
+        
+        # La suma de los pagos debe igualar el total
+        total_pagado = self.monto_tarjeta_cantina + self.monto_otros_medios
+        if total_pagado != self.total:
+            raise ValidationError(
+                f'La suma de los pagos ({total_pagado}) debe igualar el total ({self.total})'
+            )
     
     def save(self, *args, **kwargs):
         if not self.numero_venta:
@@ -180,7 +266,55 @@ class Venta(models.Model):
             today = timezone.now()
             count = Venta.objects.filter(fecha__date=today.date()).count() + 1
             self.numero_venta = f"V{today.strftime('%Y%m%d')}{count:04d}"
+        
+        # Determinar el tipo de comprobante automáticamente
+        if not self.tipo_comprobante:
+            self.tipo_comprobante = self.determinar_tipo_comprobante()
+        
         super().save(*args, **kwargs)
+
+
+class PagoVenta(models.Model):
+    """Modelo para registrar los diferentes métodos de pago de una venta"""
+    venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='pagos')
+    metodo_pago = models.ForeignKey(MetodoPago, on_delete=models.PROTECT)
+    monto = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
+    referencia = models.CharField(
+        max_length=100, 
+        null=True, 
+        blank=True,
+        help_text="Número de referencia, cheque, transferencia, etc."
+    )
+    aprobado = models.BooleanField(default=True)
+    fecha_pago = models.DateTimeField(auto_now_add=True)
+    notas = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        verbose_name = 'Pago de Venta'
+        verbose_name_plural = 'Pagos de Ventas'
+        ordering = ['fecha_pago']
+        indexes = [
+            models.Index(fields=['venta']),
+            models.Index(fields=['metodo_pago']),
+            models.Index(fields=['fecha_pago']),
+        ]
+    
+    def __str__(self):
+        return f"{self.venta.numero_venta} - {self.metodo_pago.nombre}: ₲{self.monto}"
+    
+    def clean(self):
+        """Validaciones del modelo"""
+        super().clean()
+        
+        # Validar que se proporcione referencia si es requerida
+        if self.metodo_pago.requiere_referencia and not self.referencia:
+            raise ValidationError(
+                f'El método de pago {self.metodo_pago.nombre} requiere número de referencia'
+            )
 
 class DetalleVenta(models.Model):
     """Detalle de productos en una venta"""

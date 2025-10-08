@@ -15,7 +15,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
-# Application definition - COMENZAMOS CON APPS MÍNIMAS
+# Application definition
 INSTALLED_APPS = [
     # Django core apps
     'django.contrib.admin',
@@ -25,9 +25,23 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Third party apps
+    'tailwind',
+    'theme',
+    'django_browser_reload',
+
     # Local apps
     'core',
     'usuarios',
+    'alumnos',
+    'ventas',
+    'productos',
+    'proveedores',
+    'compras',
+    'facturacion',
+    'reportes',
+    'configuracion',
+    'ayuda',
 ]
 
 MIDDLEWARE = [
@@ -38,6 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_browser_reload.middleware.BrowserReloadMiddleware',
 ]
 
 ROOT_URLCONF = 'lgservice.urls'
@@ -108,8 +123,26 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Custom User Model
 AUTH_USER_MODEL = 'usuarios.CustomUser'
 
+# Login/Logout URLs
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+# Configuración adicional para la Cantina de Tita
+SITE_NAME = 'Cantina de Tita'
+SITE_DESCRIPTION = 'Sistema Integral de Gestión Escolar'
+
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Tailwind CSS configuration
+TAILWIND_APP_NAME = 'theme'
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
+NPM_BIN_PATH = "/usr/bin/npm"
 
 # Crear directorios requeridos
 os.makedirs(BASE_DIR / 'static', exist_ok=True)

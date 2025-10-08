@@ -3,11 +3,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.conf import settings
-from .forms import LoginForm, RegistroPadreForm, UserCreationForm, UserChangeForm
+from .forms import LoginForm, RegistroPadreForm, CustomUserCreationForm, CustomUserChangeForm
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.contrib.auth.views import LoginView
-from usuarios.models import UsuarioLG
+from usuarios.models import CustomUser
 from ventas.models import Venta
 from productos.models import Producto
 from compras.models import Compra  # Asegúrate que solo importa Compra, no Proveedor
@@ -92,10 +92,10 @@ def registro_padre(request):
 @login_required
 @user_passes_test(es_admin, login_url='usuarios:login_simple')
 def dashboard_admin(request):
-    total_usuarios = UsuarioLG.objects.count()
-    total_admins = UsuarioLG.objects.filter(tipo='ADMIN').count()
-    total_cajeros = UsuarioLG.objects.filter(tipo='CAJERO').count()
-    total_padres = UsuarioLG.objects.filter(tipo='PADRE').count()
+    total_usuarios = CustomUser.objects.count()
+    total_admins = CustomUser.objects.filter(tipo_usuario='administrador').count()
+    total_cajeros = CustomUser.objects.filter(tipo_usuario='cajero').count()
+    total_padres = CustomUser.objects.filter(tipo_usuario='padre').count()
     ventas_recientes = Venta.objects.order_by('-fecha')[:5]
     productos_bajo_stock = Producto.objects.filter(cantidad__lte=10).order_by('cantidad')[:5]  # Ajusta el número y el umbral según tu lógica
     compras_recientes = Compra.objects.order_by('-fecha')[:5]
@@ -131,20 +131,20 @@ def dashboard_padre(request):
 @login_required
 @user_passes_test(es_admin, login_url='usuarios:login_simple')
 def usuarios_lista(request):
-    usuarios = UsuarioLG.objects.all()
+    usuarios = CustomUser.objects.all()
     return render(request, 'usuarios/usuarios_lista.html', {'usuarios': usuarios})
 
 @login_required
 @user_passes_test(es_admin, login_url='usuarios:login_simple')
 def usuario_crear(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, 'Usuario creado exitosamente.')
             return redirect('usuarios:usuarios_lista')
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, 'usuarios/usuario_form.html', {'form': form, 'crear': True})
 
 @login_required
@@ -152,13 +152,13 @@ def usuario_crear(request):
 def usuario_editar(request, pk):
     usuario = get_object_or_404(User, pk=pk)
     if request.method == 'POST':
-        form = UserChangeForm(request.POST, instance=usuario)
+        form = CustomUserChangeForm(request.POST, instance=usuario)
         if form.is_valid():
             form.save()
             messages.success(request, 'Usuario actualizado exitosamente.')
             return redirect('usuarios:usuarios_lista')
     else:
-        form = UserChangeForm(instance=usuario)
+        form = CustomUserChangeForm(instance=usuario)
     return render(request, 'usuarios/usuario_form.html', {'form': form, 'crear': False})
 
 @login_required
