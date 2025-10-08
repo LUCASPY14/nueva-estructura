@@ -68,8 +68,9 @@ class PadreAdmin(admin.ModelAdmin):
 
 @admin.register(Curso)
 class CursoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'descripcion')
-    search_fields = ('nombre',)
+    list_display = ('nombre', 'nivel')  # Corregido: quitar 'descripcion'
+    search_fields = ('nombre', 'nivel')  # Agregado 'nivel' para mayor funcionalidad
+    list_filter = ('nivel',)  # Agregado filtro por nivel
 
 @admin.register(TransaccionTarjeta)
 class TransaccionTarjetaAdmin(admin.ModelAdmin):

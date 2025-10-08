@@ -1,21 +1,23 @@
 from django.contrib import admin
-from .models import Producto, Categoria, MovimientoStock
+from .models import Categoria, Producto, MovimientoStock
 
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'activa', 'descripcion')
-    list_filter = ('activa',)
-    search_fields = ('nombre',)
+    list_display = ['nombre', 'activa']
+    search_fields = ['nombre']
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'codigo', 'precio_venta', 'precio_costo', 'cantidad', 'categoria', 'proveedor', 'stock_actual')
-    list_filter = ('categoria', 'proveedor', 'estado')
-    search_fields = ('nombre', 'codigo', 'codigo_barras')
-    readonly_fields = ('fecha_creacion', 'fecha_actualizacion', 'stock_actual')
+    list_display = ('nombre', 'codigo', 'categoria', 'precio', 'cantidad', 'activo')
+    list_filter = ('activo', 'categoria')
+    search_fields = ('nombre', 'codigo')
+    readonly_fields = ('fecha_creacion', 'fecha_actualizacion')
+    ordering = ('nombre',)
 
 @admin.register(MovimientoStock)
 class MovimientoStockAdmin(admin.ModelAdmin):
-    list_display = ('producto', 'tipo_movimiento', 'cantidad', 'fecha', 'usuario')
-    list_filter = ('tipo_movimiento', 'fecha')
-    search_fields = ('producto__nombre',)
+    list_display = ('producto', 'tipo', 'cantidad', 'fecha', 'usuario')
+    list_filter = ('tipo', 'fecha')
+    search_fields = ('producto__nombre', 'motivo')
+    readonly_fields = ('fecha',)
+    autocomplete_fields = ('producto', 'usuario')

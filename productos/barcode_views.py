@@ -84,3 +84,23 @@ def procesar_codigo(request):
         })
     except Producto.DoesNotExist:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
+
+# barcode_views.py - Vista básica para códigos de barras
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.contrib import messages
+from .models import Producto
+
+@login_required
+def generar_codigo_barras(request, pk):
+    """Vista básica para generar código de barras"""
+    producto = get_object_or_404(Producto, pk=pk)
+    messages.info(request, "Funcionalidad de código de barras en desarrollo")
+    return HttpResponse(f"Código de barras para {producto.nombre} en desarrollo", content_type="text/plain")
+
+@login_required
+def imprimir_etiquetas(request):
+    """Imprimir etiquetas de productos"""
+    messages.info(request, "Funcionalidad de etiquetas en desarrollo")
+    return HttpResponse("Impresión de etiquetas en desarrollo", content_type="text/plain")

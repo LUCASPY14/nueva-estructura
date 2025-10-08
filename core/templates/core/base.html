@@ -1,0 +1,67 @@
+{% load static %}
+{% load django_browser_reload %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ title|default:"LGService" }}{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    {% tailwind_css %}
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Navigation -->
+    {% if user.is_authenticated %}
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold">🏫 LGService</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="{% url 'home' %}" class="hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">Inicio</a>
+                        <a href="{% url 'alumnos:lista' %}" class="hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">Alumnos</a>
+                        <a href="{% url 'productos:lista' %}" class="hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">Productos</a>
+                        <a href="{% url 'ventas:lista' %}" class="hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">Ventas</a>
+                        {% if user.is_staff %}
+                        <a href="{% url 'admin:index' %}" class="hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">Admin</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-sm mr-4">Hola, {{ user.first_name|default:user.username }}</span>
+                    <a href="{% url 'usuarios:logout' %}" class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-md text-sm font-medium">Salir</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Main content -->
+    <main class="{% if user.is_authenticated %}pt-6{% else %}min-h-screen flex items-center justify-center{% endif %}">
+        {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} bg-{{ message.tags == 'error' and 'red' or message.tags == 'success' and 'green' or 'blue' }}-100 border border-{{ message.tags == 'error' and 'red' or message.tags == 'success' and 'green' or 'blue' }}-400 text-{{ message.tags == 'error' and 'red' or message.tags == 'success' and 'green' or 'blue' }}-700 px-4 py-3 rounded mb-4">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Scripts -->
+    {% django_browser_reload_script %}
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

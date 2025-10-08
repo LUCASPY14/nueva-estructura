@@ -111,76 +111,110 @@ class TurnoCajero(models.Model):
         ordering = ['-fecha_inicio']
 
 class Venta(models.Model):
-    """
-    Representa una venta realizada en el punto de venta.
-    """
-    ESTADOS = [
-        ('borrador', 'Borrador'),
+    """Modelo para registrar ventas"""
+    ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
         ('completada', 'Completada'),
-        ('anulada', 'Anulada'),
+        ('cancelada', 'Cancelada'),
     ]
     
-    class Meta:
-        indexes = [
-            models.Index(fields=['fecha', 'estado']),
-            models.Index(fields=['turno', 'estado']),
-            models.Index(fields=['cliente', 'estado']),
-            models.Index(fields=['fecha', 'estado', 'turno']),
-        ]
-        ordering = ['-fecha']class DetalleVenta(models.Model):
-    """
-    Representa un item individual dentro de una venta.
-    """
-    venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='items')
-    producto = models.ForeignKey('productos.Producto', on_delete=models.PROTECT)
-    cantidad = models.DecimalField(max_digits=10, decimal_places=3, validators=[MinValueValidator(0.001)], default=1)
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    descuento_item = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    TIPO_PAGO_CHOICES = [
+        ('efectivo', 'Efectivo'),
+        ('tarjeta', 'Tarjeta'),
+        ('saldo', 'Saldo Estudiantil'),
+    ]
     
-    @property
-    def subtotal(self):
-        """Calcula el subtotal del item"""
-        # Validar que los valores no sean None
-        cantidad = self.cantidad or Decimal('0')
-        precio = self.precio_unitario or Decimal('0')
-        descuento = self.descuento_item or Decimal('0')
-        
-        return (cantidad * precio) - descuento
+    # Campos básicos
+    numero_venta = models.CharField(max_length=20, unique=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey('usuarios.UsuarioLG', on_delete=models.PROTECT, related_name='ventas')
+    alumno = models.ForeignKey('alumnos.Alumno', on_delete=models.PROTECT, related_name='compras', null=True, blank=True)
+    
+    # Totales
+    subtotal = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+        default=Decimal('0.00')
+    )
+    descuento = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+        default=Decimal('0.00')
+    )
+    total = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+        default=Decimal('0.00')
+    )
+    
+    # Estado y tipo de pago
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
+    tipo_pago = models.CharField(max_length=20, choices=TIPO_PAGO_CHOICES, default='efectivo')
+    
+    # Campos adicionales
+    notas = models.TextField(blank=True, null=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Venta'
+        verbose_name_plural = 'Ventas'
+        ordering = ['-fecha']
+        indexes = [
+            models.Index(fields=['numero_venta']),
+            models.Index(fields=['fecha']),
+            models.Index(fields=['estado']),
+            models.Index(fields=['usuario']),
+            models.Index(fields=['tipo_pago']),
+        ]
+
+    def __str__(self):
+        return f"Venta {self.numero_venta} - {self.fecha.strftime('%d/%m/%Y')}"
     
     def save(self, *args, **kwargs):
-        # Si no se especifica precio, usar el precio de venta del producto
-        if not self.precio_unitario and self.producto:
-            self.precio_unitario = self.producto.precio_venta
+        if not self.numero_venta:
+            # Generar número de venta automáticamente
+            from django.utils import timezone
+            today = timezone.now()
+            count = Venta.objects.filter(fecha__date=today.date()).count() + 1
+            self.numero_venta = f"V{today.strftime('%Y%m%d')}{count:04d}"
         super().save(*args, **kwargs)
-    
-    def clean(self):
-        """Validaciones adicionales para el detalle"""
-        super().clean()
-    
-        # Validar cantidad positiva
-        if self.cantidad <= 0:
-            raise ValidationError('La cantidad debe ser mayor a cero.')
-    
-        # Validar precio positivo
-        if self.precio_unitario < 0:
-            raise ValidationError('El precio unitario no puede ser negativo.')
-    
-        # Validar que haya stock disponible
-        if self.producto and self.producto.cantidad < self.cantidad:
-            raise ValidationError(f'Stock insuficiente. Disponible: {self.producto.cantidad}')
-    
-        # Validar que el descuento no sea mayor al subtotal antes del descuento
-        subtotal_sin_descuento = self.cantidad * self.precio_unitario
-        if self.descuento_item > subtotal_sin_descuento:
-            raise ValidationError('El descuento del item no puede ser mayor al subtotal.')
-    
-    def __str__(self):
-        return f"{self.producto.nombre} x {self.cantidad}"
+
+class DetalleVenta(models.Model):
+    """Detalle de productos en una venta"""
+    venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='detalles')
+    producto = models.ForeignKey('productos.Producto', on_delete=models.PROTECT, related_name='ventas_detalle')
+    cantidad = models.IntegerField(validators=[MinValueValidator(1)])
+    precio_unitario = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
+    subtotal = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))],
+        default=Decimal('0.00')
+    )
     
     class Meta:
-        verbose_name = "Detalle de Venta"
-        verbose_name_plural = "Detalles de Venta"
+        verbose_name = 'Detalle de Venta'
+        verbose_name_plural = 'Detalles de Ventas'
+        unique_together = ['venta', 'producto']
+        indexes = [
+            models.Index(fields=['venta']),
+            models.Index(fields=['producto']),
+        ]
+    
+    def __str__(self):
+        return f"{self.venta.numero_venta} - {self.producto.nombre}"
+    
+    def save(self, *args, **kwargs):
+        # Calcular subtotal automáticamente
+        self.subtotal = self.cantidad * self.precio_unitario
+        super().save(*args, **kwargs)
 
 class PagoVenta(models.Model):
     """

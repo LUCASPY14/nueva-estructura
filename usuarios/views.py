@@ -60,6 +60,19 @@ def logout_view(request):
     logout(request)
     return redirect('usuarios:landing')
 
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos')
+    
+    return render(request, 'usuarios/login.html')
+
 # Registro de padres
 def registro_padre(request):
     if request.method == 'POST':
@@ -173,5 +186,9 @@ def padre_dashboard_view(request):
 @user_passes_test(es_cajero, login_url='usuarios:login_simple')
 def cajero_dashboard_view(request):
     return render(request, 'dashboard/cajero_dashboard.html')
+
+@login_required
+def perfil_view(request):
+    return render(request, 'usuarios/perfil.html')
 
 

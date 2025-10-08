@@ -1,5 +1,6 @@
 from django import forms
 from .models import Proveedor
+from productos.models import ProductoProveedor  # Importación correcta
 
 class ProveedorForm(forms.ModelForm):
     class Meta:
@@ -33,12 +34,13 @@ class ProveedorForm(forms.ModelForm):
 
 class ProductoProveedorForm(forms.ModelForm):
     class Meta:
-        model = 'productos.ProductoProveedor'
+        model = ProductoProveedor  # Ahora usa el modelo real
         fields = [
-            'proveedor', 'codigo_producto_proveedor', 'precio',
+            'producto', 'proveedor', 'codigo_producto_proveedor', 'precio',
             'tiempo_entrega', 'cantidad_minima_pedido', 'notas', 'activo'
         ]
         widgets = {
+            'producto': forms.Select(attrs={'class': 'form-control'}),
             'proveedor': forms.Select(attrs={'class': 'form-control'}),
             'codigo_producto_proveedor': forms.TextInput(attrs={'class': 'form-control'}),
             'precio': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),

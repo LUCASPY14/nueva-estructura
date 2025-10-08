@@ -1,23 +1,20 @@
 from django.contrib import admin
-from .models import UsuarioLG
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser
 
-@admin.register(UsuarioLG)
-class UsuarioLGAdmin(admin.ModelAdmin):
-    list_display = ('username', 'first_name', 'last_name', 'email', 'tipo', 'is_active')
-    list_filter = ('tipo', 'is_active', 'is_staff', 'is_superuser')
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
+    list_display = ('username', 'first_name', 'last_name', 'email', 'telefono', 'is_active')
+    list_filter = ('is_active', 'is_staff', 'is_superuser')
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
-    fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        ('Información personal', {'fields': ('first_name', 'last_name', 'email', 'tipo')}),
-        ('Permisos', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-        ('Fechas importantes', {'fields': ('last_login', 'date_joined')}),
+    
+    fieldsets = UserAdmin.fieldsets + (
+        ('Información Adicional', {'fields': ('telefono', 'direccion', 'fecha_nacimiento')}),
     )
-    add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': ('username', 'password1', 'password2', 'tipo'),
-        }),
+    
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ('Información Adicional', {'fields': ('telefono', 'direccion', 'fecha_nacimiento')}),
     )
 
     # Si querés agregar filtros avanzados por grupo, etc., se pueden sumar aquí.

@@ -6,17 +6,6 @@ Ejecutar con: python verificar_sistema_saldo.py
 import os
 import sys
 import django
-
-# Configurar Django con el settings correcto
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'lgservice.settings')
-
-try:
-    django.setup()
-    print("✅ Django configurado correctamente con lgservice.settings")
-except Exception as e:
-    print(f"❌ Error configurando Django: {e}")
-    sys.exit(1)
-
 from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.urls import reverse, NoReverseMatch
