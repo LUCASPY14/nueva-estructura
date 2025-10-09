@@ -281,7 +281,7 @@
             {% for producto in productos_stock_bajo|slice:":6" %}
             <div class="bg-white p-3 rounded border">
                 <h4 class="font-medium text-gray-900">{{ producto.nombre }}</h4>
-                <p class="text-sm text-yellow-600">Stock: {{ producto.stock }} unidades</p>
+                <p class="text-sm text-yellow-600">Stock: {{ producto.stock_actual }} unidades</p>
             </div>
             {% endfor %}
         </div>

@@ -21,7 +21,7 @@ def lista_ventas(request):
 @login_required
 @admin_or_cajero_required
 def nueva_venta(request):
-    productos = Producto.objects.filter(activo=True, stock__gt=0)
+    productos = Producto.objects.filter(activo=True, stock_actual__gt=0)
     alumnos = Alumno.objects.filter(activo=True)
     return render(request, 'ventas/nueva.html', {
         'title': 'Nueva Venta',
@@ -43,14 +43,14 @@ def punto_venta(request):
     # Verificar si hay turno activo
     turno_activo = TurnoCajero.objects.filter(
         cajero=request.user,
-        fecha_cierre__isnull=True
+        fecha_fin__isnull=True
     ).first()
     
     if not turno_activo:
         messages.warning(request, 'Debes abrir un turno antes de usar el punto de venta.')
         return redirect('ventas:abrir_turno')
     
-    productos = Producto.objects.filter(activo=True, stock__gt=0)
+    productos = Producto.objects.filter(activo=True, stock_actual__gt=0)
     categorias = productos.values_list('categoria', flat=True).distinct()
     alumnos = Alumno.objects.filter(activo=True)
     
@@ -94,7 +94,7 @@ def dashboard_cajero(request):
     # Verificar turno activo
     turno_activo = TurnoCajero.objects.filter(
         cajero=request.user,
-        fecha_cierre__isnull=True
+        fecha_fin__isnull=True
     ).first()
     
     # Estadísticas del día
@@ -112,9 +112,9 @@ def dashboard_cajero(request):
     # Productos con stock bajo
     productos_stock_bajo = Producto.objects.filter(
         activo=True,
-        stock__lte=5,
-        stock__gt=0
-    ).order_by('stock')
+        stock_actual__lte=5,
+        stock_actual__gt=0
+    ).order_by('stock_actual')
     
     return render(request, 'ventas/dashboard_cajero.html', {
         'title': 'Dashboard Cajero',
@@ -131,7 +131,7 @@ def abrir_turno(request):
     # Verificar si ya hay un turno activo
     turno_activo = TurnoCajero.objects.filter(
         cajero=request.user,
-        fecha_cierre__isnull=True
+        fecha_fin__isnull=True
     ).first()
     
     if turno_activo:
@@ -169,7 +169,7 @@ def cerrar_turno(request):
     """Vista para cerrar un turno de caja"""
     turno_activo = TurnoCajero.objects.filter(
         cajero=request.user,
-        fecha_cierre__isnull=True
+        fecha_fin__isnull=True
     ).first()
     
     if not turno_activo:
@@ -192,7 +192,7 @@ def cerrar_turno(request):
         
         turno_activo.monto_final = float(monto_final)
         turno_activo.observaciones_cierre = observaciones
-        turno_activo.fecha_cierre = timezone.now()
+        turno_activo.fecha_fin = timezone.now()
         turno_activo.save()
         
         messages.success(request, 'Turno cerrado correctamente')
